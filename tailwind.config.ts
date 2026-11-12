@@ -44,8 +44,9 @@ const config: Config = {
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
         tammi: {
-          primary: "#079455",
-          primaryHover: "#06854D",
+          primary: "#EE0033",
+          primaryHover: "#D6002E",
+          primaryActive: "#BD0029",
           surface: "#F8F8F8",
           background: "#FFFFFF",
           border: "#D7D7D7",

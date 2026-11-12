@@ -77,7 +77,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
         {/* Header - Viettel Red */}
         <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-50/80">
           <div className="flex items-center space-x-2">
-            <div className="w-7 h-7 rounded-md bg-[#079455] flex items-center justify-center text-white">
+            <div className="w-7 h-7 rounded-md bg-[#EE0033] flex items-center justify-center text-white">
               <FolderPlus className="w-4 h-4" />
             </div>
             <h3 className="text-sm font-semibold text-slate-900">Tạo Dự Án Mới</h3>
@@ -105,7 +105,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
               value={name}
               onChange={(e) => handleNameChange(e.target.value)}
               placeholder="e.g. TamTask Core, Mobile App, CRM Platform..."
-              className="w-full text-xs bg-white border border-slate-300 rounded px-3 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#079455]/20 focus:border-[#079455] transition"
+              className="w-full text-xs bg-white border border-slate-300 rounded px-3 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#EE0033]/20 focus:border-[#EE0033] transition"
             />
           </div>
 
@@ -121,7 +121,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
                 value={key}
                 onChange={(e) => setKey(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ""))}
                 placeholder="e.g. TT, PROJ"
-                className="w-full text-xs font-bold uppercase tracking-wider bg-white border border-slate-300 rounded px-3 py-2 text-[#079455] focus:outline-none focus:ring-2 focus:ring-[#079455]/20 focus:border-[#079455] font-mono transition"
+                className="w-full text-xs font-bold uppercase tracking-wider bg-white border border-slate-300 rounded px-3 py-2 text-[#EE0033] focus:outline-none focus:ring-2 focus:ring-[#EE0033]/20 focus:border-[#EE0033] font-mono transition"
               />
             </div>
 
@@ -132,7 +132,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
               <select
                 value={leadId}
                 onChange={(e) => setLeadId(e.target.value)}
-                className="w-full text-xs bg-white border border-slate-300 rounded px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#079455]/20 focus:border-[#079455] transition"
+                className="w-full text-xs bg-white border border-slate-300 rounded px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#EE0033]/20 focus:border-[#EE0033] transition"
               >
                 <option value="">-- Chưa chỉ định --</option>
                 {users.map((u) => (
@@ -153,12 +153,12 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Mục tiêu và phạm vi của dự án này..."
-              className="w-full text-xs bg-white border border-slate-300 rounded px-3 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#079455]/20 focus:border-[#079455] transition"
+              className="w-full text-xs bg-white border border-slate-300 rounded px-3 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#EE0033]/20 focus:border-[#EE0033] transition"
             />
           </div>
 
           <div className="p-3 bg-slate-50 border border-slate-200 rounded-md text-[11px] text-slate-600 flex items-start space-x-2">
-            <Check className="w-4 h-4 text-[#079455] flex-shrink-0 mt-0.5" />
+            <Check className="w-4 h-4 text-[#EE0033] flex-shrink-0 mt-0.5" />
             <span>
               Hệ thống sẽ tự động khởi tạo <strong>Sprint 1</strong>, các <strong>Epic cơ sở</strong> và bộ <strong>Workflow cột Kanban chuẩn</strong> cho dự án này.
             </span>
@@ -176,7 +176,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
             <button
               type="submit"
               disabled={isSubmitting}
-              className="px-4 py-1.5 text-xs font-medium bg-[#079455] hover:bg-[#06854D] text-white rounded-md transition shadow-xs disabled:opacity-50"
+              className="px-4 py-1.5 text-xs font-medium bg-[#EE0033] hover:bg-[#D6002E] text-white rounded-md transition shadow-xs disabled:opacity-50"
             >
               {isSubmitting ? "Đang tạo..." : "Khởi Tạo Dự Án"}
             </button>

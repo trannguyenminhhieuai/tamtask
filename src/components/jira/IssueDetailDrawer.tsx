@@ -454,7 +454,7 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
                 onChange={(e) => setTitle(e.target.value)}
                 onBlur={isViewer ? undefined : handleTitleBlur}
                 className={`w-full text-lg font-bold text-gray-900 border-none rounded px-2 py-1 -ml-2 transition ${
-                  isViewer ? "bg-transparent cursor-default focus:ring-0" : "hover:bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#079455]"
+                  isViewer ? "bg-transparent cursor-default focus:ring-0" : "hover:bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#EE0033]"
                 }`}
               />
             </div>
@@ -499,7 +499,7 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
                     <button
                       type="button"
                       onClick={() => onUpdateIssue({ ...issue, description })}
-                      className="px-3 py-1 text-xs font-medium bg-[#079455] hover:bg-[#06854D] text-white rounded transition shadow-xs"
+                      className="px-3 py-1 text-xs font-medium bg-[#EE0033] hover:bg-[#D6002E] text-white rounded transition shadow-xs"
                     >
                       Lưu mô tả
                     </button>
@@ -516,7 +516,7 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
                   href={issue.prLink}
                   target="_blank"
                   rel="noreferrer"
-                  className="text-[#079455] hover:underline flex items-center gap-1 font-semibold"
+                  className="text-[#EE0033] hover:underline flex items-center gap-1 font-semibold"
                 >
                   <span>{issue.prLink}</span>
                   <ExternalLink className="w-3.5 h-3.5" />
@@ -543,7 +543,7 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
                       checked={sub.isCompleted}
                       disabled={isViewer}
                       onChange={() => toggleSubtask(sub.id)}
-                      className={`w-4 h-4 text-[#079455] rounded focus:ring-0 ${isViewer ? "cursor-not-allowed opacity-60" : "cursor-pointer"}`}
+                      className={`w-4 h-4 text-[#EE0033] rounded focus:ring-0 ${isViewer ? "cursor-not-allowed opacity-60" : "cursor-pointer"}`}
                     />
                     <span
                       className={`text-xs flex-1 ${
@@ -565,7 +565,7 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
                     onChange={(e) => setNewSubtaskTitle(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && addSubtask()}
                     placeholder="+ Add a subtask..."
-                    className="flex-1 text-xs bg-white border border-gray-200 rounded px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#079455]"
+                    className="flex-1 text-xs bg-white border border-gray-200 rounded px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#EE0033]"
                   />
                   <button
                     onClick={addSubtask}
@@ -595,7 +595,7 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
                     disabled={isUploading}
-                    className="text-xs text-[#079455] hover:text-[#06854D] font-semibold flex items-center gap-1 transition"
+                    className="text-xs text-[#EE0033] hover:text-[#D6002E] font-semibold flex items-center gap-1 transition"
                   >
                     <Plus className="w-3.5 h-3.5" />
                     <span>{isUploading ? "Uploading..." : "Attach file"}</span>
@@ -612,13 +612,13 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
                       className="p-2.5 bg-gray-50 hover:bg-gray-100 rounded-md border border-gray-200/80 flex items-center justify-between transition group"
                     >
                       <div className="flex items-center space-x-2.5 overflow-hidden">
-                        <FileText className="w-4 h-4 text-[#079455] flex-shrink-0" />
+                        <FileText className="w-4 h-4 text-[#EE0033] flex-shrink-0" />
                         <div className="overflow-hidden">
                           <a
                             href={att.url}
                             target="_blank"
                             rel="noreferrer"
-                            className="text-xs font-semibold text-gray-800 hover:text-[#079455] truncate block"
+                            className="text-xs font-semibold text-gray-800 hover:text-[#EE0033] truncate block"
                             title={att.name}
                           >
                             {att.name}
@@ -676,7 +676,7 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
                   <button
                     type="button"
                     onClick={() => setIsLinkingOpen(!isLinkingOpen)}
-                    className="text-xs text-[#079455] hover:text-[#06854D] font-semibold flex items-center gap-1 transition"
+                    className="text-xs text-[#EE0033] hover:text-[#D6002E] font-semibold flex items-center gap-1 transition"
                   >
                     <Plus className="w-3.5 h-3.5" />
                     <span>Liên kết công việc</span>
@@ -694,7 +694,7 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
                       <select
                         value={linkType}
                         onChange={(e) => setLinkType(e.target.value as IssueLinkType)}
-                        className="w-full text-xs bg-white border border-slate-200 rounded px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#079455]"
+                        className="w-full text-xs bg-white border border-slate-200 rounded px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#EE0033]"
                       >
                         <option value="BLOCKS">Chặn (Blocks)</option>
                         <option value="IS_BLOCKED_BY">Bị chặn bởi (Is blocked by)</option>
@@ -708,7 +708,7 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
                       <select
                         value={linkTargetId}
                         onChange={(e) => setLinkTargetId(e.target.value)}
-                        className="w-full text-xs bg-white border border-slate-200 rounded px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#079455]"
+                        className="w-full text-xs bg-white border border-slate-200 rounded px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#EE0033]"
                       >
                         <option value="">-- Chọn công việc --</option>
                         {allIssues
@@ -734,7 +734,7 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
                       type="button"
                       onClick={handleAddLink}
                       disabled={!linkTargetId || isSavingLink}
-                      className="px-3 py-1 text-xs font-medium text-white bg-[#079455] hover:bg-[#06854D] rounded transition disabled:opacity-50"
+                      className="px-3 py-1 text-xs font-medium text-white bg-[#EE0033] hover:bg-[#D6002E] rounded transition disabled:opacity-50"
                     >
                       {isSavingLink ? "Đang liên kết..." : "Tạo liên kết"}
                     </button>
@@ -780,7 +780,7 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
                               const found = allIssues.find((i) => i.id === link.targetId);
                               if (found && onSelectIssue) onSelectIssue(found);
                             }}
-                            className="font-mono font-semibold text-slate-700 hover:text-[#079455] cursor-pointer"
+                            className="font-mono font-semibold text-slate-700 hover:text-[#EE0033] cursor-pointer"
                           >
                             {target?.key || "ISSUE"}
                           </span>
@@ -838,7 +838,7 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
                               const found = allIssues.find((i) => i.id === link.sourceId);
                               if (found && onSelectIssue) onSelectIssue(found);
                             }}
-                            className="font-mono font-semibold text-slate-700 hover:text-[#079455] cursor-pointer"
+                            className="font-mono font-semibold text-slate-700 hover:text-[#EE0033] cursor-pointer"
                           >
                             {source?.key || "ISSUE"}
                           </span>
@@ -879,7 +879,7 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
                   onClick={() => setActiveTab("COMMENTS")}
                   className={`pb-2.5 text-xs font-bold uppercase tracking-wider flex items-center space-x-2 border-b-2 transition ${
                     activeTab === "COMMENTS"
-                      ? "border-[#079455] text-[#079455]"
+                      ? "border-[#EE0033] text-[#EE0033]"
                       : "border-transparent text-gray-500 hover:text-gray-800"
                   }`}
                 >
@@ -895,7 +895,7 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
                   onClick={() => setActiveTab("HISTORY")}
                   className={`pb-2.5 text-xs font-bold uppercase tracking-wider flex items-center space-x-2 border-b-2 transition ${
                     activeTab === "HISTORY"
-                      ? "border-[#079455] text-[#079455]"
+                      ? "border-[#EE0033] text-[#EE0033]"
                       : "border-transparent text-gray-500 hover:text-gray-800"
                   }`}
                 >
@@ -943,11 +943,11 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
                         onChange={(e) => setNewComment(e.target.value)}
                         onKeyDown={(e) => e.key === "Enter" && addComment()}
                         placeholder="Viết bình luận..."
-                        className="flex-1 text-xs bg-white border border-gray-200 rounded px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[#079455]"
+                        className="flex-1 text-xs bg-white border border-gray-200 rounded px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[#EE0033]"
                       />
                       <button
                         onClick={addComment}
-                        className="bg-[#079455] hover:bg-[#06854D] text-white px-3 py-2 rounded text-xs font-semibold flex items-center gap-1 transition"
+                        className="bg-[#EE0033] hover:bg-[#D6002E] text-white px-3 py-2 rounded text-xs font-semibold flex items-center gap-1 transition"
                       >
                         <Send className="w-3.5 h-3.5" />
                         <span>Gửi</span>
@@ -966,7 +966,7 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
                     <div className="relative pl-6 space-y-4 before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-gray-200">
                       {issue.activities.map((act) => (
                         <div key={act.id} className="relative flex items-start space-x-3 text-xs">
-                          <span className="absolute -left-[19px] top-1.5 w-2.5 h-2.5 rounded-full bg-[#079455] ring-4 ring-white" />
+                          <span className="absolute -left-[19px] top-1.5 w-2.5 h-2.5 rounded-full bg-[#EE0033] ring-4 ring-white" />
                           <img
                             src={
                               act.actor?.avatar ||
@@ -1051,13 +1051,13 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
               <div className="bg-slate-50 border border-slate-200 rounded-lg p-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-1.5 text-xs font-bold text-slate-800">
-                    <Sparkles className="w-3.5 h-3.5 text-[#079455]" />
+                    <Sparkles className="w-3.5 h-3.5 text-[#EE0033]" />
                     <span>Gợi Ý Phân Phối Tự Động</span>
                   </div>
                   <button
                     onClick={triggerMouse1Triage}
                     disabled={isTriaging}
-                    className="text-[11px] bg-[#079455] hover:bg-[#06854D] text-white font-semibold px-2.5 py-1 rounded transition disabled:opacity-50"
+                    className="text-[11px] bg-[#EE0033] hover:bg-[#D6002E] text-white font-semibold px-2.5 py-1 rounded transition disabled:opacity-50"
                   >
                     {isTriaging ? "Đang tính..." : "Phân phối ngay"}
                   </button>
@@ -1082,7 +1082,7 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
                 value={issue.status}
                 disabled={isViewer}
                 onChange={(e) => handleStatusChange(e.target.value as IssueStatus)}
-                className={`w-full text-xs font-bold border rounded px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#079455] ${
+                className={`w-full text-xs font-bold border rounded px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#EE0033] ${
                   isViewer ? "bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200" : "bg-white text-gray-900 border-gray-300"
                 }`}
               >
@@ -1116,7 +1116,7 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
                   const user = users.find((u) => u.id === e.target.value);
                   onUpdateIssue({ ...issue, assignee: user });
                 }}
-                className={`w-full text-xs border rounded px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#079455] ${
+                className={`w-full text-xs border rounded px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#EE0033] ${
                   isViewer ? "bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200" : "bg-white text-gray-900 border-gray-300"
                 }`}
               >
@@ -1141,7 +1141,7 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
                   const epic = epics.find((ep) => ep.id === e.target.value);
                   onUpdateIssue({ ...issue, epic });
                 }}
-                className={`w-full text-xs border rounded px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#079455] ${
+                className={`w-full text-xs border rounded px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#EE0033] ${
                   isViewer ? "bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200" : "bg-white text-gray-900 border-gray-300"
                 }`}
               >
@@ -1176,7 +1176,7 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
                 onChange={(e) =>
                   onUpdateIssue({ ...issue, priority: e.target.value as IssuePriority })
                 }
-                className={`w-full text-xs border rounded px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#079455] ${
+                className={`w-full text-xs border rounded px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#EE0033] ${
                   isViewer ? "bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200" : "bg-white text-gray-900 border-gray-300"
                 }`}
               >
@@ -1203,7 +1203,7 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
                     storyPoints: e.target.value ? parseInt(e.target.value) : undefined,
                   })
                 }
-                className={`w-full text-xs border rounded px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#079455] ${
+                className={`w-full text-xs border rounded px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#EE0033] ${
                   isViewer ? "bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200" : "bg-white text-gray-900 border-gray-300"
                 }`}
                 placeholder="0"
@@ -1271,7 +1271,7 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
                       }
                     }
                   }}
-                  className="w-full text-xs border border-slate-200 rounded px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#079455] bg-white"
+                  className="w-full text-xs border border-slate-200 rounded px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#EE0033] bg-white"
                 />
               )}
             </div>

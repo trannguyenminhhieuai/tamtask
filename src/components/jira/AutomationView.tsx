@@ -129,7 +129,7 @@ export const AutomationView: React.FC = () => {
         </div>
         <button
           onClick={() => setIsModalOpen(true)}
-          className="bg-[#079455] hover:bg-[#06854D] text-white text-xs font-medium px-3.5 py-2 rounded-md flex items-center gap-1.5 transition shadow-xs"
+          className="bg-[#EE0033] hover:bg-[#D6002E] text-white text-xs font-medium px-3.5 py-2 rounded-md flex items-center gap-1.5 transition shadow-xs"
         >
           <Plus className="w-4 h-4" />
           <span>Tạo Quy Tắc Mới</span>

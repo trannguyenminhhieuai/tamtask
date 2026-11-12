@@ -102,8 +102,8 @@ export const IssueCard: React.FC<IssueCardProps> = ({
       onClick={onClick}
       className={`bg-white p-3 rounded-lg border border-[#D7D7D7] shadow-xs transition-all duration-150 select-none group ${
         isDraggable
-          ? "cursor-grab active:cursor-grabbing hover:shadow-md hover:-translate-y-0.5 hover:border-[#079455]/40 active:scale-[0.98]"
-          : "cursor-pointer hover:border-[#079455]/40 hover:shadow-xs"
+          ? "cursor-grab active:cursor-grabbing hover:shadow-md hover:-translate-y-0.5 hover:border-[#EE0033]/40 active:scale-[0.98]"
+          : "cursor-pointer hover:border-[#EE0033]/40 hover:shadow-xs"
       }`}
     >
       {/* Badges / Epic */}
@@ -143,7 +143,7 @@ export const IssueCard: React.FC<IssueCardProps> = ({
       </div>
 
       {/* Title */}
-      <h4 className="text-xs font-medium text-[#111827] group-hover:text-[#079455] transition line-clamp-2 leading-relaxed">
+      <h4 className="text-xs font-medium text-[#111827] group-hover:text-[#EE0033] transition line-clamp-2 leading-relaxed">
         {issue.title}
       </h4>
 

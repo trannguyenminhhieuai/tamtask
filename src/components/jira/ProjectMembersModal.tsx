@@ -248,8 +248,8 @@ export const ProjectMembersModal: React.FC<ProjectMembersModalProps> = ({
         {/* Body */}
         <div className="p-6 space-y-6 overflow-y-auto flex-1">
           {feedback && (
-            <div className="p-3 bg-rose-50 border border-rose-200 text-[#079455] text-xs font-medium rounded-lg flex items-center gap-2 animate-in fade-in">
-              <Check className="w-4 h-4 text-[#079455] shrink-0" />
+            <div className="p-3 bg-rose-50 border border-rose-200 text-[#EE0033] text-xs font-medium rounded-lg flex items-center gap-2 animate-in fade-in">
+              <Check className="w-4 h-4 text-[#EE0033] shrink-0" />
               <span>{feedback}</span>
             </div>
           )}
@@ -264,7 +264,7 @@ export const ProjectMembersModal: React.FC<ProjectMembersModalProps> = ({
                     onClick={() => setMode("existing")}
                     className={`text-xs font-semibold px-3 py-1 rounded-md transition ${
                       mode === "existing"
-                        ? "bg-[#079455] text-white shadow-xs"
+                        ? "bg-[#EE0033] text-white shadow-xs"
                         : "text-slate-600 hover:bg-slate-200/60"
                     }`}
                   >
@@ -275,7 +275,7 @@ export const ProjectMembersModal: React.FC<ProjectMembersModalProps> = ({
                     onClick={() => setMode("new")}
                     className={`text-xs font-semibold px-3 py-1 rounded-md transition flex items-center gap-1 ${
                       mode === "new"
-                        ? "bg-[#079455] text-white shadow-xs"
+                        ? "bg-[#EE0033] text-white shadow-xs"
                         : "text-slate-600 hover:bg-slate-200/60"
                     }`}
                   >
@@ -292,7 +292,7 @@ export const ProjectMembersModal: React.FC<ProjectMembersModalProps> = ({
                         value={selectedUserId}
                         onChange={(e) => setSelectedUserId(e.target.value)}
                         required
-                        className="w-full text-xs bg-white border border-slate-300 rounded-md px-3 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#079455]/20 focus:border-[#079455]"
+                        className="w-full text-xs bg-white border border-slate-300 rounded-md px-3 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#EE0033]/20 focus:border-[#EE0033]"
                       >
                         <option value="">-- Chọn nhân sự từ hệ thống ({availableUsers.length} khả dụng) --</option>
                         {availableUsers.map((u) => (
@@ -307,7 +307,7 @@ export const ProjectMembersModal: React.FC<ProjectMembersModalProps> = ({
                       <select
                         value={selectedRole}
                         onChange={(e) => setSelectedRole(e.target.value as any)}
-                        className="w-full text-xs bg-white border border-slate-300 rounded-md px-3 py-2 font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#079455]/20 focus:border-[#079455]"
+                        className="w-full text-xs bg-white border border-slate-300 rounded-md px-3 py-2 font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#EE0033]/20 focus:border-[#EE0033]"
                       >
                         <option value="PROJECT_LEAD">Trưởng dự án (Lead)</option>
                         <option value="DEVELOPER">Kỹ sư phần mềm (Dev)</option>
@@ -321,7 +321,7 @@ export const ProjectMembersModal: React.FC<ProjectMembersModalProps> = ({
                     <button
                       type="submit"
                       disabled={!selectedUserId || isSubmitting}
-                      className="px-4 py-2 text-xs font-medium bg-[#079455] hover:bg-[#06854D] text-white rounded-md transition shadow-xs disabled:opacity-50 flex items-center gap-1.5"
+                      className="px-4 py-2 text-xs font-medium bg-[#EE0033] hover:bg-[#D6002E] text-white rounded-md transition shadow-xs disabled:opacity-50 flex items-center gap-1.5"
                     >
                       <UserPlus className="w-3.5 h-3.5" />
                       <span>{isSubmitting ? "Đang gán..." : "Gán Vào Dự Án"}</span>
@@ -339,7 +339,7 @@ export const ProjectMembersModal: React.FC<ProjectMembersModalProps> = ({
                         value={newUserName}
                         onChange={(e) => setNewUserName(e.target.value)}
                         placeholder="Ví dụ: Hoàng Tuấn Anh"
-                        className="w-full bg-white border border-slate-300 rounded-md px-3 py-1.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#079455]/20 focus:border-[#079455]"
+                        className="w-full bg-white border border-slate-300 rounded-md px-3 py-1.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#EE0033]/20 focus:border-[#EE0033]"
                       />
                     </div>
                     <div>
@@ -350,7 +350,7 @@ export const ProjectMembersModal: React.FC<ProjectMembersModalProps> = ({
                         value={newUserEmail}
                         onChange={(e) => setNewUserEmail(e.target.value)}
                         placeholder="tuananh@company.com"
-                        className="w-full bg-white border border-slate-300 rounded-md px-3 py-1.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#079455]/20 focus:border-[#079455]"
+                        className="w-full bg-white border border-slate-300 rounded-md px-3 py-1.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#EE0033]/20 focus:border-[#EE0033]"
                       />
                     </div>
                   </div>
@@ -365,7 +365,7 @@ export const ProjectMembersModal: React.FC<ProjectMembersModalProps> = ({
                       <button
                         type="button"
                         onClick={generateRandomPassword}
-                        className="text-[11px] text-[#079455] hover:underline font-semibold flex items-center gap-1"
+                        className="text-[11px] text-[#EE0033] hover:underline font-semibold flex items-center gap-1"
                       >
                         <KeyRound className="w-3 h-3" />
                         <span>Tạo ngẫu nhiên</span>
@@ -378,7 +378,7 @@ export const ProjectMembersModal: React.FC<ProjectMembersModalProps> = ({
                         required
                         value={newUserPassword}
                         onChange={(e) => setNewUserPassword(e.target.value)}
-                        className="w-full bg-slate-50 border border-slate-300 rounded-md px-3 py-1.5 pr-8 text-slate-900 font-mono text-xs focus:outline-none focus:ring-2 focus:ring-[#079455]/20 focus:border-[#079455]"
+                        className="w-full bg-slate-50 border border-slate-300 rounded-md px-3 py-1.5 pr-8 text-slate-900 font-mono text-xs focus:outline-none focus:ring-2 focus:ring-[#EE0033]/20 focus:border-[#EE0033]"
                       />
                       <button
                         type="button"
@@ -395,7 +395,7 @@ export const ProjectMembersModal: React.FC<ProjectMembersModalProps> = ({
                           type="checkbox"
                           checked={enable2FA}
                           onChange={(e) => setEnable2FA(e.target.checked)}
-                          className="rounded text-[#079455] focus:ring-[#079455]"
+                          className="rounded text-[#EE0033] focus:ring-[#EE0033]"
                         />
                         <span className="font-medium text-slate-700 text-[11px]">
                           Kích hoạt xác thực 2 lớp qua Email OTP (2FA)
@@ -414,7 +414,7 @@ export const ProjectMembersModal: React.FC<ProjectMembersModalProps> = ({
                     <select
                       value={selectedRole}
                       onChange={(e) => setSelectedRole(e.target.value as any)}
-                      className="w-full text-xs bg-white border border-slate-300 rounded-md px-3 py-1.5 font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#079455]/20 focus:border-[#079455]"
+                      className="w-full text-xs bg-white border border-slate-300 rounded-md px-3 py-1.5 font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#EE0033]/20 focus:border-[#EE0033]"
                     >
                       <option value="PROJECT_LEAD">Trưởng dự án (Lead)</option>
                       <option value="DEVELOPER">Kỹ sư phần mềm (Dev)</option>
@@ -427,7 +427,7 @@ export const ProjectMembersModal: React.FC<ProjectMembersModalProps> = ({
                     <button
                       type="submit"
                       disabled={isSubmitting}
-                      className="px-4 py-2 text-xs font-medium bg-[#079455] hover:bg-[#06854D] text-white rounded-md transition shadow-xs disabled:opacity-50 flex items-center gap-1.5"
+                      className="px-4 py-2 text-xs font-medium bg-[#EE0033] hover:bg-[#D6002E] text-white rounded-md transition shadow-xs disabled:opacity-50 flex items-center gap-1.5"
                     >
                       <UserPlus className="w-3.5 h-3.5" />
                       <span>{isSubmitting ? "Đang tạo..." : "Tạo & Cấp Quyền Vào Dự Án"}</span>
@@ -466,7 +466,7 @@ export const ProjectMembersModal: React.FC<ProjectMembersModalProps> = ({
                         <div className="font-semibold text-xs text-gray-900 flex items-center gap-1.5">
                           <span>{m.user?.name}</span>
                           {m.user?.id === project.leadId && (
-                            <span className="text-[10px] bg-rose-50 text-[#079455] font-bold px-1.5 py-0.2 rounded border border-rose-200">
+                            <span className="text-[10px] bg-rose-50 text-[#EE0033] font-bold px-1.5 py-0.2 rounded border border-rose-200">
                               LEAD
                             </span>
                           )}
@@ -481,7 +481,7 @@ export const ProjectMembersModal: React.FC<ProjectMembersModalProps> = ({
                         <select
                           value={m.role}
                           onChange={(e) => handleUpdateRole(m.userId, e.target.value)}
-                          className="text-xs bg-white border border-gray-200 rounded px-2.5 py-1 font-medium text-gray-700 focus:outline-none focus:ring-1 focus:ring-[#079455]"
+                          className="text-xs bg-white border border-gray-200 rounded px-2.5 py-1 font-medium text-gray-700 focus:outline-none focus:ring-1 focus:ring-[#EE0033]"
                         >
                           <option value="PROJECT_LEAD">Trưởng dự án</option>
                           <option value="DEVELOPER">Kỹ sư Dev</option>

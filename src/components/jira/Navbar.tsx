@@ -45,7 +45,7 @@ const ROLE_CONFIG: Record<
   ADMIN: {
     label: "Quản trị viên",
     icon: Shield,
-    color: "bg-emerald-50 text-[#079455] border-emerald-200/80",
+    color: "bg-rose-50 text-[#EE0033] border-rose-200/80",
   },
   PROJECT_LEAD: {
     label: "Trưởng dự án",
@@ -170,7 +170,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             onClick={() => setShowProjectDropdown(!showProjectDropdown)}
             className="flex items-center space-x-2.5 p-1.5 rounded-lg hover:bg-[#F8F8F8] border border-transparent hover:border-[#D7D7D7] transition text-left group"
           >
-            <div className="w-8 h-8 rounded-lg bg-[#079455] flex items-center justify-center text-white shadow-xs font-black text-xs tracking-tight">
+            <div className="w-8 h-8 rounded-lg bg-[#EE0033] flex items-center justify-center text-white shadow-xs font-black text-xs tracking-tight">
               {currentProject ? currentProject.key.slice(0, 3) : "TT"}
             </div>
             <div>
@@ -267,7 +267,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         {canCreateIssue ? (
           <button
             onClick={onCreateIssueClick}
-            className="flex items-center space-x-1.5 bg-[#079455] hover:bg-[#06854D] active:bg-[#057A44] focus:ring-3 focus:ring-[#079455]/20 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition shadow-xs"
+            className="flex items-center space-x-1.5 bg-[#EE0033] hover:bg-[#D6002E] active:bg-[#BD0029] focus:ring-3 focus:ring-[#EE0033]/20 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition shadow-xs"
           >
             <Plus className="w-4 h-4 text-white" />
             <span>Tạo Công Việc</span>
@@ -287,9 +287,9 @@ export const Navbar: React.FC<NavbarProps> = ({
         <button
           type="button"
           onClick={() => onOpenCommandPalette?.()}
-          className="w-full relative flex items-center bg-[#F8F8F8] hover:bg-white border border-[#D7D7D7] hover:border-[#079455] rounded-lg pl-9 pr-3 py-1.5 text-xs text-left text-[#9B9B9B] hover:text-[#111827] transition shadow-2xs group focus:ring-3 focus:ring-[#079455]/20"
+          className="w-full relative flex items-center bg-[#F8F8F8] hover:bg-white border border-[#D7D7D7] hover:border-[#EE0033] rounded-lg pl-9 pr-3 py-1.5 text-xs text-left text-[#9B9B9B] hover:text-[#111827] transition shadow-2xs group focus:ring-3 focus:ring-[#EE0033]/20"
         >
-          <Search className="w-4 h-4 text-[#9B9B9B] group-hover:text-[#079455] absolute left-3 top-1/2 -translate-y-1/2 transition-colors" />
+          <Search className="w-4 h-4 text-[#9B9B9B] group-hover:text-[#EE0033] absolute left-3 top-1/2 -translate-y-1/2 transition-colors" />
           <span className="truncate">
             {searchQuery ? `Lọc: "${searchQuery}"` : `Tìm nhanh task, dự án, lệnh... (Ctrl + K)`}
           </span>
@@ -341,7 +341,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 {unreadCount > 0 && (
                   <button
                     onClick={handleMarkAllAsRead}
-                    className="text-[10px] font-medium text-[#079455] hover:underline"
+                    className="text-[10px] font-medium text-[#EE0033] hover:underline"
                   >
                     Đánh dấu đã đọc
                   </button>
@@ -359,7 +359,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                     >
                       <span
                         className={`w-2 h-2 rounded-full mt-1.5 shrink-0 ${
-                          !n.isRead ? "bg-[#079455]" : "bg-transparent"
+                          !n.isRead ? "bg-[#EE0033]" : "bg-transparent"
                         }`}
                       />
                       <div className="flex-1">
@@ -436,7 +436,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           <div className="pl-2 border-l border-[#D7D7D7]">
             <button
               onClick={() => setIsLoginModalOpen(true)}
-              className="flex items-center space-x-1.5 text-xs font-semibold bg-[#079455] hover:bg-[#06854D] active:bg-[#057A44] text-white px-3.5 py-1.5 rounded-lg transition shadow-xs focus:ring-3 focus:ring-[#079455]/20"
+              className="flex items-center space-x-1.5 text-xs font-semibold bg-[#EE0033] hover:bg-[#D6002E] active:bg-[#BD0029] text-white px-3.5 py-1.5 rounded-lg transition shadow-xs focus:ring-3 focus:ring-[#EE0033]/20"
             >
               <span>Đăng Nhập</span>
             </button>

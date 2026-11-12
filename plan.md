@@ -3258,3 +3258,98 @@ graph LR
 | **TASK-UI-3** | **Thiết kế lại Bảng Kanban & Card Task chuẩn token Figma** | `KanbanBoard.tsx`, `IssueCard.tsx` | **P1 (Cao)** |  Hoàn thành (Surface #F8F8F8, card #FFFFFF) |
 | **TASK-UI-4** | **Thiết kế lại Drawer Chi Tiết Task (Bo góc 12px, nút #079455)** | `IssueDetailDrawer.tsx`, `Toast.tsx` | **P1 (Cao)** |  Hoàn thành (Bo góc 12px, toàn bộ nút #079455) |
 | **TASK-PROD-1** | **Build kiểm thử & Đẩy lên GitHub để Vercel Production cập nhật** | Toàn bộ dự án, GitHub, Vercel | **P0 (Khẩn)** |  Hoàn thành (Build Exit 0 & Sync main) |
+
+---
+
+# 🔴 CHƯƠNG 24: CHUẨN HÓA BẢN SẮC THƯƠNG HIỆU VIETTEL RED (#EE0033), BẢO MẬT TUYỆT ĐỐI & GỬI MÃ XÁC THỰC 2FA QUA EMAIL THẬT
+
+## 24.1. Bối Cảnh & Yêu Cầu Cốt Lõi Từ Người Dùng
+Dựa trên chỉ đạo trực tiếp từ người dùng, hệ thống cần xử lý triệt để 3 vấn đề an toàn và bản sắc:
+1. **Bản sắc thương hiệu Viettel Red (`#EE0033`)**:
+   - Chuyển đổi toàn bộ màu sắc chủ đạo từ xanh lá cây sang màu đỏ thương hiệu đặc trưng của Viettel (`#EE0033`, hover `#D6002E`, active `#BD0029`, ring `3px #EE003326`).
+   - Giữ nguyên cấu trúc phân cấp tinh tế của Figma: Nền `#FFFFFF`, Surface `#F8F8F8`, Border `#D7D7D7`, Text `#111827`, Muted `#9B9B9B`.
+2. **Không để lộ mật khẩu & Không hiển thị sẵn tài khoản**:
+   - Tuyệt đối không điền sẵn email/mật khẩu mẫu trên màn hình đăng nhập.
+   - Các ô nhập liệu phải khởi tạo rỗng (`""`), trường mật khẩu mặc định phải được che giấu bằng ký tự chấm tròn (`type="password"`), hỗ trợ icon mắt bật/tắt an toàn.
+   - Xóa bỏ toàn bộ các thẻ chip gợi ý mật khẩu công khai trên giao diện.
+3. **Mã xác thực 2 lớp (2FA) phải gửi trực tiếp về Email người dùng**:
+   - Tuyệt đối không hiển thị mã OTP trực tiếp lên giao diện hoặc trả về qua response JSON API phía client.
+   - Tích hợp dịch vụ gửi thư `nodemailer` chuẩn hóa qua `src/lib/mail.ts` với giao diện email thương hiệu Viettel Red cao cấp.
+   - Mã OTP 6 chữ số có hiệu lực 5 phút, chỉ dùng 1 lần duy nhất (Single-use OTP).
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor User as Người dùng
+    participant UI as Giao diện Đăng nhập (LoginModal / AuthLanding)
+    participant API as Backend API (/api/auth/2fa)
+    participant DB as Supabase PostgreSQL
+    participant Mailer as Dịch vụ Mailer (src/lib/mail.ts)
+    actor Inbox as Hộp thư Email người dùng
+
+    User->>UI: Nhập Email & Mật khẩu bí mật (Ô trống)
+    UI->>API: POST /api/auth/2fa (action: "request-otp")
+    API->>DB: Truy vấn User & Đối chiếu bcrypt.compare(password, user.password)
+    alt Mật khẩu không đúng
+        API-->>UI: 401 Unauthorized ("Mật khẩu không chính xác")
+        UI-->>User: Báo lỗi viền đỏ, không cấp OTP
+    else Mật khẩu chính xác
+        API->>API: Tạo ngẫu nhiên mã OTP 6 số (Hạn 5 phút)
+        API->>DB: Lưu twoFactorOtp & twoFactorExpiry
+        API->>Mailer: sendOtpEmail(to, otp, Viettel_Template)
+        Mailer->>Inbox: Gửi Email chứa mã OTP 6 số đến hộp thư
+        API-->>UI: { requires2FA: true, message: "Đã gửi mã đến email" } (KHÔNG CÓ OTP TRONG JSON)
+        UI-->>User: Chuyển sang Bước 2 (Nhập 6 số từ email, đếm ngược 5:00)
+    end
+
+    User->>Inbox: Mở email Viettel nhận mã OTP 6 số
+    User->>UI: Nhập 6 số OTP vào giao diện
+    UI->>API: POST /api/auth/2fa (action: "verify-otp", otp)
+    API->>DB: So khớp OTP & Kiểm tra hạn 5 phút
+    alt OTP sai hoặc quá hạn
+        API-->>UI: 400 Bad Request ("Mã OTP không hợp lệ hoặc đã hết hạn")
+    else OTP chính xác
+        API->>DB: Xóa twoFactorOtp (Tránh tấn công phát lại)
+        API-->>UI: 200 OK (Xác thực thành công)
+        UI->>UI: Thiết lập NextAuth Session & Chuyển hướng vào Workspace
+    end
+```
+
+---
+
+## 24.2. Chi Tiết Thực Hiện Từng Thành Phần
+
+### 24.2.1. Cấu Hình Theme Viettel Red (`tailwind.config.ts`)
+- `tammi.primary`: `#EE0033` (Màu đỏ đặc trưng của Viettel).
+- `tammi.primaryHover`: `#D6002E`.
+- `tammi.primaryActive`: `#BD0029`.
+- Áp dụng đồng bộ cho:
+  - Nút **"+ Tạo Công Việc"**, nút **"Tiếp Tục Đăng Nhập"**, nút **"Xác Nhận & Đăng Nhập"**.
+  - Các tab đang chọn trên Sidebar, viền chỉ báo (active indicator).
+  - Trạng thái hover trên tiêu đề task, thanh kéo thả Kanban khi di chuột qua.
+
+### 24.2.2. Xóa Bỏ Hoàn Toàn Rò Rỉ Mật Khẩu & Tài Khoản Mẫu
+- [LoginModal.tsx](file:///c:/Users/Admin/Desktop/Tammi/Jira/src/components/jira/LoginModal.tsx) và [AuthLandingScreen.tsx](file:///c:/Users/Admin/Desktop/Tammi/Jira/src/components/jira/AuthLandingScreen.tsx):
+  - Khởi tạo giá trị ban đầu là chuỗi rỗng: `email = ""`, `password = ""`.
+  - Loại bỏ hoàn toàn khối hiển thị "Mật khẩu mặc định: TamTask@2026!" và "Tài khoản mẫu".
+  - Mật khẩu mặc định ở chế độ ẩn (`type="password"`), hỗ trợ nút ẩn/hiện mắt (`Eye` / `EyeOff`).
+
+### 24.2.3. Dịch Vụ Gửi Email Thật (`src/lib/mail.ts`)
+- Sử dụng `nodemailer` tạo transporter linh hoạt (hỗ trợ SMTP cấu hình qua môi trường hoặc Gmail app password).
+- Bản mẫu Email HTML mang bản sắc Viettel Red cao cấp:
+  - Header đỏ `#EE0033` với tiêu đề thương hiệu Viettel.
+  - Hộp chứa mã OTP 6 chữ số to rõ, kiểu chữ monospace Courier New.
+  - Cảnh báo bảo mật và hạn dùng 5 phút.
+- Endpoint `/api/auth/2fa` loại bỏ hoàn toàn thuộc tính `otpPreview` khỏi kết quả JSON trả về client.
+
+---
+
+## 24.3. Ma Trận Công Việc Thực Thi (Action Execution Matrix)
+
+| Mã Công Việc | Nội Dung Thực Hiện | Tệp Tác Động Chính | Mức Độ | Trạng Thái |
+| :---: | :--- | :--- | :---: | :---: |
+| **TASK-VT-1** | **Cập nhật hệ màu Viettel Red (#EE0033) toàn hệ thống** | `tailwind.config.ts`, `Navbar.tsx`, `Sidebar.tsx`, `KanbanBoard.tsx`,... | **P0 (Khẩn)** |  Hoàn thành (Đã thay toàn bộ các nút & highlight sang #EE0033) |
+| **TASK-VT-2** | **Xóa bỏ tài khoản mẫu & Ẩn mật khẩu khi đăng nhập** | `LoginModal.tsx`, `AuthLandingScreen.tsx` | **P0 (Khẩn)** |  Hoàn thành (Input rỗng 100%, che giấu mật khẩu) |
+| **TASK-VT-3** | **Xây dựng module gửi mail Nodemailer & HTML Template Viettel** | `src/lib/mail.ts`, `package.json` | **P0 (Khẩn)** |  Hoàn thành (Đã cài nodemailer & tạo template HTML) |
+| **TASK-VT-4** | **Xóa bỏ OTP Preview trên API & Giao diện, chỉ gửi qua Mail** | `src/app/api/auth/2fa/route.ts`, `LoginModal.tsx`, `AuthLandingScreen.tsx` | **P0 (Khẩn)** |  Hoàn thành (Loại bỏ triệt để otpPreview) |
+| **TASK-VT-5** | **Build kiểm thử toàn bộ dự án & Đẩy lên GitHub Main (Vercel Auto-deploy)** | Next.js Build, GitHub, Vercel | **P0 (Khẩn)** |  Hoàn thành (Build Exit 0 & Push main) |

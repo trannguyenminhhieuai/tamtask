@@ -271,7 +271,7 @@ export const CreateIssueModal: React.FC<CreateIssueModalProps> = ({
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Ví dụ: Xây dựng giao diện đăng nhập Google SSO"
-              className="w-full text-xs bg-white border border-slate-300 rounded px-3 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#079455]/20 focus:border-[#079455] transition"
+              className="w-full text-xs bg-white border border-slate-300 rounded px-3 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#EE0033]/20 focus:border-[#EE0033] transition"
             />
             {aiMessage && (
               <p className="mt-1 text-[11px] text-emerald-700 font-medium">{aiMessage}</p>
@@ -450,7 +450,7 @@ export const CreateIssueModal: React.FC<CreateIssueModalProps> = ({
             </button>
             <button
               type="submit"
-              className="px-4 py-2 text-xs font-medium bg-[#079455] hover:bg-[#06854D] text-white rounded-md transition shadow-xs"
+              className="px-4 py-2 text-xs font-medium bg-[#EE0033] hover:bg-[#D6002E] text-white rounded-md transition shadow-xs"
             >
               Tạo Công Việc
             </button>

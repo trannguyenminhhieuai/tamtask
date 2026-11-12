@@ -10,22 +10,21 @@ import {
   EyeOff,
   ArrowRight,
   CheckCircle2,
-  Sparkles,
   Layers,
   KeyRound,
-  RefreshCw,
   TrendingUp,
 } from "lucide-react";
 
 export const AuthLandingScreen: React.FC = () => {
-  const [emailInput, setEmailInput] = useState("hieu.tran@company.com");
-  const [passwordInput, setPasswordInput] = useState("TamTask@2026!");
+  // Empty inputs - Do not prefill or reveal any accounts
+  const [emailInput, setEmailInput] = useState("");
+  const [passwordInput, setPasswordInput] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [otpCode, setOtpCode] = useState("");
   const [step, setStep] = useState<"credentials" | "2fa">("credentials");
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [otpPreview, setOtpPreview] = useState<string | null>(null);
+  const [otpNotice, setOtpNotice] = useState<string | null>(null);
   const [timeLeft, setTimeLeft] = useState(300);
 
   useEffect(() => {
@@ -50,6 +49,7 @@ export const AuthLandingScreen: React.FC = () => {
   const handlePasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage(null);
+    setOtpNotice(null);
     if (!emailInput.trim() || !passwordInput) {
       setErrorMessage("Vui lòng nhập đầy đủ Email và Mật khẩu!");
       return;
@@ -75,7 +75,7 @@ export const AuthLandingScreen: React.FC = () => {
       if (data.requires2FA) {
         setStep("2fa");
         setTimeLeft(data.expiresInSeconds || 300);
-        if (data.otpPreview) setOtpPreview(data.otpPreview);
+        setOtpNotice(data.message || `Mã xác thực đã được gửi tới email ${emailInput.trim()}`);
       } else {
         await completeLogin(emailInput.trim());
       }
@@ -89,7 +89,7 @@ export const AuthLandingScreen: React.FC = () => {
   const handleOtpVerify = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!otpCode || otpCode.trim().length !== 6) {
-      setErrorMessage("Vui lòng nhập mã OTP gồm 6 chữ số!");
+      setErrorMessage("Vui lòng nhập đầy đủ mã OTP 6 chữ số nhận từ email!");
       return;
     }
     setIsLoading(true);
@@ -136,17 +136,17 @@ export const AuthLandingScreen: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#FFFFFF] text-[#111827] flex flex-col justify-between select-none font-sans overflow-hidden">
-      {/* Top Header - Tammi OA */}
+      {/* Top Header - Viettel Red Brand Theme */}
       <header className="h-16 border-b border-[#D7D7D7] px-8 flex items-center justify-between bg-[#FFFFFF] sticky top-0 z-30 shadow-xs">
         <div className="flex items-center space-x-3">
-          <div className="w-9 h-9 rounded-lg bg-[#079455] flex items-center justify-center text-white shadow-xs font-black text-sm tracking-wider">
+          <div className="w-9 h-9 rounded-lg bg-[#EE0033] flex items-center justify-center text-white shadow-xs font-black text-sm tracking-wider">
             TT
           </div>
           <div>
             <h1 className="text-base font-bold text-[#111827] tracking-tight flex items-center gap-2">
               <span>TamTask</span>
-              <span className="text-[10px] bg-emerald-50 text-[#079455] font-semibold px-2 py-0.5 rounded-full border border-emerald-200">
-                Tammi OA
+              <span className="text-[10px] bg-rose-50 text-[#EE0033] font-semibold px-2 py-0.5 rounded-full border border-rose-200">
+                Viettel Edition
               </span>
             </h1>
             <p className="text-[11px] text-[#9B9B9B] font-medium">Smart Tasks & Product Mastery</p>
@@ -155,8 +155,8 @@ export const AuthLandingScreen: React.FC = () => {
 
         <div className="flex items-center space-x-2">
           <div className="flex items-center space-x-1.5 bg-[#F8F8F8] border border-[#D7D7D7] text-[#111827] text-xs font-medium px-3 py-1 rounded-full">
-            <ShieldCheck className="w-3.5 h-3.5 text-[#079455]" />
-            <span>Bảo mật 2 lớp (2FA Engine)</span>
+            <ShieldCheck className="w-3.5 h-3.5 text-[#EE0033]" />
+            <span>Bảo mật 2 lớp qua Email</span>
           </div>
         </div>
       </header>
@@ -170,7 +170,7 @@ export const AuthLandingScreen: React.FC = () => {
               Đăng nhập không gian làm việc
             </h2>
             <p className="text-xs text-[#4B5563] leading-relaxed">
-              Quản trị dự án thông minh với chu kỳ phát triển mượt mà và bảo mật đa tầng.
+              Quản trị dự án thông minh với chu kỳ phát triển mượt mà và bảo mật đa tầng chuẩn Viettel.
             </p>
           </div>
 
@@ -214,7 +214,7 @@ export const AuthLandingScreen: React.FC = () => {
                 <div className="relative flex py-1 items-center">
                   <div className="flex-grow border-t border-[#D7D7D7]"></div>
                   <span className="flex-shrink mx-3 text-[10px] font-bold text-[#9B9B9B] uppercase tracking-wider">
-                    Hoặc Email & Mật Khẩu Thật
+                    Hoặc Email & Mật Khẩu
                   </span>
                   <div className="flex-grow border-t border-[#D7D7D7]"></div>
                 </div>
@@ -232,8 +232,8 @@ export const AuthLandingScreen: React.FC = () => {
                         required
                         value={emailInput}
                         onChange={(e) => setEmailInput(e.target.value)}
-                        placeholder="hieu.tran@company.com"
-                        className="w-full text-xs pl-9 pr-3 py-2.5 bg-[#FFFFFF] border border-[#D7D7D7] rounded-lg text-[#111827] placeholder-[#9B9B9B] focus:outline-none focus:border-[#079455] focus:ring-3 focus:ring-[#079455]/20 transition font-medium"
+                        placeholder="name@company.com"
+                        className="w-full text-xs pl-9 pr-3 py-2.5 bg-[#FFFFFF] border border-[#D7D7D7] rounded-lg text-[#111827] placeholder-[#9B9B9B] focus:outline-none focus:border-[#EE0033] focus:ring-3 focus:ring-[#EE0033]/20 transition font-medium"
                       />
                     </div>
                   </div>
@@ -243,9 +243,6 @@ export const AuthLandingScreen: React.FC = () => {
                       <label className="text-[11px] font-semibold text-[#111827] uppercase tracking-wider">
                         Mật Khẩu *
                       </label>
-                      <span className="text-[10px] text-[#9B9B9B] hover:text-[#079455] cursor-pointer">
-                        Mặc định: TamTask@2026!
-                      </span>
                     </div>
                     <div className="relative">
                       <Lock className="w-4 h-4 text-[#9B9B9B] absolute left-3 top-3" />
@@ -254,13 +251,14 @@ export const AuthLandingScreen: React.FC = () => {
                         required
                         value={passwordInput}
                         onChange={(e) => setPasswordInput(e.target.value)}
-                        placeholder="••••••••••••"
-                        className="w-full text-xs pl-9 pr-9 py-2.5 bg-[#FFFFFF] border border-[#D7D7D7] rounded-lg text-[#111827] placeholder-[#9B9B9B] focus:outline-none focus:border-[#079455] focus:ring-3 focus:ring-[#079455]/20 transition font-medium"
+                        placeholder="Nhập mật khẩu..."
+                        className="w-full text-xs pl-9 pr-9 py-2.5 bg-[#FFFFFF] border border-[#D7D7D7] rounded-lg text-[#111827] placeholder-[#9B9B9B] focus:outline-none focus:border-[#EE0033] focus:ring-3 focus:ring-[#EE0033]/20 transition font-medium"
                       />
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
                         className="absolute right-3 top-3 text-[#9B9B9B] hover:text-[#111827]"
+                        title={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
                       >
                         {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                       </button>
@@ -270,58 +268,50 @@ export const AuthLandingScreen: React.FC = () => {
                   <button
                     type="submit"
                     disabled={isLoading}
-                    className="w-full flex items-center justify-center space-x-2 bg-[#079455] hover:bg-[#06854D] text-white py-2.5 rounded-lg text-xs font-bold transition shadow-xs disabled:opacity-50"
+                    className="w-full flex items-center justify-center space-x-2 bg-[#EE0033] hover:bg-[#D6002E] active:bg-[#BD0029] text-white py-2.5 rounded-lg text-xs font-bold transition shadow-xs disabled:opacity-50"
                   >
-                    <span>{isLoading ? "Đang xác thực..." : "Tiếp Tục Đăng Nhập"}</span>
+                    <span>{isLoading ? "Đang xác thực..." : "Tiếp Tục"}</span>
                     <ArrowRight className="w-4 h-4" />
                   </button>
                 </form>
               </>
             ) : (
               <form onSubmit={handleOtpVerify} className="space-y-4 animate-in fade-in">
-                <div className="p-3.5 bg-emerald-50 border border-emerald-200 rounded-lg space-y-2">
-                  <div className="flex items-center justify-between text-xs font-bold text-emerald-900">
+                <div className="p-3.5 bg-rose-50 border border-rose-200 rounded-lg space-y-2">
+                  <div className="flex items-center justify-between text-xs font-bold text-[#EE0033]">
                     <div className="flex items-center gap-1.5">
-                      <ShieldCheck className="w-4 h-4 text-[#079455]" />
+                      <ShieldCheck className="w-4 h-4 text-[#EE0033]" />
                       <span>Xác Thực 2 Lớp (2FA)</span>
                     </div>
-                    <span className="font-mono bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded text-[11px]">
+                    <span className="font-mono bg-rose-100 text-rose-900 px-2 py-0.5 rounded text-[11px] font-bold">
                       {formatTimer(timeLeft)}
                     </span>
                   </div>
-                  <p className="text-[11px] text-emerald-800 leading-relaxed">
-                    Mật khẩu chính xác! Nhập mã OTP 6 số đã gửi tới email <strong>{emailInput}</strong>:
+                  <p className="text-[11px] text-slate-700 leading-relaxed">
+                    Mã xác thực 6 chữ số đã được gửi trực tiếp đến hộp thư: <strong>{emailInput}</strong>. Vui lòng mở email để lấy mã OTP:
                   </p>
-
-                  {otpPreview && (
-                    <div
-                      onClick={() => setOtpCode(otpPreview)}
-                      className="p-2 bg-[#FFFFFF] border border-dashed border-[#079455] rounded flex items-center justify-between cursor-pointer hover:bg-emerald-50 transition"
-                      title="Bấm để tự động điền mã OTP"
-                    >
-                      <span className="text-[11px] text-slate-600">Mã OTP gửi về:</span>
-                      <span className="font-mono font-bold text-sm text-[#079455] tracking-widest">
-                        {otpPreview}
-                      </span>
-                      <span className="text-[10px] text-emerald-700 underline font-medium">Click để điền</span>
+                  {otpNotice && (
+                    <div className="text-[10px] text-slate-500 italic mt-0.5">
+                      {otpNotice}
                     </div>
                   )}
                 </div>
 
                 <div>
                   <label className="block text-xs font-semibold text-[#111827] mb-1.5 text-center">
-                    Mã OTP 6 số
+                    Nhập mã OTP 6 số từ email
                   </label>
                   <div className="relative">
                     <KeyRound className="w-4 h-4 text-[#9B9B9B] absolute left-3 top-1/2 -translate-y-1/2" />
                     <input
                       type="text"
                       required
+                      autoFocus
                       maxLength={6}
                       value={otpCode}
                       onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ""))}
-                      placeholder="123456"
-                      className="w-full text-center text-base tracking-[0.3em] font-mono font-bold bg-[#FFFFFF] border border-[#D7D7D7] rounded-lg py-2.5 text-[#111827] focus:outline-none focus:border-[#079455] focus:ring-3 focus:ring-[#079455]/20 transition"
+                      placeholder="••••••"
+                      className="w-full text-center text-lg tracking-[0.35em] font-mono font-bold bg-[#FFFFFF] border border-[#D7D7D7] rounded-lg py-2.5 text-[#111827] focus:outline-none focus:border-[#EE0033] focus:ring-3 focus:ring-[#EE0033]/20 transition"
                     />
                   </div>
                 </div>
@@ -337,7 +327,7 @@ export const AuthLandingScreen: React.FC = () => {
                   <button
                     type="submit"
                     disabled={isLoading || otpCode.length !== 6}
-                    className="w-2/3 bg-[#079455] hover:bg-[#06854D] text-white text-xs font-bold py-2.5 rounded-lg transition shadow-xs flex items-center justify-center gap-1.5 disabled:opacity-50"
+                    className="w-2/3 bg-[#EE0033] hover:bg-[#D6002E] active:bg-[#BD0029] text-white text-xs font-bold py-2.5 rounded-lg transition shadow-xs flex items-center justify-center gap-1.5 disabled:opacity-50"
                   >
                     <CheckCircle2 className="w-4 h-4" />
                     <span>{isLoading ? "Đang xác nhận..." : "Xác Nhận & Đăng Nhập"}</span>
@@ -348,18 +338,18 @@ export const AuthLandingScreen: React.FC = () => {
           </div>
         </div>
 
-        {/* Right Column: Interactive Product & Project Showcase (7 Cols) - Tammi OA */}
+        {/* Right Column: Interactive Product & Project Showcase (7 Cols) - Viettel Red */}
         <div className="lg:col-span-7 space-y-6 hidden lg:block">
           <div className="bg-[#F8F8F8] rounded-2xl border border-[#D7D7D7] p-8 relative overflow-hidden shadow-xs">
             <div className="space-y-4 relative z-10">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
-                  <span className="w-2.5 h-2.5 rounded-full bg-[#079455] animate-pulse"></span>
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#EE0033] animate-pulse"></span>
                   <span className="text-xs font-bold text-[#111827] uppercase tracking-wider">
-                    Không Gian Quản Trị Tammi OA
+                    Không Gian Quản Trị Viettel
                   </span>
                 </div>
-                <div className="text-xs font-bold text-[#079455] bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
+                <div className="text-xs font-bold text-[#EE0033] bg-rose-50 px-3 py-1 rounded-full border border-rose-200">
                   Sprint Hiện Tại: 48 pts
                 </div>
               </div>
@@ -373,7 +363,7 @@ export const AuthLandingScreen: React.FC = () => {
                     <span className="text-[10px] bg-slate-100 px-1.5 py-0.2 rounded-full text-slate-700">2</span>
                   </div>
                   <div className="bg-[#F8F8F8] p-2.5 rounded-md border border-[#D7D7D7] space-y-1">
-                    <span className="text-[9px] font-bold text-[#079455] bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
+                    <span className="text-[9px] font-bold text-[#EE0033] bg-rose-50 px-1.5 py-0.5 rounded border border-rose-200">
                       #Feature
                     </span>
                     <p className="text-xs font-semibold text-[#111827]">Kiến trúc đa dự án độc lập</p>
@@ -388,17 +378,17 @@ export const AuthLandingScreen: React.FC = () => {
 
                 {/* Column 2 */}
                 <div className="bg-[#FFFFFF] rounded-lg p-3 border border-[#D7D7D7] space-y-2 shadow-2xs">
-                  <div className="text-[11px] font-bold text-[#079455] uppercase tracking-wider flex items-center justify-between">
+                  <div className="text-[11px] font-bold text-[#EE0033] uppercase tracking-wider flex items-center justify-between">
                     <span>Đang Xử Lý</span>
-                    <span className="text-[10px] bg-emerald-100 px-1.5 py-0.2 rounded-full text-[#079455]">1</span>
+                    <span className="text-[10px] bg-rose-100 px-1.5 py-0.2 rounded-full text-[#EE0033]">1</span>
                   </div>
-                  <div className="bg-[#F8F8F8] p-2.5 rounded-md border border-emerald-300 space-y-1.5 ring-1 ring-[#079455]/20">
+                  <div className="bg-[#F8F8F8] p-2.5 rounded-md border border-rose-300 space-y-1.5 ring-1 ring-[#EE0033]/20">
                     <span className="text-[9px] font-bold text-amber-800 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200">
                       #High Priority
                     </span>
                     <p className="text-xs font-semibold text-[#111827]">Xác thực 2 lớp qua Email OTP</p>
                     <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
-                      <div className="bg-[#079455] h-full rounded-full w-3/4"></div>
+                      <div className="bg-[#EE0033] h-full rounded-full w-3/4"></div>
                     </div>
                   </div>
                 </div>
@@ -422,12 +412,12 @@ export const AuthLandingScreen: React.FC = () => {
               {/* Delivery Metric Spotlight */}
               <div className="grid grid-cols-2 gap-3 pt-2">
                 <div className="p-3 bg-[#FFFFFF] rounded-lg border border-[#D7D7D7] flex items-center space-x-3">
-                  <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center text-[#079455]">
+                  <div className="w-8 h-8 rounded-lg bg-rose-50 flex items-center justify-center text-[#EE0033]">
                     <TrendingUp className="w-4 h-4" />
                   </div>
                   <div>
                     <div className="text-[10px] font-bold text-[#9B9B9B] uppercase tracking-wider">Hiệu suất bàn giao</div>
-                    <div className="text-base font-black text-[#079455]">100% On-time</div>
+                    <div className="text-base font-black text-[#EE0033]">100% On-time</div>
                   </div>
                 </div>
 
@@ -446,9 +436,9 @@ export const AuthLandingScreen: React.FC = () => {
         </div>
       </main>
 
-      {/* Footer - Tammi OA */}
+      {/* Footer - Viettel Red */}
       <footer className="h-12 bg-[#FFFFFF] border-t border-[#D7D7D7] px-8 flex items-center justify-between text-xs text-[#9B9B9B]">
-        <span>TamTask Platform © 2026. Design System derived from Tammi OA.</span>
+        <span>TamTask Platform © 2026. Viettel Red Signature Corporate Edition.</span>
         <span>Bảo mật dữ liệu chuẩn SOC2 & ISO/IEC 27001</span>
       </footer>
     </div>

@@ -10,15 +10,15 @@ interface LoginModalProps {
 }
 
 export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
-  const [email, setEmail] = useState("hieu.tran@company.com");
-  const [password, setPassword] = useState("TamTask@2026!");
+  // Empty inputs by default - Never prefill or expose credentials
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [otpCode, setOtpCode] = useState("");
   const [step, setStep] = useState<"credentials" | "2fa">("credentials");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [otpNotice, setOtpNotice] = useState<string | null>(null);
-  const [otpPreview, setOtpPreview] = useState<string | null>(null);
   const [timeLeft, setTimeLeft] = useState(300); // 5 minutes
 
   // Countdown timer for 2FA
@@ -29,6 +29,19 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
     }
     return () => clearInterval(timer);
   }, [step, timeLeft]);
+
+  // Reset fields when opening modal
+  useEffect(() => {
+    if (isOpen) {
+      setEmail("");
+      setPassword("");
+      setOtpCode("");
+      setStep("credentials");
+      setError(null);
+      setOtpNotice(null);
+      setShowPassword(false);
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -44,13 +57,13 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
     setOtpNotice(null);
 
     if (!email.trim() || !password) {
-      setError("Vui lòng nhập đầy đủ Email và Mật khẩu");
+      setError("Vui lòng nhập đầy đủ Email và Mật khẩu.");
       return;
     }
 
     setIsLoading(true);
     try {
-      // 1. Verify password & request 2FA OTP from backend
+      // 1. Verify password & trigger 2FA email delivery from server
       const res = await fetch("/api/auth/2fa", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -70,16 +83,13 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
       if (data.requires2FA) {
         setStep("2fa");
         setTimeLeft(data.expiresInSeconds || 300);
-        setOtpNotice(data.message);
-        if (data.otpPreview) {
-          setOtpPreview(data.otpPreview);
-        }
+        setOtpNotice(data.message || `Mã xác thực 6 chữ số đã được gửi đến email ${email.trim()}.`);
       } else {
-        // Direct sign in if 2FA disabled
+        // Direct sign in if 2FA is disabled
         await performSignIn(email.trim());
       }
     } catch (err: any) {
-      setError(err?.message || "Đăng nhập thất bại");
+      setError(err?.message || "Đăng nhập thất bại.");
     } finally {
       setIsLoading(false);
     }
@@ -88,7 +98,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
   const handleOtpVerify = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!otpCode || otpCode.trim().length !== 6) {
-      setError("Vui lòng nhập đầy đủ mã OTP 6 chữ số.");
+      setError("Vui lòng nhập đầy đủ mã OTP 6 chữ số nhận được trong email.");
       return;
     }
 
@@ -96,7 +106,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
     setError(null);
 
     try {
-      // 2. Verify OTP with server
+      // 2. Verify OTP with server (single-use)
       const res = await fetch("/api/auth/2fa", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -153,11 +163,12 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
       const data = await res.json();
       if (res.ok) {
         setTimeLeft(300);
-        setOtpNotice("Đã gửi mã OTP mới tới email của bạn!");
-        if (data.otpPreview) setOtpPreview(data.otpPreview);
+        setOtpNotice(`Đã gửi lại mã OTP mới tới email ${email.trim()}!`);
+      } else {
+        setError(data.error || "Không thể gửi lại mã OTP.");
       }
     } catch (err: any) {
-      setError("Không thể gửi lại mã OTP.");
+      setError("Không thể gửi lại mã OTP. Vui lòng thử lại sau.");
     } finally {
       setIsLoading(false);
     }
@@ -170,15 +181,15 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in">
       <div className="bg-[#FFFFFF] rounded-xl shadow-2xl w-full max-w-md overflow-hidden border border-[#D7D7D7] animate-in zoom-in-95 duration-150">
-        {/* Header - Tammi OA Design System */}
+        {/* Header - Viettel Red Brand Theme (#EE0033) */}
         <div className="px-6 py-4 border-b border-[#D7D7D7] flex items-center justify-between bg-[#F8F8F8]">
           <div className="flex items-center space-x-2.5">
-            <div className="w-8 h-8 rounded-lg bg-[#079455] flex items-center justify-center text-white text-xs font-black shadow-xs tracking-wider">
+            <div className="w-8 h-8 rounded-lg bg-[#EE0033] flex items-center justify-center text-white text-xs font-black shadow-xs tracking-wider">
               TT
             </div>
             <div>
               <h3 className="text-sm font-bold text-[#111827]">Đăng Nhập TamTask</h3>
-              <p className="text-[11px] text-[#9B9B9B]">Hệ thống bảo mật 2 lớp chuẩn Tammi OA</p>
+              <p className="text-[11px] text-[#9B9B9B]">Bảo mật 2 lớp qua Email - Chuẩn Viettel</p>
             </div>
           </div>
           <button
@@ -207,10 +218,11 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
                   <input
                     type="email"
                     required
+                    autoFocus
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="hieu.tran@company.com"
-                    className="w-full text-xs bg-[#F8F8F8] border border-[#D7D7D7] rounded-lg pl-9 pr-3 py-2.5 text-[#111827] focus:bg-[#FFFFFF] focus:outline-none focus:border-[#079455] focus:ring-3 focus:ring-[#079455]/20 transition"
+                    placeholder="name@company.com"
+                    className="w-full text-xs bg-[#F8F8F8] border border-[#D7D7D7] rounded-lg pl-9 pr-3 py-2.5 text-[#111827] focus:bg-[#FFFFFF] focus:outline-none focus:border-[#EE0033] focus:ring-3 focus:ring-[#EE0033]/20 transition"
                   />
                 </div>
               </div>
@@ -220,9 +232,6 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
                   <label className="text-xs font-semibold text-[#111827]">
                     Mật khẩu xác thực *
                   </label>
-                  <span className="text-[11px] text-[#9B9B9B] hover:text-[#079455] cursor-pointer">
-                    Mật khẩu mặc định: TamTask@2026!
-                  </span>
                 </div>
                 <div className="relative">
                   <Lock className="w-4 h-4 text-[#9B9B9B] absolute left-3 top-1/2 -translate-y-1/2" />
@@ -231,13 +240,14 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••••••"
-                    className="w-full text-xs bg-[#F8F8F8] border border-[#D7D7D7] rounded-lg pl-9 pr-9 py-2.5 text-[#111827] focus:bg-[#FFFFFF] focus:outline-none focus:border-[#079455] focus:ring-3 focus:ring-[#079455]/20 transition"
+                    placeholder="Nhập mật khẩu của bạn..."
+                    className="w-full text-xs bg-[#F8F8F8] border border-[#D7D7D7] rounded-lg pl-9 pr-9 py-2.5 text-[#111827] focus:bg-[#FFFFFF] focus:outline-none focus:border-[#EE0033] focus:ring-3 focus:ring-[#EE0033]/20 transition"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-[#9B9B9B] hover:text-[#111827]"
+                    title={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
                   >
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
@@ -247,58 +257,49 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full bg-[#079455] hover:bg-[#06854D] text-white text-xs font-bold py-2.5 rounded-lg transition shadow-xs flex items-center justify-center gap-2 disabled:opacity-50"
+                className="w-full bg-[#EE0033] hover:bg-[#D6002E] active:bg-[#BD0029] text-white text-xs font-bold py-2.5 rounded-lg transition shadow-xs flex items-center justify-center gap-2 disabled:opacity-50"
               >
-                <span>{isLoading ? "Đang xác thực mật khẩu..." : "Tiếp Tục Đăng Nhập"}</span>
+                <span>{isLoading ? "Đang kiểm tra mật khẩu..." : "Tiếp Tục"}</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
             </form>
           ) : (
             <form onSubmit={handleOtpVerify} className="space-y-4 animate-in fade-in">
-              <div className="p-3.5 bg-emerald-50/70 border border-emerald-200 rounded-lg space-y-1.5">
-                <div className="flex items-center justify-between text-xs font-bold text-emerald-900">
+              <div className="p-3.5 bg-rose-50/70 border border-rose-200 rounded-lg space-y-1.5">
+                <div className="flex items-center justify-between text-xs font-bold text-[#EE0033]">
                   <div className="flex items-center gap-1.5">
-                    <ShieldCheck className="w-4 h-4 text-[#079455]" />
+                    <ShieldCheck className="w-4 h-4 text-[#EE0033]" />
                     <span>Xác Thực 2 Lớp (2FA Security)</span>
                   </div>
-                  <span className="text-[11px] font-mono text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded">
+                  <span className="text-[11px] font-mono text-rose-900 bg-rose-100 px-2 py-0.5 rounded font-bold">
                     {formatTimer(timeLeft)}
                   </span>
                 </div>
-                <p className="text-[11px] text-emerald-800 leading-relaxed">
-                  Mật khẩu chính xác! Vui lòng nhập mã OTP gồm 6 chữ số đã gửi về email <strong>{email}</strong>:
+                <p className="text-[11px] text-slate-700 leading-relaxed">
+                  Mã OTP 6 chữ số đã được gửi trực tiếp đến hộp thư: <strong>{email}</strong>. Vui lòng kiểm tra hộp thư đến (hoặc hòm thư Spam) để lấy mã xác nhận:
                 </p>
-
-                {/* OTP Preview helper */}
-                {otpPreview && (
-                  <div
-                    onClick={() => setOtpCode(otpPreview)}
-                    className="mt-1 p-2 bg-[#FFFFFF] border border-dashed border-[#079455] rounded flex items-center justify-between cursor-pointer hover:bg-emerald-50 transition"
-                    title="Bấm để tự động điền mã OTP"
-                  >
-                    <span className="text-[11px] text-slate-600">Mã OTP gửi về:</span>
-                    <span className="font-mono font-bold text-sm text-[#079455] tracking-widest">
-                      {otpPreview}
-                    </span>
-                    <span className="text-[10px] text-emerald-700 underline font-medium">Click để điền</span>
+                {otpNotice && (
+                  <div className="text-[10px] text-slate-500 italic mt-0.5">
+                    {otpNotice}
                   </div>
                 )}
               </div>
 
               <div>
                 <label className="block text-xs font-semibold text-[#111827] mb-1.5 text-center">
-                  Nhập mã OTP 6 chữ số
+                  Nhập mã OTP 6 chữ số từ email
                 </label>
                 <div className="relative">
                   <KeyRound className="w-4 h-4 text-[#9B9B9B] absolute left-3 top-1/2 -translate-y-1/2" />
                   <input
                     type="text"
                     required
+                    autoFocus
                     maxLength={6}
                     value={otpCode}
                     onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ""))}
-                    placeholder="123456"
-                    className="w-full text-center text-base tracking-[0.3em] font-mono font-bold bg-[#F8F8F8] border border-[#D7D7D7] rounded-lg py-2.5 text-[#111827] focus:bg-[#FFFFFF] focus:outline-none focus:border-[#079455] focus:ring-3 focus:ring-[#079455]/20 transition"
+                    placeholder="••••••"
+                    className="w-full text-center text-lg tracking-[0.35em] font-mono font-bold bg-[#F8F8F8] border border-[#D7D7D7] rounded-lg py-2.5 text-[#111827] focus:bg-[#FFFFFF] focus:outline-none focus:border-[#EE0033] focus:ring-3 focus:ring-[#EE0033]/20 transition"
                   />
                 </div>
               </div>
@@ -308,10 +309,10 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
                   type="button"
                   onClick={handleResendOtp}
                   disabled={isLoading || timeLeft > 270}
-                  className="text-[11px] text-[#079455] hover:underline font-semibold flex items-center gap-1 disabled:opacity-40"
+                  className="text-[11px] text-[#EE0033] hover:underline font-semibold flex items-center gap-1 disabled:opacity-40"
                 >
                   <RefreshCw className="w-3 h-3" />
-                  <span>Gửi lại mã OTP</span>
+                  <span>Gửi lại mã vào email</span>
                 </button>
                 <button
                   type="button"
@@ -333,10 +334,10 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
                 <button
                   type="submit"
                   disabled={isLoading || otpCode.length !== 6}
-                  className="w-2/3 bg-[#079455] hover:bg-[#06854D] text-white text-xs font-bold py-2.5 rounded-lg transition shadow-xs flex items-center justify-center gap-1.5 disabled:opacity-50"
+                  className="w-2/3 bg-[#EE0033] hover:bg-[#D6002E] active:bg-[#BD0029] text-white text-xs font-bold py-2.5 rounded-lg transition shadow-xs flex items-center justify-center gap-1.5 disabled:opacity-50"
                 >
                   <CheckCircle2 className="w-4 h-4" />
-                  <span>{isLoading ? "Đang xác thực..." : "Xác Nhận & Đăng Nhập"}</span>
+                  <span>{isLoading ? "Đang xác minh..." : "Xác Nhận & Đăng Nhập"}</span>
                 </button>
               </div>
             </form>

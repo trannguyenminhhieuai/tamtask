@@ -213,7 +213,7 @@ export const BacklogView: React.FC<BacklogViewProps> = ({
           {!isViewer && (
             <button
               onClick={onCreateIssueClick}
-              className="bg-[#079455] hover:bg-[#06854D] text-white text-xs font-medium px-3 py-2 rounded-md flex items-center gap-1.5 transition shadow-xs"
+              className="bg-[#EE0033] hover:bg-[#D6002E] text-white text-xs font-medium px-3 py-2 rounded-md flex items-center gap-1.5 transition shadow-xs"
             >
               <Plus className="w-4 h-4" />
               <span>Tạo Issue</span>
@@ -276,7 +276,7 @@ export const BacklogView: React.FC<BacklogViewProps> = ({
             onDrop={(e) => handleDrop(e, sprint.id)}
             className={`bg-white rounded-lg border shadow-xs overflow-hidden transition-all ${
               isOver
-                ? "border-[#079455]/60 ring-2 ring-rose-200 ring-dashed bg-rose-50/20"
+                ? "border-[#EE0033]/60 ring-2 ring-rose-200 ring-dashed bg-rose-50/20"
                 : "border-slate-200"
             }`}
           >
@@ -290,7 +290,7 @@ export const BacklogView: React.FC<BacklogViewProps> = ({
                     title="Chọn tất cả trong Sprint"
                   >
                     {sprintIssues.length > 0 && sprintIssues.every((i) => selectedIssueIds.includes(i.id)) ? (
-                      <CheckSquare className="w-4 h-4 text-[#079455]" />
+                      <CheckSquare className="w-4 h-4 text-[#EE0033]" />
                     ) : (
                       <Square className="w-4 h-4" />
                     )}
@@ -330,7 +330,7 @@ export const BacklogView: React.FC<BacklogViewProps> = ({
                   ) : (
                     <button
                       onClick={() => onStartSprint(sprint.id)}
-                      className="text-xs font-medium bg-[#079455] hover:bg-[#06854D] text-white px-3 py-1.5 rounded-md transition flex items-center gap-1 shadow-xs"
+                      className="text-xs font-medium bg-[#EE0033] hover:bg-[#D6002E] text-white px-3 py-1.5 rounded-md transition flex items-center gap-1 shadow-xs"
                     >
                       <Play className="w-3.5 h-3.5" />
                       <span>Bắt đầu Sprint</span>
@@ -391,7 +391,7 @@ export const BacklogView: React.FC<BacklogViewProps> = ({
                         className="text-slate-400 hover:text-slate-700 transition"
                       >
                         {selectedIssueIds.includes(issue.id) ? (
-                          <CheckSquare className="w-4 h-4 text-[#079455]" />
+                          <CheckSquare className="w-4 h-4 text-[#EE0033]" />
                         ) : (
                           <Square className="w-4 h-4" />
                         )}
@@ -402,7 +402,7 @@ export const BacklogView: React.FC<BacklogViewProps> = ({
                         <GripVertical className="w-4 h-4" />
                       </span>
                     )}
-                    <span className="text-xs font-semibold text-slate-700 font-mono group-hover:text-[#079455] transition">{issue.key}</span>
+                    <span className="text-xs font-semibold text-slate-700 font-mono group-hover:text-[#EE0033] transition">{issue.key}</span>
                     <span className="text-xs text-gray-900 font-medium">{issue.title}</span>
                   </div>
 
@@ -479,7 +479,7 @@ export const BacklogView: React.FC<BacklogViewProps> = ({
         onDrop={(e) => handleDrop(e, null)}
         className={`bg-white rounded-lg border shadow-xs overflow-hidden transition-all ${
           dragOverContainerId === "backlog"
-            ? "border-[#079455]/60 ring-2 ring-rose-200 ring-dashed bg-rose-50/20"
+            ? "border-[#EE0033]/60 ring-2 ring-rose-200 ring-dashed bg-rose-50/20"
             : "border-slate-200"
         }`}
       >
@@ -492,7 +492,7 @@ export const BacklogView: React.FC<BacklogViewProps> = ({
                 title="Chọn tất cả trong Backlog"
               >
                 {backlogIssues.length > 0 && backlogIssues.every((i) => selectedIssueIds.includes(i.id)) ? (
-                  <CheckSquare className="w-4 h-4 text-[#079455]" />
+                  <CheckSquare className="w-4 h-4 text-[#EE0033]" />
                 ) : (
                   <Square className="w-4 h-4" />
                 )}
@@ -506,7 +506,7 @@ export const BacklogView: React.FC<BacklogViewProps> = ({
           {!isViewer && (
             <button
               onClick={onCreateIssueClick}
-              className="text-xs font-medium text-[#079455] hover:text-[#06854D] flex items-center gap-1 transition"
+              className="text-xs font-medium text-[#EE0033] hover:text-[#D6002E] flex items-center gap-1 transition"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>Tạo công việc</span>
@@ -534,7 +534,7 @@ export const BacklogView: React.FC<BacklogViewProps> = ({
                     className="text-slate-400 hover:text-slate-700 transition"
                   >
                     {selectedIssueIds.includes(issue.id) ? (
-                      <CheckSquare className="w-4 h-4 text-[#079455]" />
+                      <CheckSquare className="w-4 h-4 text-[#EE0033]" />
                     ) : (
                       <Square className="w-4 h-4" />
                     )}
@@ -545,7 +545,7 @@ export const BacklogView: React.FC<BacklogViewProps> = ({
                     <GripVertical className="w-4 h-4" />
                   </span>
                 )}
-                <span className="text-xs font-semibold text-slate-700 font-mono group-hover:text-[#079455] transition">{issue.key}</span>
+                <span className="text-xs font-semibold text-slate-700 font-mono group-hover:text-[#EE0033] transition">{issue.key}</span>
                 <span className="text-xs text-gray-900 font-medium">{issue.title}</span>
               </div>
 
@@ -654,7 +654,7 @@ export const BacklogView: React.FC<BacklogViewProps> = ({
       {selectedIssueIds.length > 0 && !isViewer && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 bg-slate-900 text-white px-5 py-3 rounded-xl shadow-2xl flex flex-wrap items-center gap-3 border border-slate-700 animate-in slide-in-from-bottom duration-200">
           <div className="flex items-center space-x-2 border-r border-slate-700 pr-3">
-            <span className="w-5 h-5 rounded bg-[#079455] text-white text-xs font-bold flex items-center justify-center">
+            <span className="w-5 h-5 rounded bg-[#EE0033] text-white text-xs font-bold flex items-center justify-center">
               {selectedIssueIds.length}
             </span>
             <span className="text-xs font-medium text-slate-200">đã chọn</span>
@@ -672,7 +672,7 @@ export const BacklogView: React.FC<BacklogViewProps> = ({
                   e.target.value = "";
                 }
               }}
-              className="text-xs bg-slate-800 text-slate-200 border border-slate-700 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-[#079455]"
+              className="text-xs bg-slate-800 text-slate-200 border border-slate-700 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-[#EE0033]"
             >
               <option value="" disabled>
                 Chọn Sprint...
@@ -698,7 +698,7 @@ export const BacklogView: React.FC<BacklogViewProps> = ({
                   e.target.value = "";
                 }
               }}
-              className="text-xs bg-slate-800 text-slate-200 border border-slate-700 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-[#079455]"
+              className="text-xs bg-slate-800 text-slate-200 border border-slate-700 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-[#EE0033]"
             >
               <option value="" disabled>
                 Đổi trạng thái...
@@ -724,7 +724,7 @@ export const BacklogView: React.FC<BacklogViewProps> = ({
                   e.target.value = "";
                 }
               }}
-              className="text-xs bg-slate-800 text-slate-200 border border-slate-700 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-[#079455]"
+              className="text-xs bg-slate-800 text-slate-200 border border-slate-700 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-[#EE0033]"
             >
               <option value="" disabled>
                 Phân công...

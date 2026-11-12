@@ -72,7 +72,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </div>
             <div className="text-sm font-semibold text-[#111827] mt-1 flex items-center justify-between">
               <span className="truncate">{activeSprintName || "Chu Kỳ Hiện Tại"}</span>
-              <span className="text-[10px] bg-emerald-50 text-[#079455] border border-emerald-200/80 font-semibold px-1.5 py-0.5 rounded-md ml-1 shrink-0">
+              <span className="text-[10px] bg-rose-50 text-[#EE0033] border border-rose-200/80 font-semibold px-1.5 py-0.5 rounded-md ml-1 shrink-0">
                 ĐANG CHẠY
               </span>
             </div>
@@ -94,21 +94,21 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   isCollapsed ? "justify-center px-0" : "px-3"
                 } py-2 rounded-lg text-xs transition relative group ${
                   isActive
-                    ? "bg-white text-[#079455] font-semibold border border-[#D7D7D7] shadow-xs"
-                    : "text-[#111827] hover:bg-white hover:text-[#079455] font-medium"
+                    ? "bg-white text-[#EE0033] font-semibold border border-[#D7D7D7] shadow-xs"
+                    : "text-[#111827] hover:bg-white hover:text-[#EE0033] font-medium"
                 }`}
                 title={isCollapsed ? item.label : undefined}
               >
                 {isActive && (
-                  <span className="absolute left-0 top-1.5 bottom-1.5 w-1 bg-[#079455] rounded-r" />
+                  <span className="absolute left-0 top-1.5 bottom-1.5 w-1 bg-[#EE0033] rounded-r" />
                 )}
-                <Icon className={`w-4 h-4 shrink-0 ${isActive ? "text-[#079455]" : "text-[#9B9B9B] group-hover:text-[#079455]"}`} />
+                <Icon className={`w-4 h-4 shrink-0 ${isActive ? "text-[#EE0033]" : "text-[#9B9B9B] group-hover:text-[#EE0033]"}`} />
                 {!isCollapsed && (
                   <div className="ml-3 flex-1 flex items-center justify-between text-left">
                     <span>{item.label}</span>
                     {item.badge && (
                       <span className={`text-[9px] px-1.5 py-0.5 rounded font-mono font-medium ${
-                        isActive ? "bg-emerald-100 text-[#079455]" : "bg-slate-200/70 text-slate-600"
+                        isActive ? "bg-rose-100 text-[#EE0033]" : "bg-slate-200/70 text-slate-600"
                       }`}>
                         {item.badge}
                       </span>
@@ -126,7 +126,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {!isCollapsed && (
           <div className="mb-2 bg-white border border-[#D7D7D7] rounded-lg p-2.5 shadow-2xs">
             <div className="flex items-center space-x-1.5 text-[#111827] text-xs font-bold">
-              <span className="w-2 h-2 rounded-full bg-[#079455]" />
+              <span className="w-2 h-2 rounded-full bg-[#EE0033]" />
               <span>TamTask Space</span>
             </div>
             <p className="text-[11px] text-[#9B9B9B] mt-0.5 leading-snug">

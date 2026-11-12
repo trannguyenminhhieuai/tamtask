@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
+import { sendOtpEmail } from "@/lib/mail";
 
 export const dynamic = "force-dynamic";
 
@@ -30,7 +31,7 @@ export async function POST(request: Request) {
       );
     }
 
-    // Action 1: Verify Password & Request OTP
+    // Action 1: Verify Password & Request OTP via Email
     if (action === "request-otp") {
       if (!password) {
         return NextResponse.json({ error: "Vui lòng nhập mật khẩu" }, { status: 400 });
@@ -68,12 +69,17 @@ export async function POST(request: Request) {
         },
       });
 
-      console.log(`[TamTask 2FA] Mã OTP xác thực cho ${normalizedEmail}: ${generatedOtp} (Hết hạn lúc: ${expiry.toLocaleTimeString()})`);
+      // Send OTP code strictly to user's real email address
+      await sendOtpEmail({
+        to: normalizedEmail,
+        otp: generatedOtp,
+        userName: user.name || undefined,
+      });
 
+      // Strict security: Never expose OTP code in response payload
       return NextResponse.json({
         requires2FA: true,
-        message: `Mã OTP 6 số đã được tạo thành công và gửi tới email ${normalizedEmail}.`,
-        otpPreview: generatedOtp, // Included for seamless developer & demo experience
+        message: `Mã xác thực 2 lớp (OTP) gồm 6 chữ số đã được gửi tới email ${normalizedEmail}. Vui lòng kiểm tra hộp thư.`,
         expiresInSeconds: 300,
       });
     }

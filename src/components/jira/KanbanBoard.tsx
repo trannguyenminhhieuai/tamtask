@@ -257,7 +257,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
             onClick={() => onFilterChange({ ...filterState, onlyMyIssues: !filterState.onlyMyIssues })}
             className={`text-xs px-3 py-1.5 rounded-lg font-medium transition flex items-center gap-1.5 ${
               filterState.onlyMyIssues
-                ? "bg-[#079455] text-white shadow-xs"
+                ? "bg-[#EE0033] text-white shadow-xs"
                 : "bg-white text-[#111827] border border-[#D7D7D7] hover:bg-slate-50"
             }`}
           >
@@ -283,11 +283,11 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
               onClick={() => setQuickFilter((prev) => (prev === "RECENT" ? "ALL" : "RECENT"))}
               className={`text-xs px-2.5 py-1.5 rounded-lg font-medium transition flex items-center gap-1 ${
                 quickFilter === "RECENT"
-                  ? "bg-emerald-50 text-[#079455] border border-emerald-300 font-semibold"
+                  ? "bg-emerald-50 text-[#EE0033] border border-emerald-300 font-semibold"
                   : "bg-white text-[#111827] border border-[#D7D7D7] hover:bg-slate-50"
               }`}
             >
-              <Clock className="w-3 h-3 text-[#079455]" />
+              <Clock className="w-3 h-3 text-[#EE0033]" />
               <span>Mới cập nhật</span>
             </button>
 
@@ -314,7 +314,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                   onClick={() => toggleAssigneeFilter(user.id)}
                   title={`Lọc theo ${user.name}`}
                   className={`w-7 h-7 rounded-full transition-transform relative ${
-                    isSelected ? "ring-2 ring-[#079455] scale-110 z-10" : "opacity-80 hover:opacity-100"
+                    isSelected ? "ring-2 ring-[#EE0033] scale-110 z-10" : "opacity-80 hover:opacity-100"
                   }`}
                 >
                   <img src={user.avatar} alt={user.name} className="w-full h-full rounded-full object-cover" />
@@ -374,7 +374,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                   epicIds: e.target.value ? [e.target.value] : [],
                 })
               }
-              className="text-xs bg-white border border-[#D7D7D7] rounded-lg px-2.5 py-1.5 text-[#111827] font-medium focus:outline-none focus:ring-2 focus:ring-[#079455]/20 focus:border-[#079455]"
+              className="text-xs bg-white border border-[#D7D7D7] rounded-lg px-2.5 py-1.5 text-[#111827] font-medium focus:outline-none focus:ring-2 focus:ring-[#EE0033]/20 focus:border-[#EE0033]"
             >
               <option value="">All Epics</option>
               {epics.map((epic) => (
@@ -419,7 +419,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
             <select
               value={swimlaneMode}
               onChange={(e) => setSwimlaneMode(e.target.value as any)}
-              className="bg-white border border-[#D7D7D7] rounded-lg px-2.5 py-1.5 font-medium text-[#111827] text-xs focus:outline-none focus:ring-2 focus:ring-[#079455]/20 focus:border-[#079455]"
+              className="bg-white border border-[#D7D7D7] rounded-lg px-2.5 py-1.5 font-medium text-[#111827] text-xs focus:outline-none focus:ring-2 focus:ring-[#EE0033]/20 focus:border-[#EE0033]"
             >
               <option value="NONE">Mặc định (Cột chuẩn)</option>
               <option value="EPIC">Theo Epic</option>
@@ -552,7 +552,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                       onDrop={(e) => handleDrop(e, col.id)}
                       className={`w-72 flex-shrink-0 flex flex-col rounded-lg transition-all border ${
                         isOver
-                          ? "bg-emerald-50/60 border-2 border-dashed border-[#079455]"
+                          ? "bg-rose-50/60 border-2 border-dashed border-[#EE0033]"
                           : isWipExceeded
                           ? "bg-rose-50/70 border-rose-300 shadow-sm"
                           : "bg-[#F8F8F8] border-[#D7D7D7]"
@@ -594,7 +594,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                       {/* Column Cards List */}
                       <div className="flex-1 p-2 pt-0 space-y-2.5 overflow-y-auto max-h-[calc(100vh-270px)]">
                         {dragOverCol === col.id && (
-                          <div className="h-16 border-2 border-dashed border-[#079455] bg-emerald-50/80 rounded-lg flex items-center justify-center text-xs font-semibold text-[#079455] animate-pulse">
+                          <div className="h-16 border-2 border-dashed border-[#EE0033] bg-rose-50/80 rounded-lg flex items-center justify-center text-xs font-semibold text-[#EE0033] animate-pulse">
                             Thả thẻ vào cột {col.name}...
                           </div>
                         )}
@@ -620,7 +620,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                       {!isViewer && (
                         <div className="p-2 pt-0">
                           {quickAddStatus === col.id ? (
-                            <div className="bg-white p-2.5 rounded-lg border border-[#079455]/50 shadow-xs space-y-2 animate-in fade-in duration-100">
+                            <div className="bg-white p-2.5 rounded-lg border border-[#EE0033]/50 shadow-xs space-y-2 animate-in fade-in duration-100">
                               <textarea
                                 autoFocus
                                 rows={2}
@@ -644,7 +644,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                                   }
                                 }}
                                 placeholder="Nhập tiêu đề công việc... (Enter để tạo, Esc hủy)"
-                                className="w-full text-xs p-2 border border-[#D7D7D7] rounded-lg outline-none focus:border-[#079455] focus:ring-2 focus:ring-[#079455]/20 resize-none font-medium text-[#111827]"
+                                className="w-full text-xs p-2 border border-[#D7D7D7] rounded-lg outline-none focus:border-[#EE0033] focus:ring-2 focus:ring-[#EE0033]/20 resize-none font-medium text-[#111827]"
                               />
                               <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-1.5">
@@ -661,7 +661,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                                         setQuickAddStatus(null);
                                       }
                                     }}
-                                    className="px-3 py-1.5 text-xs font-semibold bg-[#079455] hover:bg-[#06854D] active:bg-[#057A44] text-white rounded-lg shadow-xs transition"
+                                    className="px-3 py-1.5 text-xs font-semibold bg-[#EE0033] hover:bg-[#D6002E] active:bg-[#BD0029] text-white rounded-lg shadow-xs transition"
                                   >
                                     Thêm
                                   </button>
@@ -683,7 +683,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                                     setQuickAddStatus(null);
                                     onCreateInStatus(col.id);
                                   }}
-                                  className="text-[11px] text-[#9B9B9B] hover:text-[#079455] font-medium"
+                                  className="text-[11px] text-[#9B9B9B] hover:text-[#EE0033] font-medium"
                                 >
                                   Mở form...
                                 </button>
@@ -697,7 +697,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                               }}
                               className="w-full text-left px-2.5 py-1.5 text-xs text-[#111827] hover:bg-white rounded-lg border border-transparent hover:border-[#D7D7D7] transition font-medium flex items-center gap-1.5"
                             >
-                              <span className="text-sm font-bold leading-none text-[#079455]">+</span> Tạo nhanh công việc
+                              <span className="text-sm font-bold leading-none text-[#EE0033]">+</span> Tạo nhanh công việc
                             </button>
                           )}
                         </div>
