@@ -3030,3 +3030,231 @@ Trước khi công bố link ứng dụng cho người dùng thực tế, Quản
 - [x] **Zero Dev Sandbox**: Đã loại bỏ hoàn toàn các nút 1-click đăng nhập tài khoản giả lập.
 - [x] **Giám sát tải & Hiệu năng**: Thử nghiệm kéo thả thẻ task đạt 60fps mượt mà, thời gian phản hồi API < 150ms.
 - [ ] **Khởi tạo Secret Key Production**: Tạo `NEXTAUTH_SECRET` riêng biệt cho production và cấu hình tên miền HTTPS chính thức.
+
+
+---
+
+## 23. Chương 23: Kế Hoạch Chuẩn Hóa Bảo Mật (Mật Khẩu Thật, 2FA Thật) & Tái Thiết Giao Diện Theo Tammi OA Design System
+
+> [!IMPORTANT]
+> Chương này thiết lập kế hoạch giải quyết triệt để 3 bài toán trọng yếu được người dùng yêu cầu:
+> 1. **Chấm dứt hoàn toàn cơ chế đăng nhập với mật khẩu bất kỳ**: Bắt buộc xác thực mật khẩu thật được mã hóa an toàn trong cơ sở dữ liệu.
+> 2. **Hiện thực hóa quy trình Xác thực 2 lớp (2FA Real Engine)**: Tạo mã OTP 6 số sinh ngẫu nhiên có hiệu lực 5 phút, kiểm tra đối khớp nghiêm ngặt ở tầng Server trước khi cấp phiên đăng nhập.
+> 3. **Tái thiết kế toàn diện giao diện theo Tammi OA Design System**: Dựa trên quy chuẩn [DESIGN.md](file:///c:/Users/Admin/Desktop/Tammi/Jira/DESIGN.md) và [SKILL Design.md](file:///c:/Users/Admin/Desktop/Tammi/Jira/SKILL%20Design.md) trích xuất từ Figma (Màu chủ đạo `#079455`, Nền `#FFFFFF`, Surface `#F8F8F8`, Text `#111827`, Highlight `#EE0033`, Spacing 8px, Radius 8px/12px).
+> 4. **Đồng bộ kế hoạch và nâng cấp trực tiếp lên Production (Vercel & Supabase)**.
+
+---
+
+### 23.1. Phân Tích Hiện Trạng & Bài Toán Kỹ Thuật
+
+```mermaid
+graph TD
+    subgraph CurrentState["1. Hiện Trạng Cần Khắc Phục"]
+        CS1["Form nhập mật khẩu bất kỳ vẫn cho vào (Do CredentialsProvider demo)"]
+        CS2["Bước 2FA chỉ mô phỏng (Người dùng gõ số bất kỳ là xong)"]
+        CS3["Giao diện còn mang phong cách Jira cũ (Màu xanh dương #0052CC / Đỏ Viettel #C41230 chưa đồng bộ với Figma Tammi OA)"]
+    end
+
+    subgraph TargetState["2. Mục Tiêu Chuẩn Hóa Cần Đạt Được"]
+        TS1["Xác thực Mật Khẩu Thật: Cột password băm mã hóa an toàn trong CSDL"]
+        TS2["Xác thực 2 Lớp Thật: Mã OTP 6 chữ số sinh động, kiểm tra khớp 100%"]
+        TS3["Giao diện Tammi OA: Emerald Green (#079455) + Clean White (#FFFFFF) + Surface (#F8F8F8)"]
+    end
+
+    CurrentState -->|Kế hoạch thực thi Chương 23| TargetState
+```
+
+---
+
+### 23.2. Kiến Trúc Xác Thực Bảo Mật Mới: Mật Khẩu Thật & Xác Thực 2 Lớp (2FA Engine)
+
+#### 23.2.1. Cải tiến CSDL (Prisma Schema Upgrade)
+Cần bổ sung các trường thông tin bảo mật vào bảng `User` trong cả `prisma/schema.prisma` và `prisma/schema.postgresql.prisma`:
+
+```prisma
+model User {
+  id                  String    @id @default(uuid())
+  name                String
+  email               String    @unique
+  avatar              String
+  password            String?   // Mật khẩu đã được băm an toàn (Hashed Password)
+  isTwoFactorEnabled  Boolean   @default(true) // Trạng thái kích hoạt xác thực 2 lớp
+  twoFactorOtp        String?   // Mã OTP 6 số hiện thời
+  twoFactorExpiry     DateTime? // Thời hạn hiệu lực của mã OTP (5 phút)
+  role                String    @default("DEVELOPER")
+  status              String    @default("ACTIVE")
+  activeTasksCount    Int       @default(0)
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+  // ... các quan hệ hiện có giữ nguyên
+}
+```
+
+#### 23.2.2. Luồng Xác Thực Đăng Nhập 2 Bước Nghiêm Ngặt (2-Step True Verification Flow)
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor User as Người dùng
+    participant UI as Giao diện Đăng nhập (Tammi OA)
+    participant AuthAPI as NextAuth / Auth API
+    participant DB as Supabase PostgreSQL
+
+    User->>UI: 1. Nhập Email & Mật khẩu
+    UI->>AuthAPI: 2. Gửi yêu cầu kiểm tra mật khẩu (POST /api/auth/verify-credentials)
+    AuthAPI->>DB: 3. Truy vấn User theo Email
+    DB-->>AuthAPI: Trả về thông tin User kèm mật khẩu băm
+    AuthAPI->>AuthAPI: 4. So khớp mật khẩu (Password Hash Match)
+    alt Mật khẩu KHÔNG đúng
+        AuthAPI-->>UI: Báo lỗi "Mật khẩu không chính xác!"
+        UI-->>User: Hiển thị cảnh báo màu đỏ (#EE0033)
+    else Mật khẩu CHÍNH XÁC
+        alt Tài khoản có bật 2FA
+            AuthAPI->>AuthAPI: 5. Sinh mã OTP 6 số ngẫu nhiên (vd: 749215)
+            AuthAPI->>DB: 6. Lưu OTP & Thời hạn 5 phút vào DB
+            AuthAPI-->>UI: 7. Báo thành công Bước 1 & Chuyển sang Bước 2FA (kèm gợi ý/email thông báo)
+            UI-->>User: 8. Hiển thị màn hình nhập mã OTP 6 số
+            User->>UI: 9. Nhập mã OTP (vd: 749215)
+            UI->>AuthAPI: 10. Gửi yêu cầu kiểm tra OTP (POST /api/auth/verify-otp)
+            AuthAPI->>DB: 11. Đối khớp OTP & Kiểm tra hạn dùng (expiresAt > now)
+            alt OTP KHÔNG hợp lệ hoặc HẾT HẠN
+                AuthAPI-->>UI: Báo lỗi "Mã OTP không đúng hoặc đã hết hạn!"
+                UI-->>User: Yêu cầu nhập lại hoặc gửi lại mã mới
+            else OTP HỢP LỆ
+                AuthAPI->>DB: 12. Xóa mã OTP đã dùng
+                AuthAPI-->>UI: 13. Cấp phiên đăng nhập (JWT Session Token)
+                UI-->>User: Chuyển hướng vào không gian làm việc TamTask
+            end
+        else Không bật 2FA
+            AuthAPI-->>UI: Cấp phiên đăng nhập trực tiếp
+            UI-->>User: Chuyển hướng vào không gian làm việc
+        end
+    end
+```
+
+#### 23.2.3. Quy Định Mật Khẩu Khởi Tạo & Mặc Định Cho Các Tài Khoản Mẫu
+Để đồng bộ CSDL Supabase với mật khẩu bảo mật thật mà quản trị viên có thể đăng nhập ngay:
+
+| Email tài khoản | Vai trò hệ thống | Mật khẩu chuẩn hóa | Trạng thái 2FA |
+| :--- | :--- | :--- | :---: |
+| `hieu.tran@company.com` | Quản trị viên (ADMIN) | `TamTask@2026!` | Bật (OTP gửi xác thực) |
+| `ha.nguyen@company.com` | Trưởng dự án (PROJECT_LEAD) | `TamTask@2026!` | Bật |
+| `long.le@company.com` | Kỹ sư phần mềm (DEVELOPER) | `TamTask@2026!` | Bật |
+| `vy.pham@company.com` | Kiểm thử QA (QA) | `TamTask@2026!` | Bật |
+
+---
+
+### 23.3. Kế Hoạch Tái Thiết Kế Giao Diện Theo Tammi OA Design System
+
+Dựa theo quy chuẩn chính thức trong tài liệu **`DESIGN.md`** và **`SKILL Design.md`**, giao diện toàn bộ ứng dụng TamTask sẽ được chuyển đổi sang bộ token thiết kế hiện đại, sang trọng:
+
+#### 23.3.1. Bảng Token Màu Sắc Chuẩn Hóa (Semantic Color Palette)
+
+```mermaid
+graph LR
+    subgraph Colors["Hệ Màu Tammi OA Design System"]
+        Primary["Primary (#079455)<br/>Emerald Green - CTA Chính & Active"]
+        Bg["Background (#FFFFFF)<br/>Nền trang thoáng đãng & thanh lịch"]
+        Surface["Surface (#F8F8F8)<br/>Container, Card, Sidebar, Modals"]
+        TextMain["Text Primary (#111827 / #EE0033)<br/>Tiêu đề & Nhấn mạnh thương hiệu"]
+        Border["Border (#D7D7D7)<br/>Đường chia tinh tế, viền Input nhẹ"]
+        Muted["Muted Text (#9B9B9B / #4B5563)<br/>Mô tả phụ & Metadata"]
+    end
+```
+
+| Token Semantic | Mã màu Hex | Ứng dụng thực tế trên giao diện TamTask |
+| :--- | :---: | :--- |
+| **`Primary`** | `#079455` *(Emerald Green)* | Nút **+ Tạo Công Việc**, nút Xác nhận, Tab đang chọn, Focus Ring `3px #0794551F`. |
+| **`Primary Hover`** | `#06854D` | Trạng thái rê chuột lên các nút bấm chính. |
+| **`Background`** | `#FFFFFF` | Nền toàn trang, nền thẻ task Kanban, nền ô nhập liệu khi focus. |
+| **`Surface`** | `#F8F8F8` | Nền cột Kanban, nền Sidebar, nền header Modal, nền các bảng dữ liệu. |
+| **`Border`** | `#D7D7D7` | Viền thẻ, đường ngăn cách giữa các cột và danh sách bảng biểu. |
+| **`Brand Accent`** | `#EE0033` | Logo Tammi OA, điểm nhấn thương hiệu, nhãn ưu tiên khẩn cấp (Highest Priority). |
+| **`Text Primary`** | `#111827` | Tiêu đề task, văn bản nội dung chính, nhãn form. |
+| **`Text Muted`** | `#9B9B9B` | Thời gian, mã định danh, người tạo, placeholder. |
+
+#### 23.3.2. Quy Chuẩn Kích Thước & Bo Góc (Spacing & Elevation Tokens)
+- **Hệ thống Spacing (Base 8px)**:
+  - `xs (4px)`: Khoảng cách giữa icon và chữ.
+  - `sm (8px)`: Khoảng cách giữa các thẻ trong cùng cột Kanban.
+  - `md (16px)`: Padding bên trong card, modal con.
+  - `lg (24px)`: Padding trang tổng thể, khoảng cách các section lớn.
+- **Hệ thống Bo Góc (Border Radius)**:
+  - `sm (4px)`: Tag nhãn, badge trạng thái.
+  - `md (8px)`: **Nút bấm, ô Input, Thẻ task Kanban, Cột trạng thái**.
+  - `lg (12px)`: **Modal tạo task, Drawer chi tiết công việc, Bảng cấu hình lớn**.
+  - `full (9999px)`: Avatar người dùng, nút thu gọn `+N`, Pill thông báo.
+- **Hiệu ứng Chuyển động (Motion Tokens)**:
+  - `duration-fast: 120ms` (hover button, focus input).
+  - `duration-base: 200ms` (slide drawer, modal zoom in).
+
+---
+
+### 23.4. Kế Hoạch Thay Đổi Chi Tiết Từng Màn Hình
+
+#### 23.4.1. Màn hình Đăng Nhập & Đăng Ký ([AuthLandingScreen.tsx](file:///c:/Users/Admin/Desktop/Tammi/Jira/src/components/jira/AuthLandingScreen.tsx) & [LoginModal.tsx](file:///c:/Users/Admin/Desktop/Tammi/Jira/src/components/jira/LoginModal.tsx))
+- Áp dụng cấu trúc **Split-screen Tammi OA**:
+  - Cột trái: Nền kính sáng `#FFFFFF`, card đăng nhập container `#F8F8F8`, viền `#D7D7D7`.
+  - Nút Primary Đăng nhập đổi sang `#079455` với focus ring xanh ngọc bích sang trọng.
+  - Tách bạch 2 bước:
+    - **Bước 1**: Nhập Email & Mật khẩu. Bấm "Tiếp Tục" sẽ gọi API xác thực mật khẩu thật. Nếu sai báo viền đỏ `#EF4444` và thông báo lỗi.
+    - **Bước 2**: Khi mật khẩu đúng, server gửi mã OTP và hiển thị giao diện nhập 6 ô số OTP chuyên nghiệp với đồng hồ đếm ngược 5 phút. Chỉ khi nhập đúng OTP mới cấp quyền truy cập.
+
+#### 23.4.2. Thanh Điều Hướng Trên Cùng ([Navbar.tsx](file:///c:/Users/Admin/Desktop/Tammi/Jira/src/components/jira/Navbar.tsx))
+- Nền trắng tinh khiết `#FFFFFF`, đường viền đáy `#D7D7D7`.
+- Nút **"+ Tạo Công Việc"**: Màu nền `#079455` (Emerald Green) bo góc 8px (`rounded-lg`), chữ trắng đậm, hover `#06854D`.
+- Thanh tìm kiếm thông minh (`Cmd + K`): Nền `#F8F8F8`, viền `#D7D7D7`, khi focus chuyển viền `#079455` với ring phát sáng 3px.
+- Logo: Biểu tượng Tammi OA sắc sảo, tối giản và cao cấp.
+
+#### 23.4.3. Thanh Điều Hướng Cạnh Bên ([Sidebar.tsx](file:///c:/Users/Admin/Desktop/Tammi/Jira/src/components/jira/Sidebar.tsx))
+- Nền `#F8F8F8`, viền phải `#D7D7D7`.
+- Các nút menu: Trạng thái bình thường chữ `#4B5563`, khi active chuyển nền trắng `#FFFFFF` với thanh chỉ báo bên trái màu `#079455`, bo góc 8px.
+- Khoảng cách các mục đúng nhịp spacing 8px.
+
+#### 23.4.4. Bảng Công Việc Kanban ([KanbanBoard.tsx](file:///c:/Users/Admin/Desktop/Tammi/Jira/src/components/jira/KanbanBoard.tsx) & [IssueCard.tsx](file:///c:/Users/Admin/Desktop/Tammi/Jira/src/components/jira/IssueCard.tsx))
+- Các cột trạng thái: Nền `#F8F8F8`, viền `#D7D7D7`, tiêu đề cột chữ đậm `#111827`, số lượng task bọc trong pill `#E5E7EB`.
+- Thẻ công việc (Issue Card): Nền trắng `#FFFFFF`, viền `#D7D7D7`, bo góc 8px, bóng mờ nhẹ nhàng (`shadow-xs` sang `shadow-sm` khi hover).
+- Bộ lọc nhân sự: Giữ nguyên giới hạn 4 avatar + nút tròn `+N`, hover hiệu ứng nhẹ.
+
+#### 23.4.5. Drawer Chi Tiết Công Việc ([IssueDetailDrawer.tsx](file:///c:/Users/Admin/Desktop/Tammi/Jira/src/components/jira/IssueDetailDrawer.tsx))
+- Drawer mở từ bên phải với bo góc trái 12px (`rounded-l-xl`).
+- Cột trái (Nội dung chi tiết & Editor): Nền `#FFFFFF`.
+- Cột phải (Metadata & Thao tác nhanh): Nền `#F8F8F8`, các hộp dropdown và selector bo góc 8px.
+- Các nút hành động chính (Lưu, Cập nhật): Nền `#079455`.
+
+---
+
+### 23.5. Kế Hoạch Đồng Bộ & Triển Khai Lên Production (Vercel & Supabase)
+
+1. **Bước 1: Nâng cấp Schema CSDL trên Supabase**:
+   - Cập nhật file `prisma/schema.prisma` bổ sung `password`, `isTwoFactorEnabled`, `twoFactorOtp`, `twoFactorExpiry`.
+   - Chạy lệnh `npx prisma db push` để cập nhật bảng `User` trên Supabase PostgreSQL.
+2. **Bước 2: Cài đặt thư viện băm mật khẩu `bcryptjs`**:
+   - Chạy `npm install bcryptjs` và `npm install -D @types/bcryptjs`.
+   - Cập nhật script `seed.ts` để băm mật khẩu chuẩn cho các tài khoản mặc định.
+3. **Bước 3: Xây dựng API Xác Thực Mật Khẩu & 2FA**:
+   - Tạo endpoint `/api/auth/2fa/generate`: Sinh OTP 6 số ngẫu nhiên, lưu DB có hạn 5 phút.
+   - Tạo endpoint `/api/auth/2fa/verify`: Đối khớp mã OTP, kiểm tra hạn và xóa mã sau khi dùng.
+   - Cập nhật CredentialsProvider trong `src/lib/auth.ts` để đối chiếu mật khẩu băm và kiểm tra cờ xác thực 2FA.
+4. **Bước 4: Cập nhật giao diện theo Tammi OA Design Tokens**:
+   - Đổi mã màu Tailwind và class CSS trong `Navbar.tsx`, `Sidebar.tsx`, `KanbanBoard.tsx`, `LoginModal.tsx`, `IssueCard.tsx`.
+5. **Bước 5: Kiểm tra biên dịch & Đẩy lên GitHub để Vercel Auto-deploy**:
+   - Chạy `npm run build` đảm bảo Exit code 0.
+   - Chạy `git add .`, `git commit`, `git push origin main`.
+   - Vercel tự động build và cập nhật phiên bản mới lên domain chính thức.
+
+---
+
+### 23.6. Ma Trận Công Việc Thực Thi (Action Execution Matrix)
+
+| Mã Công Việc | Nội Dung Thực Hiện | Tệp Tác Động Chính | Mức Độ | Trạng Thái |
+| :---: | :--- | :--- | :---: | :---: |
+| **TASK-SEC-1** | **Bổ sung cột Password & 2FA vào Prisma Schema** | `prisma/schema.prisma`, Supabase DB | **P0 (Khẩn)** |  Hoàn thành (Đã sync DB Supabase) |
+| **TASK-SEC-2** | **Cài đặt bcryptjs & Cập nhật Seed Mật khẩu Thật** | `package.json`, `seed.ts`, `prisma.ts` | **P0 (Khẩn)** |  Hoàn thành (Đã mã hóa `TamTask@2026!`) |
+| **TASK-SEC-3** | **Xây dựng API Backend sinh & kiểm tra OTP 2FA** | `src/app/api/auth/2fa/route.ts`, `auth.ts` | **P0 (Khẩn)** |  Hoàn thành (Hạn 5p, đối khớp DB) |
+| **TASK-SEC-4** | **Chuẩn hóa Modal Đăng nhập: Mật khẩu thật + Nhập OTP 6 số thật** | `LoginModal.tsx`, `AuthLandingScreen.tsx` | **P0 (Khẩn)** |  Hoàn thành (Khóa login bừa, OTP countdown) |
+| **TASK-UI-1** | **Áp dụng bảng màu Tammi OA (#079455, #FFFFFF, #F8F8F8)** | `tailwind.config.ts`, `globals.css` | **P1 (Cao)** |  Hoàn thành (Semantic tokens Figma) |
+| **TASK-UI-2** | **Thiết kế lại Topbar & Sidebar theo Tammi OA** | `Navbar.tsx`, `Sidebar.tsx` | **P1 (Cao)** |  Hoàn thành (Nút #079455, bo góc 8px) |
+| **TASK-UI-3** | **Thiết kế lại Bảng Kanban & Card Task chuẩn token Figma** | `KanbanBoard.tsx`, `IssueCard.tsx` | **P1 (Cao)** |  Hoàn thành (Surface #F8F8F8, card #FFFFFF) |
+| **TASK-UI-4** | **Thiết kế lại Drawer Chi Tiết Task (Bo góc 12px, nút #079455)** | `IssueDetailDrawer.tsx`, `Toast.tsx` | **P1 (Cao)** |  Hoàn thành (Bo góc 12px, toàn bộ nút #079455) |
+| **TASK-PROD-1** | **Build kiểm thử & Đẩy lên GitHub để Vercel Production cập nhật** | Toàn bộ dự án, GitHub, Vercel | **P0 (Khẩn)** |  Hoàn thành (Build Exit 0 & Sync main) |

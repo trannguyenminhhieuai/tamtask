@@ -14,6 +14,10 @@ model User {
   avatar           String
   role             String    @default("DEVELOPER") // ADMIN, PROJECT_LEAD, DEVELOPER, QA, VIEWER, PENDING
   status           String    @default("ACTIVE")    // ACTIVE, PENDING_APPROVAL, SUSPENDED
+  password         String?
+  isTwoFactorEnabled Boolean @default(true)
+  twoFactorOtp     String?
+  twoFactorExpiry  DateTime?
   activeTasksCount Int       @default(0)
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt

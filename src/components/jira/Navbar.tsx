@@ -45,7 +45,7 @@ const ROLE_CONFIG: Record<
   ADMIN: {
     label: "Quản trị viên",
     icon: Shield,
-    color: "bg-rose-50 text-[#C41230] border-rose-200/80",
+    color: "bg-emerald-50 text-[#079455] border-emerald-200/80",
   },
   PROJECT_LEAD: {
     label: "Trưởng dự án",
@@ -161,29 +161,29 @@ export const Navbar: React.FC<NavbarProps> = ({
   }, []);
 
   return (
-    <header className="h-14 bg-white border-b border-slate-200/90 px-4 flex items-center justify-between sticky top-0 z-40 select-none shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
+    <header className="h-14 bg-white border-b border-[#D7D7D7] px-4 flex items-center justify-between sticky top-0 z-40 select-none shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
       {/* Left: TamTask Brand & Project Selector */}
       <div className="flex items-center space-x-2.5">
         {/* Project Selector Dropdown */}
         <div className="relative" ref={projectMenuRef}>
           <button
             onClick={() => setShowProjectDropdown(!showProjectDropdown)}
-            className="flex items-center space-x-2.5 p-1.5 rounded-lg hover:bg-slate-100 transition text-left group"
+            className="flex items-center space-x-2.5 p-1.5 rounded-lg hover:bg-[#F8F8F8] border border-transparent hover:border-[#D7D7D7] transition text-left group"
           >
-            <div className="w-8 h-8 rounded-lg bg-slate-900 flex items-center justify-center text-white shadow-xs font-black text-xs tracking-tight">
+            <div className="w-8 h-8 rounded-lg bg-[#079455] flex items-center justify-center text-white shadow-xs font-black text-xs tracking-tight">
               {currentProject ? currentProject.key.slice(0, 3) : "TT"}
             </div>
             <div>
-              <div className="font-bold text-slate-900 text-sm leading-none flex items-center gap-1.5">
+              <div className="font-bold text-[#111827] text-sm leading-none flex items-center gap-1.5">
                 <span className="truncate max-w-[150px]">
                   {currentProject?.name || "TamTask Space"}
                 </span>
-                <span className="text-[10px] bg-slate-100 text-slate-600 font-mono font-medium px-1.5 py-0.5 rounded border border-slate-200">
+                <span className="text-[10px] bg-[#F8F8F8] text-[#111827] font-mono font-medium px-1.5 py-0.5 rounded border border-[#D7D7D7]">
                   {currentProject?.key || "TAM"}
                 </span>
-                <ChevronDown className="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-700 transition" />
+                <ChevronDown className="w-3.5 h-3.5 text-[#9B9B9B] group-hover:text-[#111827] transition" />
               </div>
-              <div className="text-[11px] text-slate-400 font-medium mt-0.5">TamTask Workspace</div>
+              <div className="text-[11px] text-[#9B9B9B] font-medium mt-0.5">TamTask Workspace</div>
             </div>
           </button>
 
@@ -255,10 +255,10 @@ export const Navbar: React.FC<NavbarProps> = ({
         {canManageProjects && onOpenProjectMembers && currentProject && (
           <button
             onClick={onOpenProjectMembers}
-            className="flex items-center space-x-1.5 bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 text-xs font-medium px-2.5 py-1.5 rounded-md transition"
+            className="flex items-center space-x-1.5 bg-[#F8F8F8] hover:bg-white text-[#111827] border border-[#D7D7D7] text-xs font-medium px-2.5 py-1.5 rounded-lg transition"
             title="Quản lý nhân sự và thành viên tham gia dự án này"
           >
-            <Users className="w-3.5 h-3.5 text-slate-500" />
+            <Users className="w-3.5 h-3.5 text-[#9B9B9B]" />
             <span className="hidden md:inline">Nhân sự dự án</span>
           </button>
         )}
@@ -267,14 +267,14 @@ export const Navbar: React.FC<NavbarProps> = ({
         {canCreateIssue ? (
           <button
             onClick={onCreateIssueClick}
-            className="flex items-center space-x-1.5 bg-slate-900 hover:bg-slate-800 active:bg-slate-950 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition shadow-xs"
+            className="flex items-center space-x-1.5 bg-[#079455] hover:bg-[#06854D] active:bg-[#057A44] focus:ring-3 focus:ring-[#079455]/20 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition shadow-xs"
           >
             <Plus className="w-4 h-4 text-white" />
             <span>Tạo Công Việc</span>
           </button>
         ) : (
           <div
-            className="flex items-center space-x-1 text-slate-400 text-xs px-2.5 py-1 rounded border border-slate-200 bg-slate-50 cursor-not-allowed"
+            className="flex items-center space-x-1 text-[#9B9B9B] text-xs px-2.5 py-1 rounded-lg border border-[#D7D7D7] bg-[#F8F8F8] cursor-not-allowed"
             title="Quyền chỉ được xem, không thể tạo task"
           >
             <span>Chỉ xem</span>
@@ -287,13 +287,13 @@ export const Navbar: React.FC<NavbarProps> = ({
         <button
           type="button"
           onClick={() => onOpenCommandPalette?.()}
-          className="w-full relative flex items-center bg-slate-50 hover:bg-white border border-slate-200 hover:border-slate-300 rounded-lg pl-9 pr-3 py-1.5 text-xs text-left text-slate-500 hover:text-slate-800 transition shadow-2xs group"
+          className="w-full relative flex items-center bg-[#F8F8F8] hover:bg-white border border-[#D7D7D7] hover:border-[#079455] rounded-lg pl-9 pr-3 py-1.5 text-xs text-left text-[#9B9B9B] hover:text-[#111827] transition shadow-2xs group focus:ring-3 focus:ring-[#079455]/20"
         >
-          <Search className="w-4 h-4 text-slate-400 group-hover:text-red-600 absolute left-3 top-1/2 -translate-y-1/2 transition-colors" />
+          <Search className="w-4 h-4 text-[#9B9B9B] group-hover:text-[#079455] absolute left-3 top-1/2 -translate-y-1/2 transition-colors" />
           <span className="truncate">
             {searchQuery ? `Lọc: "${searchQuery}"` : `Tìm nhanh task, dự án, lệnh... (Ctrl + K)`}
           </span>
-          <kbd className="ml-auto text-[10px] bg-slate-200/80 text-slate-600 px-1.5 py-0.5 rounded font-mono font-semibold">
+          <kbd className="ml-auto text-[10px] bg-white border border-[#D7D7D7] text-[#111827] px-1.5 py-0.5 rounded font-mono font-semibold">
             ⌘K
           </kbd>
         </button>
@@ -328,20 +328,20 @@ export const Navbar: React.FC<NavbarProps> = ({
           >
             <Bell className="w-4 h-4" />
             {unreadCount > 0 && (
-              <span className="w-4 h-4 bg-[#C41230] text-white rounded-full text-[9px] font-bold flex items-center justify-center absolute -top-1 -right-1 ring-2 ring-white">
+              <span className="w-4 h-4 bg-[#EE0033] text-white rounded-full text-[9px] font-bold flex items-center justify-center absolute -top-1 -right-1 ring-2 ring-white">
                 {unreadCount}
               </span>
             )}
           </button>
 
           {showNotifMenu && (
-            <div className="absolute right-0 mt-2 w-80 bg-white border border-slate-200 rounded-lg shadow-xl py-2 z-50 animate-in fade-in zoom-in-95">
+            <div className="absolute right-0 mt-2 w-80 bg-white border border-[#D7D7D7] rounded-xl shadow-xl py-2 z-50 animate-in fade-in zoom-in-95">
               <div className="px-3.5 py-2 border-b border-slate-100 flex items-center justify-between">
                 <span className="text-xs font-semibold text-slate-900">Thông báo</span>
                 {unreadCount > 0 && (
                   <button
                     onClick={handleMarkAllAsRead}
-                    className="text-[10px] font-medium text-[#C41230] hover:underline"
+                    className="text-[10px] font-medium text-[#079455] hover:underline"
                   >
                     Đánh dấu đã đọc
                   </button>
@@ -359,7 +359,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                     >
                       <span
                         className={`w-2 h-2 rounded-full mt-1.5 shrink-0 ${
-                          !n.isRead ? "bg-[#C41230]" : "bg-transparent"
+                          !n.isRead ? "bg-[#079455]" : "bg-transparent"
                         }`}
                       />
                       <div className="flex-1">
@@ -433,10 +433,10 @@ export const Navbar: React.FC<NavbarProps> = ({
             )}
           </div>
         ) : (
-          <div className="pl-2 border-l border-slate-200">
+          <div className="pl-2 border-l border-[#D7D7D7]">
             <button
               onClick={() => setIsLoginModalOpen(true)}
-              className="flex items-center space-x-1.5 text-xs font-medium bg-[#C41230] text-white px-3 py-1.5 rounded-md transition shadow-xs hover:bg-[#A30F28]"
+              className="flex items-center space-x-1.5 text-xs font-semibold bg-[#079455] hover:bg-[#06854D] active:bg-[#057A44] text-white px-3.5 py-1.5 rounded-lg transition shadow-xs focus:ring-3 focus:ring-[#079455]/20"
             >
               <span>Đăng Nhập</span>
             </button>

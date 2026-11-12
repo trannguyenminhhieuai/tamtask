@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import bcrypt from "bcryptjs";
 
 export const dynamic = "force-dynamic";
 
@@ -29,11 +30,16 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
+    const rawPassword = body.password || "TamTask@2026!";
+    const hashedPassword = await bcrypt.hash(rawPassword, 10);
+
     const user = await prisma.user.create({
       data: {
         name: body.name,
-        email: body.email,
+        email: body.email.toLowerCase().trim(),
         role: body.role || "DEVELOPER",
+        password: hashedPassword,
+        isTwoFactorEnabled: body.isTwoFactorEnabled !== undefined ? body.isTwoFactorEnabled : true,
         avatar:
           body.avatar ||
           `https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=120&auto=format&fit=crop&q=80`,

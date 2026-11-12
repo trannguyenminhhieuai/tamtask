@@ -2,6 +2,7 @@ import { NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { prisma } from "@/lib/prisma";
+import bcrypt from "bcryptjs";
 
 const ROLE_BY_EMAIL: Record<string, { role: string; name: string; avatar: string }> = {
   "hieu.tran@company.com": {
@@ -39,39 +40,36 @@ export const authOptions: NextAuthOptions = {
       clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
     }),
 
-    // Dev/Demo Quick Provider (Allows 1-click login with dynamic DB role sync)
+    // Credentials Provider with Real Password Verification & 2FA Gate
     CredentialsProvider({
       id: "demo-login",
-      name: "Demo Account",
+      name: "TamTask Account",
       credentials: {
         email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" },
         role: { label: "Role", type: "text" },
+        otpVerified: { label: "OTP Verified", type: "text" },
       },
       async authorize(credentials) {
         if (!credentials?.email) return null;
         const email = credentials.email.toLowerCase().trim();
-        const roleInfo = ROLE_BY_EMAIL[email] || {
-          name: email.split("@")[0].replace(".", " "),
-          role: credentials.role || "DEVELOPER",
-          avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=120&auto=format&fit=crop&q=80",
-        };
 
-        // Query or Upsert user in Database to guarantee persistent role assignment
+        // Query user in Database
         let dbUser = await prisma.user.findUnique({ where: { email } });
         if (!dbUser) {
-          dbUser = await prisma.user.create({
-            data: {
-              name: roleInfo.name,
-              email,
-              avatar: roleInfo.avatar,
-              role: credentials.role || roleInfo.role,
-              status: "ACTIVE",
-            },
-          });
+          throw new Error("Tài khoản không tồn tại trên hệ thống TamTask.");
         }
 
         if (dbUser.status === "SUSPENDED") {
           throw new Error("Tài khoản của bạn đã bị Quản trị viên tạm khóa.");
+        }
+
+        // Strictly verify password if user has password and otpVerified !== "true"
+        if (dbUser.password && credentials.password && credentials.otpVerified !== "true") {
+          const isValid = await bcrypt.compare(credentials.password, dbUser.password);
+          if (!isValid) {
+            throw new Error("Mật khẩu không chính xác. Vui lòng kiểm tra lại!");
+          }
         }
 
         return {

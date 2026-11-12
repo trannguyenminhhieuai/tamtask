@@ -180,7 +180,7 @@ export const CreateAutomationModal: React.FC<CreateAutomationModalProps> = ({
             </button>
             <button
               type="submit"
-              className="px-4 py-1.5 text-xs font-medium bg-[#C41230] hover:bg-[#A30F28] text-white rounded-md transition shadow-xs"
+              className="px-4 py-1.5 text-xs font-medium bg-[#079455] hover:bg-[#06854D] text-white rounded-md transition shadow-xs"
             >
               Lưu & Kích Hoạt Luật
             </button>

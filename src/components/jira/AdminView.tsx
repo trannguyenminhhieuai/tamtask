@@ -26,7 +26,13 @@ interface AdminViewProps {
   projects?: Project[];
   onUpdateUserRole: (userId: string, newRole: User["role"]) => Promise<void>;
   onToggleUserStatus?: (userId: string, newStatus: "ACTIVE" | "SUSPENDED" | "PENDING_APPROVAL") => Promise<void>;
-  onInviteUser: (email: string, name: string, role: User["role"]) => Promise<void>;
+  onInviteUser: (
+    email: string,
+    name: string,
+    role: User["role"],
+    password?: string,
+    isTwoFactorEnabled?: boolean
+  ) => Promise<void>;
   onApproveUser?: (userId: string, role: User["role"], projectId?: string) => Promise<void>;
 }
 
@@ -103,7 +109,13 @@ export const AdminView: React.FC<AdminViewProps> = ({
     e.preventDefault();
     if (!inviteEmail.trim() || !inviteName.trim()) return;
     try {
-      await onInviteUser(inviteEmail.trim(), inviteName.trim(), inviteRole);
+      await onInviteUser(
+        inviteEmail.trim(),
+        inviteName.trim(),
+        inviteRole,
+        invitePassword,
+        enable2FA
+      );
       const createdPassword = invitePassword;
       setInviteEmail("");
       setInviteName("");
@@ -162,7 +174,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-            <Users className="w-6 h-6 text-[#C41230]" />
+            <Users className="w-6 h-6 text-[#079455]" />
             <span>Quản Trị Người Dùng & Phân Quyền Hệ Thống</span>
           </h2>
           <p className="text-xs text-slate-500 mt-0.5">
@@ -171,7 +183,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
         </div>
         <button
           onClick={() => setShowInviteModal(true)}
-          className="bg-[#C41230] hover:bg-[#A30F28] text-white text-xs font-medium px-3.5 py-2 rounded-md flex items-center gap-1.5 transition shadow-xs"
+          className="bg-[#079455] hover:bg-[#06854D] text-white text-xs font-medium px-3.5 py-2 rounded-md flex items-center gap-1.5 transition shadow-xs"
         >
           <UserPlus className="w-4 h-4" />
           <span>+ Mời Thành Viên Mới</span>
@@ -180,8 +192,8 @@ export const AdminView: React.FC<AdminViewProps> = ({
 
       {/* Success / Alert Feedback */}
       {feedback && (
-        <div className="p-3 bg-rose-50 border border-rose-200 text-[#C41230] text-xs font-medium rounded-md flex items-center gap-2 shadow-xs animate-in fade-in">
-          <CheckCircle2 className="w-4 h-4 text-[#C41230] shrink-0" />
+        <div className="p-3 bg-rose-50 border border-rose-200 text-[#079455] text-xs font-medium rounded-md flex items-center gap-2 shadow-xs animate-in fade-in">
+          <CheckCircle2 className="w-4 h-4 text-[#079455] shrink-0" />
           <span>{feedback}</span>
         </div>
       )}
@@ -229,7 +241,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
             onClick={() => setFilterRole(tab.id)}
             className={`text-xs px-2.5 py-1 rounded-md font-medium transition whitespace-nowrap ${
               filterRole === tab.id
-                ? "bg-[#C41230] text-white shadow-xs"
+                ? "bg-[#079455] text-white shadow-xs"
                 : "bg-white text-slate-600 hover:bg-slate-100 border border-slate-200"
             }`}
           >
@@ -306,7 +318,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
                         value={user.role}
                         disabled={isUpdating === user.id}
                         onChange={(e) => handleRoleChange(user.id, e.target.value as User["role"])}
-                        className="bg-white border border-slate-300 rounded px-2.5 py-1 text-xs font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#C41230] hover:border-slate-400 transition cursor-pointer"
+                        className="bg-white border border-slate-300 rounded px-2.5 py-1 text-xs font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#079455] hover:border-slate-400 transition cursor-pointer"
                         title="Chọn để phân lại quyền đăng nhập"
                       >
                         <option value="ADMIN">Quản trị viên (Admin)</option>
@@ -345,7 +357,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
                           setApprovingUser(user);
                           setApproveRole("DEVELOPER");
                         }}
-                        className="text-xs px-3 py-1.5 rounded-md font-medium bg-[#C41230] hover:bg-[#A30F28] text-white transition inline-flex items-center gap-1 shadow-xs"
+                        className="text-xs px-3 py-1.5 rounded-md font-medium bg-[#079455] hover:bg-[#06854D] text-white transition inline-flex items-center gap-1 shadow-xs"
                       >
                         <Check className="w-3.5 h-3.5" />
                         <span>Phê Duyệt & Cấp Quyền</span>
@@ -399,7 +411,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-[2px] p-4 animate-in fade-in">
           <div className="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 space-y-4 border border-gray-200 animate-in zoom-in-95">
             <div className="flex items-center space-x-2 border-b border-slate-200 pb-3">
-              <Check className="w-5 h-5 text-[#C41230]" />
+              <Check className="w-5 h-5 text-[#079455]" />
               <h3 className="font-semibold text-sm text-slate-900">
                 Phê Duyệt Tài Khoản & Gán Dự Án
               </h3>
@@ -421,7 +433,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
                 <select
                   value={approveRole}
                   onChange={(e) => setApproveRole(e.target.value as User["role"])}
-                  className="w-full bg-white border border-slate-300 rounded-md px-3 py-2 font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#C41230]/20 focus:border-[#C41230]"
+                  className="w-full bg-white border border-slate-300 rounded-md px-3 py-2 font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#079455]/20 focus:border-[#079455]"
                 >
                   <option value="PROJECT_LEAD">Trưởng dự án (Project Lead)</option>
                   <option value="DEVELOPER">Kỹ sư phần mềm (Developer)</option>
@@ -437,7 +449,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
                 <select
                   value={approveProjectId}
                   onChange={(e) => setApproveProjectId(e.target.value)}
-                  className="w-full bg-white border border-slate-300 rounded-md px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#C41230]/20 focus:border-[#C41230]"
+                  className="w-full bg-white border border-slate-300 rounded-md px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#079455]/20 focus:border-[#079455]"
                 >
                   <option value="">-- Chưa gán vào dự án nào --</option>
                   {projects.map((p) => (
@@ -459,7 +471,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
                 <button
                   type="submit"
                   disabled={isSubmittingApproval}
-                  className="px-4 py-1.5 font-medium bg-[#C41230] hover:bg-[#A30F28] text-white rounded-md shadow-xs disabled:opacity-50 transition"
+                  className="px-4 py-1.5 font-medium bg-[#079455] hover:bg-[#06854D] text-white rounded-md shadow-xs disabled:opacity-50 transition"
                 >
                   {isSubmittingApproval ? "Đang xử lý..." : "Xác Nhận Phê Duyệt"}
                 </button>
@@ -474,7 +486,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-[2px] p-4 animate-in fade-in">
           <div className="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 space-y-4 border border-slate-200 animate-in zoom-in-95">
             <div className="flex items-center space-x-2 border-b border-slate-200 pb-3">
-              <UserPlus className="w-5 h-5 text-[#C41230]" />
+              <UserPlus className="w-5 h-5 text-[#079455]" />
               <h3 className="font-semibold text-sm text-slate-900">
                 Mời Thành Viên Mới
               </h3>
@@ -489,7 +501,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
                   value={inviteName}
                   onChange={(e) => setInviteName(e.target.value)}
                   placeholder="Ví dụ: Hoàng Văn An"
-                  className="w-full bg-white border border-slate-300 rounded-md px-3 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#C41230]/20 focus:border-[#C41230]"
+                  className="w-full bg-white border border-slate-300 rounded-md px-3 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#079455]/20 focus:border-[#079455]"
                 />
               </div>
 
@@ -501,7 +513,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
                   value={inviteEmail}
                   onChange={(e) => setInviteEmail(e.target.value)}
                   placeholder="an.hoang@company.com"
-                  className="w-full bg-white border border-slate-300 rounded-md px-3 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#C41230]/20 focus:border-[#C41230]"
+                  className="w-full bg-white border border-slate-300 rounded-md px-3 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#079455]/20 focus:border-[#079455]"
                 />
               </div>
 
@@ -515,7 +527,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
                   <button
                     type="button"
                     onClick={generateRandomPassword}
-                    className="text-[11px] text-[#C41230] hover:underline font-semibold flex items-center gap-1"
+                    className="text-[11px] text-[#079455] hover:underline font-semibold flex items-center gap-1"
                   >
                     <KeyRound className="w-3 h-3" />
                     <span>Tạo ngẫu nhiên</span>
@@ -528,7 +540,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
                     required
                     value={invitePassword}
                     onChange={(e) => setInvitePassword(e.target.value)}
-                    className="w-full bg-white border border-slate-300 rounded-md px-3 py-1.5 pr-8 text-slate-900 font-mono text-xs focus:outline-none focus:ring-2 focus:ring-[#C41230]/20 focus:border-[#C41230]"
+                    className="w-full bg-white border border-slate-300 rounded-md px-3 py-1.5 pr-8 text-slate-900 font-mono text-xs focus:outline-none focus:ring-2 focus:ring-[#079455]/20 focus:border-[#079455]"
                   />
                   <button
                     type="button"
@@ -546,7 +558,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
                       type="checkbox"
                       checked={enable2FA}
                       onChange={(e) => setEnable2FA(e.target.checked)}
-                      className="rounded text-[#C41230] focus:ring-[#C41230]"
+                      className="rounded text-[#079455] focus:ring-[#079455]"
                     />
                     <span className="font-medium text-slate-700 text-[11px]">
                       Kích hoạt xác thực 2 lớp qua Email OTP (2FA Security)
@@ -557,7 +569,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
                       type="checkbox"
                       checked={requirePasswordChange}
                       onChange={(e) => setRequirePasswordChange(e.target.checked)}
-                      className="rounded text-[#C41230] focus:ring-[#C41230]"
+                      className="rounded text-[#079455] focus:ring-[#079455]"
                     />
                     <span className="font-medium text-slate-700 text-[11px]">
                       Bắt buộc đổi mật khẩu ở lần đăng nhập đầu tiên
@@ -571,7 +583,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
                 <select
                   value={inviteRole}
                   onChange={(e) => setInviteRole(e.target.value as User["role"])}
-                  className="w-full bg-white border border-slate-300 rounded-md px-3 py-2 font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#C41230]/20 focus:border-[#C41230]"
+                  className="w-full bg-white border border-slate-300 rounded-md px-3 py-2 font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#079455]/20 focus:border-[#079455]"
                 >
                   <option value="PROJECT_LEAD">Trưởng dự án (Project Lead)</option>
                   <option value="DEVELOPER">Kỹ sư phần mềm (Developer)</option>
@@ -590,7 +602,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-1.5 font-medium bg-[#C41230] hover:bg-[#A30F28] text-white rounded-md shadow-xs transition"
+                  className="px-4 py-1.5 font-medium bg-[#079455] hover:bg-[#06854D] text-white rounded-md shadow-xs transition"
                 >
                   Gửi Lời Mời
                 </button>

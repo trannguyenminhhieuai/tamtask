@@ -607,13 +607,15 @@ export default function JiraApp() {
   const handleInviteUser = async (
     email: string,
     name: string,
-    role: User["role"]
+    role: User["role"],
+    password?: string,
+    isTwoFactorEnabled?: boolean
   ) => {
     try {
       const res = await fetch("/api/users", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, name, role }),
+        body: JSON.stringify({ email, name, role, password, isTwoFactorEnabled }),
       });
       if (res.ok) {
         const newUser = await res.json();

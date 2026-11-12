@@ -14,7 +14,7 @@ interface WorkflowSettingsModalProps {
 
 const PRESET_COLORS = [
   "#64748B", // Slate
-  "#C41230", // Viettel Red
+  "#079455", // Viettel Red
   "#830C20", // Viettel Deep Red
   "#0052CC", // Blue
   "#6554C0", // Purple
@@ -33,7 +33,7 @@ export const WorkflowSettingsModal: React.FC<WorkflowSettingsModalProps> = ({
   const [currentStatuses, setCurrentStatuses] = useState<WorkflowStatus[]>(statuses);
   const [newTitle, setNewTitle] = useState("");
   const [newCategory, setNewCategory] = useState<WorkflowStatus["category"]>("IN_PROGRESS");
-  const [newColor, setNewColor] = useState("#C41230");
+  const [newColor, setNewColor] = useState("#079455");
   const [newMaxWip, setNewMaxWip] = useState<string>("");
   const [isSaving, setIsSaving] = useState(false);
 
@@ -131,7 +131,7 @@ export const WorkflowSettingsModal: React.FC<WorkflowSettingsModalProps> = ({
         {/* Header */}
         <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-50/80">
           <div className="flex items-center space-x-2">
-            <Settings2 className="w-5 h-5 text-[#C41230]" />
+            <Settings2 className="w-5 h-5 text-[#079455]" />
             <div>
               <h3 className="text-base font-semibold text-slate-900">Tùy Biến Workflow & Cột Kanban</h3>
               {currentProject && (
@@ -151,7 +151,7 @@ export const WorkflowSettingsModal: React.FC<WorkflowSettingsModalProps> = ({
           {/* Add Status Form */}
           <form onSubmit={handleAddStatus} className="p-4 bg-slate-50 rounded-lg border border-slate-200 space-y-3">
             <h4 className="text-xs font-semibold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
-              <Plus className="w-4 h-4 text-[#C41230]" />
+              <Plus className="w-4 h-4 text-[#079455]" />
               <span>Thêm Cột Trạng Thái Mới Vào Dự Án</span>
             </h4>
 
@@ -166,7 +166,7 @@ export const WorkflowSettingsModal: React.FC<WorkflowSettingsModalProps> = ({
                   value={newTitle}
                   onChange={(e) => setNewTitle(e.target.value)}
                   placeholder="Ví dụ: Kiểm Thử QA, Chờ UAT..."
-                  className="w-full text-xs bg-white border border-slate-300 rounded px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#C41230]"
+                  className="w-full text-xs bg-white border border-slate-300 rounded px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#079455]"
                 />
               </div>
 
@@ -177,7 +177,7 @@ export const WorkflowSettingsModal: React.FC<WorkflowSettingsModalProps> = ({
                 <select
                   value={newCategory}
                   onChange={(e) => setNewCategory(e.target.value as any)}
-                  className="w-full text-xs bg-white border border-slate-300 rounded px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#C41230]"
+                  className="w-full text-xs bg-white border border-slate-300 rounded px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#079455]"
                 >
                   <option value="TODO">To Do (Chưa bắt đầu)</option>
                   <option value="IN_PROGRESS">In Progress (Đang thực hiện)</option>
@@ -200,7 +200,7 @@ export const WorkflowSettingsModal: React.FC<WorkflowSettingsModalProps> = ({
                   value={newMaxWip}
                   onChange={(e) => setNewMaxWip(e.target.value)}
                   placeholder="VD: 3 hoặc 4 (để trống nếu không giới hạn)"
-                  className="w-full text-xs bg-white border border-slate-300 rounded px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#C41230]"
+                  className="w-full text-xs bg-white border border-slate-300 rounded px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#079455]"
                 />
               </div>
 
@@ -228,7 +228,7 @@ export const WorkflowSettingsModal: React.FC<WorkflowSettingsModalProps> = ({
             <div className="flex justify-end pt-1">
               <button
                 type="submit"
-                className="bg-[#C41230] hover:bg-[#A30F28] text-white text-xs font-medium px-3 py-1.5 rounded-md transition shadow-xs flex items-center gap-1"
+                className="bg-[#079455] hover:bg-[#06854D] text-white text-xs font-medium px-3 py-1.5 rounded-md transition shadow-xs flex items-center gap-1"
               >
                 <Plus className="w-3.5 h-3.5" />
                 <span>Thêm Cột</span>
@@ -334,7 +334,7 @@ export const WorkflowSettingsModal: React.FC<WorkflowSettingsModalProps> = ({
               type="button"
               onClick={handleSave}
               disabled={isSaving}
-              className="px-4 py-1.5 text-xs font-medium bg-[#C41230] hover:bg-[#A30F28] text-white rounded-md transition shadow-xs flex items-center gap-1 disabled:opacity-50"
+              className="px-4 py-1.5 text-xs font-medium bg-[#079455] hover:bg-[#06854D] text-white rounded-md transition shadow-xs flex items-center gap-1 disabled:opacity-50"
             >
               <Check className="w-3.5 h-3.5" />
               <span>{isSaving ? "Đang lưu vào DB..." : "Lưu Thay Đổi"}</span>

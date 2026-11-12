@@ -107,7 +107,7 @@ export const ClosedSprintsModal: React.FC<ClosedSprintsModalProps> = ({
                             className="py-2 px-2 flex items-center justify-between hover:bg-gray-50 rounded cursor-pointer transition text-xs"
                           >
                             <div className="flex items-center space-x-2.5">
-                              <span className="font-mono font-medium text-slate-700 hover:text-[#C41230] transition">{issue.key}</span>
+                              <span className="font-mono font-medium text-slate-700 hover:text-[#079455] transition">{issue.key}</span>
                               <span className={`line-clamp-1 ${issue.status === "DONE" ? "text-gray-900 font-medium" : "text-gray-500"}`}>
                                 {issue.title}
                               </span>

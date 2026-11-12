@@ -217,7 +217,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ issues, sprints, u
           className="bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 text-xs font-semibold px-3.5 py-2 rounded-md flex items-center gap-1.5 transition shadow-xs"
           title="Tải toàn bộ danh sách issues dạng CSV tương thích Excel"
         >
-          <Download className="w-4 h-4 text-[#C41230]" />
+          <Download className="w-4 h-4 text-[#079455]" />
           <span>Xuất Báo Cáo CSV (Excel)</span>
         </button>
       </div>
@@ -238,10 +238,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ issues, sprints, u
         <div className="bg-white p-4 rounded-lg border border-slate-200 shadow-xs flex items-center justify-between">
           <div>
             <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Story Points Sprint</div>
-            <div className="text-2xl font-black text-[#C41230] mt-1">{sprintTotalPoints} pts</div>
+            <div className="text-2xl font-black text-[#079455] mt-1">{sprintTotalPoints} pts</div>
             <div className="text-[11px] text-slate-500 mt-0.5">Đã xong {sprintDonePoints} pts (còn {remainingPoints})</div>
           </div>
-          <div className="w-10 h-10 rounded-full bg-rose-50 flex items-center justify-center text-[#C41230]">
+          <div className="w-10 h-10 rounded-full bg-rose-50 flex items-center justify-center text-[#079455]">
             <TrendingUp className="w-5 h-5" />
           </div>
         </div>
@@ -271,10 +271,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ issues, sprints, u
         <div className="bg-white p-4 rounded-lg border border-slate-200 shadow-xs flex items-center justify-between">
           <div>
             <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Tốc độ xử lý</div>
-            <div className="text-2xl font-black text-[#C41230] mt-1">~100ms</div>
+            <div className="text-2xl font-black text-[#079455] mt-1">~100ms</div>
             <div className="text-[11px] text-slate-500 mt-0.5">Tự động hóa & Kiểm soát an toàn</div>
           </div>
-          <div className="w-10 h-10 rounded-full bg-rose-50 flex items-center justify-center text-[#C41230]">
+          <div className="w-10 h-10 rounded-full bg-rose-50 flex items-center justify-center text-[#079455]">
             <Zap className="w-5 h-5" />
           </div>
         </div>

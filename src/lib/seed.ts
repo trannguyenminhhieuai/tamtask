@@ -1,12 +1,28 @@
 import { prisma } from "./prisma";
+import bcrypt from "bcryptjs";
+
+export async function ensureDefaultPasswords() {
+  const defaultPasswordHash = await bcrypt.hash("TamTask@2026!", 10);
+  await prisma.user.updateMany({
+    where: { password: null },
+    data: {
+      password: defaultPasswordHash,
+      isTwoFactorEnabled: true,
+    },
+  });
+  console.log("Default passwords updated for existing accounts!");
+}
 
 export async function seedDatabaseIfEmpty() {
   const userCount = await prisma.user.count();
   if (userCount > 0) {
+    await ensureDefaultPasswords();
     return; // Already seeded
   }
 
   console.log("Seeding initial Jira database...");
+
+  const defaultPasswordHash = await bcrypt.hash("TamTask@2026!", 10);
 
   // 1. Create Project
   const project = await prisma.project.create({
@@ -23,6 +39,8 @@ export async function seedDatabaseIfEmpty() {
       id: "u1",
       name: "Trần Minh Hiếu",
       email: "hieu.tran@company.com",
+      password: defaultPasswordHash,
+      isTwoFactorEnabled: true,
       avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120&auto=format&fit=crop&q=80",
       role: "ADMIN",
       activeTasksCount: 3,
@@ -34,6 +52,8 @@ export async function seedDatabaseIfEmpty() {
       id: "u2",
       name: "Nguyễn Thu Hà",
       email: "ha.nguyen@company.com",
+      password: defaultPasswordHash,
+      isTwoFactorEnabled: true,
       avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=120&auto=format&fit=crop&q=80",
       role: "PROJECT_LEAD",
       activeTasksCount: 2,
@@ -45,6 +65,8 @@ export async function seedDatabaseIfEmpty() {
       id: "u3",
       name: "Lê Hoàng Long",
       email: "long.le@company.com",
+      password: defaultPasswordHash,
+      isTwoFactorEnabled: true,
       avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&auto=format&fit=crop&q=80",
       role: "DEVELOPER",
       activeTasksCount: 4,
@@ -56,6 +78,8 @@ export async function seedDatabaseIfEmpty() {
       id: "u4",
       name: "Phạm Thảo Vy",
       email: "vy.pham@company.com",
+      password: defaultPasswordHash,
+      isTwoFactorEnabled: true,
       avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=120&auto=format&fit=crop&q=80",
       role: "QA",
       activeTasksCount: 1,

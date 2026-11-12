@@ -43,6 +43,16 @@ const config: Config = {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
+        tammi: {
+          primary: "#079455",
+          primaryHover: "#06854D",
+          surface: "#F8F8F8",
+          background: "#FFFFFF",
+          border: "#D7D7D7",
+          text: "#111827",
+          accent: "#EE0033",
+          muted: "#9B9B9B",
+        },
         jira: {
           blue: "#0052CC",
           darkBlue: "#172B4D",

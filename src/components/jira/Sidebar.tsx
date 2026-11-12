@@ -59,20 +59,20 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   return (
     <aside
-      className={`bg-slate-50/70 border-r border-slate-200/80 transition-all duration-200 flex flex-col justify-between select-none relative ${
+      className={`bg-[#F8F8F8] border-r border-[#D7D7D7] transition-all duration-200 flex flex-col justify-between select-none relative ${
         isCollapsed ? "w-14" : "w-60"
       }`}
     >
       <div>
         {/* Project Header Info */}
         {!isCollapsed ? (
-          <div className="p-4 border-b border-slate-200/60">
-            <div className="text-[11px] font-bold uppercase tracking-wider text-slate-800">
+          <div className="p-4 border-b border-[#D7D7D7]">
+            <div className="text-[11px] font-bold uppercase tracking-wider text-[#9B9B9B]">
               {currentProject ? currentProject.name : "TamTask Space"}
             </div>
-            <div className="text-sm font-semibold text-slate-800 mt-1 flex items-center justify-between">
+            <div className="text-sm font-semibold text-[#111827] mt-1 flex items-center justify-between">
               <span className="truncate">{activeSprintName || "Chu Kỳ Hiện Tại"}</span>
-              <span className="text-[10px] bg-emerald-50 text-emerald-700 border border-emerald-200/70 font-semibold px-1.5 py-0.5 rounded ml-1 shrink-0">
+              <span className="text-[10px] bg-emerald-50 text-[#079455] border border-emerald-200/80 font-semibold px-1.5 py-0.5 rounded-md ml-1 shrink-0">
                 ĐANG CHẠY
               </span>
             </div>
@@ -82,7 +82,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         )}
 
         {/* Navigation Links */}
-        <nav className="p-2 space-y-0.5">
+        <nav className="p-2 space-y-1">
           {visibleNavItems.map((item) => {
             const Icon = item.icon;
             const isActive = currentView === item.id;
@@ -92,23 +92,23 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 onClick={() => onViewChange(item.id)}
                 className={`w-full flex items-center ${
                   isCollapsed ? "justify-center px-0" : "px-3"
-                } py-2 rounded-md text-xs transition relative group ${
+                } py-2 rounded-lg text-xs transition relative group ${
                   isActive
-                    ? "bg-rose-50/80 text-[#C41230] font-semibold"
-                    : "text-slate-600 hover:bg-slate-100/80 hover:text-slate-900 font-medium"
+                    ? "bg-white text-[#079455] font-semibold border border-[#D7D7D7] shadow-xs"
+                    : "text-[#111827] hover:bg-white hover:text-[#079455] font-medium"
                 }`}
                 title={isCollapsed ? item.label : undefined}
               >
                 {isActive && (
-                  <span className="absolute left-0 top-1.5 bottom-1.5 w-1 bg-[#C41230] rounded-r" />
+                  <span className="absolute left-0 top-1.5 bottom-1.5 w-1 bg-[#079455] rounded-r" />
                 )}
-                <Icon className={`w-4 h-4 shrink-0 ${isActive ? "text-[#C41230]" : "text-slate-500 group-hover:text-slate-700"}`} />
+                <Icon className={`w-4 h-4 shrink-0 ${isActive ? "text-[#079455]" : "text-[#9B9B9B] group-hover:text-[#079455]"}`} />
                 {!isCollapsed && (
                   <div className="ml-3 flex-1 flex items-center justify-between text-left">
                     <span>{item.label}</span>
                     {item.badge && (
                       <span className={`text-[9px] px-1.5 py-0.5 rounded font-mono font-medium ${
-                        isActive ? "bg-rose-100 text-[#C41230]" : "bg-slate-200/70 text-slate-600"
+                        isActive ? "bg-emerald-100 text-[#079455]" : "bg-slate-200/70 text-slate-600"
                       }`}>
                         {item.badge}
                       </span>
@@ -122,14 +122,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
       </div>
 
       {/* Bottom: TamTask Status & Collapse Button */}
-      <div className="p-3 border-t border-slate-200/70">
+      <div className="p-3 border-t border-[#D7D7D7]">
         {!isCollapsed && (
-          <div className="mb-2 bg-white border border-slate-200/80 rounded-lg p-2.5 shadow-2xs">
-            <div className="flex items-center space-x-1.5 text-slate-800 text-xs font-bold">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+          <div className="mb-2 bg-white border border-[#D7D7D7] rounded-lg p-2.5 shadow-2xs">
+            <div className="flex items-center space-x-1.5 text-[#111827] text-xs font-bold">
+              <span className="w-2 h-2 rounded-full bg-[#079455]" />
               <span>TamTask Space</span>
             </div>
-            <p className="text-[11px] text-slate-500 mt-0.5 leading-snug">
+            <p className="text-[11px] text-[#9B9B9B] mt-0.5 leading-snug">
               Không gian quản trị công việc thông minh.
             </p>
           </div>
@@ -137,7 +137,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
         <button
           onClick={onToggleCollapse}
-          className="w-full flex items-center justify-center p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-md transition"
+          className="w-full flex items-center justify-center p-1.5 text-[#9B9B9B] hover:text-[#111827] hover:bg-white rounded-lg border border-transparent hover:border-[#D7D7D7] transition"
           title={isCollapsed ? "Mở rộng thanh bên" : "Thu gọn thanh bên"}
         >
           {isCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}

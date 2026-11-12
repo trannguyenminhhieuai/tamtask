@@ -100,10 +100,10 @@ export const IssueCard: React.FC<IssueCardProps> = ({
         if (isDraggable && onDragStart) onDragStart(e);
       }}
       onClick={onClick}
-      className={`bg-white p-3 rounded-xl border border-slate-200/90 shadow-xs transition-all duration-150 select-none group ${
+      className={`bg-white p-3 rounded-lg border border-[#D7D7D7] shadow-xs transition-all duration-150 select-none group ${
         isDraggable
-          ? "cursor-grab active:cursor-grabbing hover:shadow-md hover:-translate-y-0.5 hover:border-slate-300 active:scale-[0.98]"
-          : "cursor-pointer hover:border-slate-300 hover:shadow-xs"
+          ? "cursor-grab active:cursor-grabbing hover:shadow-md hover:-translate-y-0.5 hover:border-[#079455]/40 active:scale-[0.98]"
+          : "cursor-pointer hover:border-[#079455]/40 hover:shadow-xs"
       }`}
     >
       {/* Badges / Epic */}
@@ -133,7 +133,7 @@ export const IssueCard: React.FC<IssueCardProps> = ({
 
         {totalLinks > 0 && !isBlocked && (
           <span
-            className="inline-flex items-center gap-0.5 text-[10px] font-medium text-slate-500 bg-slate-50 px-1.5 py-0.5 rounded border border-slate-200"
+            className="inline-flex items-center gap-0.5 text-[10px] font-medium text-slate-500 bg-[#F8F8F8] px-1.5 py-0.5 rounded border border-[#D7D7D7]"
             title={`${totalLinks} liên kết`}
           >
             <Link2 className="w-2.5 h-2.5 text-slate-400" />
@@ -143,7 +143,7 @@ export const IssueCard: React.FC<IssueCardProps> = ({
       </div>
 
       {/* Title */}
-      <h4 className="text-xs font-medium text-slate-900 group-hover:text-[#C41230] transition line-clamp-2 leading-relaxed">
+      <h4 className="text-xs font-medium text-[#111827] group-hover:text-[#079455] transition line-clamp-2 leading-relaxed">
         {issue.title}
       </h4>
 

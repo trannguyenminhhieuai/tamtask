@@ -249,16 +249,16 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   return (
     <div className="flex-1 flex flex-col h-full overflow-hidden bg-white">
       {/* Top Filter Bar */}
-      <div className="px-6 py-2.5 border-b border-gray-200 bg-[#FAFBFC] flex flex-wrap items-center justify-between gap-3">
+      <div className="px-6 py-2.5 border-b border-[#D7D7D7] bg-[#F8F8F8] flex flex-wrap items-center justify-between gap-3">
         {/* Left: Quick Filters & Search */}
         <div className="flex flex-wrap items-center gap-2">
           {/* Only My Issues Button */}
           <button
             onClick={() => onFilterChange({ ...filterState, onlyMyIssues: !filterState.onlyMyIssues })}
-            className={`text-xs px-3 py-1.5 rounded-md font-medium transition flex items-center gap-1.5 ${
+            className={`text-xs px-3 py-1.5 rounded-lg font-medium transition flex items-center gap-1.5 ${
               filterState.onlyMyIssues
-                ? "bg-[#C41230] text-white shadow-xs"
-                : "bg-white text-slate-700 border border-slate-300 hover:bg-slate-50"
+                ? "bg-[#079455] text-white shadow-xs"
+                : "bg-white text-[#111827] border border-[#D7D7D7] hover:bg-slate-50"
             }`}
           >
             {filterState.onlyMyIssues && <Check className="w-3.5 h-3.5" />}
@@ -266,13 +266,13 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
           </button>
 
           {/* Quick Filter Pills */}
-          <div className="flex items-center space-x-1 border-l border-slate-200 pl-2">
+          <div className="flex items-center space-x-1 border-l border-[#D7D7D7] pl-2">
             <button
               onClick={() => setQuickFilter((prev) => (prev === "BUGS" ? "ALL" : "BUGS"))}
-              className={`text-xs px-2.5 py-1.5 rounded-md font-medium transition flex items-center gap-1 ${
+              className={`text-xs px-2.5 py-1.5 rounded-lg font-medium transition flex items-center gap-1 ${
                 quickFilter === "BUGS"
-                  ? "bg-rose-50 text-rose-800 border border-rose-200 font-semibold"
-                  : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50"
+                  ? "bg-rose-50 text-rose-800 border border-rose-300 font-semibold"
+                  : "bg-white text-[#111827] border border-[#D7D7D7] hover:bg-slate-50"
               }`}
             >
               <Bug className="w-3 h-3 text-rose-600" />
@@ -281,22 +281,22 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
 
             <button
               onClick={() => setQuickFilter((prev) => (prev === "RECENT" ? "ALL" : "RECENT"))}
-              className={`text-xs px-2.5 py-1.5 rounded-md font-medium transition flex items-center gap-1 ${
+              className={`text-xs px-2.5 py-1.5 rounded-lg font-medium transition flex items-center gap-1 ${
                 quickFilter === "RECENT"
-                  ? "bg-blue-100 text-blue-800 border border-blue-300 font-semibold"
-                  : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50"
+                  ? "bg-emerald-50 text-[#079455] border border-emerald-300 font-semibold"
+                  : "bg-white text-[#111827] border border-[#D7D7D7] hover:bg-slate-50"
               }`}
             >
-              <Clock className="w-3 h-3 text-blue-600" />
+              <Clock className="w-3 h-3 text-[#079455]" />
               <span>Mới cập nhật</span>
             </button>
 
             <button
               onClick={() => setQuickFilter((prev) => (prev === "UNASSIGNED" ? "ALL" : "UNASSIGNED"))}
-              className={`text-xs px-2.5 py-1.5 rounded-md font-medium transition flex items-center gap-1 ${
+              className={`text-xs px-2.5 py-1.5 rounded-lg font-medium transition flex items-center gap-1 ${
                 quickFilter === "UNASSIGNED"
                   ? "bg-amber-100 text-amber-800 border border-amber-300 font-semibold"
-                  : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50"
+                  : "bg-white text-[#111827] border border-[#D7D7D7] hover:bg-slate-50"
               }`}
             >
               <UserCheck className="w-3 h-3 text-amber-600" />
@@ -314,7 +314,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                   onClick={() => toggleAssigneeFilter(user.id)}
                   title={`Lọc theo ${user.name}`}
                   className={`w-7 h-7 rounded-full transition-transform relative ${
-                    isSelected ? "ring-2 ring-slate-900 scale-110 z-10" : "opacity-80 hover:opacity-100"
+                    isSelected ? "ring-2 ring-[#079455] scale-110 z-10" : "opacity-80 hover:opacity-100"
                   }`}
                 >
                   <img src={user.avatar} alt={user.name} className="w-full h-full rounded-full object-cover" />
@@ -327,7 +327,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                 <button
                   type="button"
                   onClick={() => setShowAssigneeOverflow(!showAssigneeOverflow)}
-                  className="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 border border-slate-300 text-[11px] font-bold text-slate-700 flex items-center justify-center transition-transform hover:scale-105 ml-1"
+                  className="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 border border-[#D7D7D7] text-[11px] font-bold text-slate-700 flex items-center justify-center transition-transform hover:scale-105 ml-1"
                   title="Xem thêm nhân sự dự án"
                 >
                   +{overflowUsers.length}
@@ -374,7 +374,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                   epicIds: e.target.value ? [e.target.value] : [],
                 })
               }
-              className="text-xs bg-white border border-gray-300 rounded-md px-2.5 py-1.5 text-gray-700 font-medium focus:outline-none focus:ring-1 focus:ring-[#0052CC]"
+              className="text-xs bg-white border border-[#D7D7D7] rounded-lg px-2.5 py-1.5 text-[#111827] font-medium focus:outline-none focus:ring-2 focus:ring-[#079455]/20 focus:border-[#079455]"
             >
               <option value="">All Epics</option>
               {epics.map((epic) => (
@@ -403,7 +403,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                   onlyMyIssues: false,
                 });
               }}
-              className="text-xs text-gray-500 hover:text-red-600 flex items-center gap-1 transition px-2 py-1"
+              className="text-xs text-[#9B9B9B] hover:text-[#EE0033] flex items-center gap-1 transition px-2 py-1"
             >
               <X className="w-3.5 h-3.5" />
               <span>Xóa bộ lọc</span>
@@ -419,7 +419,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
             <select
               value={swimlaneMode}
               onChange={(e) => setSwimlaneMode(e.target.value as any)}
-              className="bg-white border border-slate-300 rounded px-2 py-1 font-medium text-slate-800 text-xs focus:outline-none focus:ring-1 focus:ring-[#C41230]"
+              className="bg-white border border-[#D7D7D7] rounded-lg px-2.5 py-1.5 font-medium text-[#111827] text-xs focus:outline-none focus:ring-2 focus:ring-[#079455]/20 focus:border-[#079455]"
             >
               <option value="NONE">Mặc định (Cột chuẩn)</option>
               <option value="EPIC">Theo Epic</option>
@@ -431,10 +431,10 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
           {canCustomizeWorkflow && (
             <button
               onClick={onOpenWorkflowSettings}
-              className="text-xs font-medium bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 px-2.5 py-1.5 rounded-md flex items-center gap-1.5 transition shadow-xs"
+              className="text-xs font-medium bg-white border border-[#D7D7D7] hover:bg-[#F8F8F8] text-[#111827] px-2.5 py-1.5 rounded-lg flex items-center gap-1.5 transition shadow-2xs"
               title="Tùy biến các cột trạng thái Kanban"
             >
-              <Sliders className="w-3.5 h-3.5 text-slate-500" />
+              <Sliders className="w-3.5 h-3.5 text-[#9B9B9B]" />
               <span>Quy trình (Workflow)</span>
             </button>
           )}
@@ -442,7 +442,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
           {canCustomizeWorkflow && onOpenEpicSettings && (
             <button
               onClick={onOpenEpicSettings}
-              className="text-xs font-medium bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 px-2.5 py-1.5 rounded-md flex items-center gap-1.5 transition shadow-xs"
+              className="text-xs font-medium bg-white border border-[#D7D7D7] hover:bg-[#F8F8F8] text-[#111827] px-2.5 py-1.5 rounded-lg flex items-center gap-1.5 transition shadow-2xs"
               title="Quản lý và cấu hình màu sắc Epic"
             >
               <FolderGit2 className="w-3.5 h-3.5 text-purple-600" />
@@ -466,26 +466,26 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
       )}
 
       {/* Board Columns & Swimlanes Container */}
-      <div className="flex-1 overflow-auto p-6 space-y-6 bg-[#F4F5F7]">
+      <div className="flex-1 overflow-auto p-6 space-y-6 bg-white">
         {isLoading ? (
           <div className="grid grid-flow-col auto-cols-[300px] gap-4 min-h-[500px]">
             {[1, 2, 3, 4].map((n) => (
-              <div key={n} className="bg-slate-200/60 rounded-2xl p-3 flex flex-col space-y-3 animate-pulse border border-slate-200">
-                <div className="flex items-center justify-between pb-2 border-b border-slate-300/60">
+              <div key={n} className="bg-[#F8F8F8] rounded-lg p-3 flex flex-col space-y-3 animate-pulse border border-[#D7D7D7]">
+                <div className="flex items-center justify-between pb-2 border-b border-[#D7D7D7]">
                   <div className="h-4 bg-slate-300 rounded w-28"></div>
                   <div className="h-4 bg-slate-300 rounded-full w-6"></div>
                 </div>
                 <div className="space-y-3 flex-1">
-                  <div className="h-24 bg-white/90 rounded-xl shadow-xs p-3 space-y-2">
+                  <div className="h-24 bg-white rounded-lg shadow-xs p-3 space-y-2 border border-[#D7D7D7]">
                     <div className="h-3 bg-slate-200 rounded w-16"></div>
                     <div className="h-4 bg-slate-300 rounded w-3/4"></div>
                     <div className="h-3 bg-slate-100 rounded w-1/2"></div>
                   </div>
-                  <div className="h-20 bg-white/90 rounded-xl shadow-xs p-3 space-y-2">
+                  <div className="h-20 bg-white rounded-lg shadow-xs p-3 space-y-2 border border-[#D7D7D7]">
                     <div className="h-4 bg-slate-300 rounded w-2/3"></div>
                     <div className="h-3 bg-slate-200 rounded w-1/3"></div>
                   </div>
-                  <div className="h-24 bg-white/90 rounded-xl shadow-xs p-3 space-y-2">
+                  <div className="h-24 bg-white rounded-lg shadow-xs p-3 space-y-2 border border-[#D7D7D7]">
                     <div className="h-3 bg-slate-200 rounded w-12"></div>
                     <div className="h-4 bg-slate-300 rounded w-4/5"></div>
                   </div>
@@ -500,10 +500,10 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
               {/* Swimlane Header (Hidden if swimlaneMode is NONE) */}
               {swimlaneMode !== "NONE" && (
                 <div
-                  className={`flex items-center justify-between px-3 py-2 rounded-md border text-xs font-bold ${
+                  className={`flex items-center justify-between px-3 py-2 rounded-lg border text-xs font-bold ${
                     (lane as any).isExpedite
-                      ? "bg-red-50 border-red-300 text-red-900 shadow-xs"
-                      : "bg-white border-gray-200 text-gray-800 shadow-2xs"
+                      ? "bg-rose-50 border-rose-300 text-rose-900 shadow-xs"
+                      : "bg-[#F8F8F8] border-[#D7D7D7] text-[#111827] shadow-2xs"
                   }`}
                 >
                   <div className="flex items-center space-x-2.5">
@@ -521,15 +521,15 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                       />
                     )}
                     {(lane as any).isExpedite && (
-                      <Zap className="w-4 h-4 text-red-600 fill-red-100" />
+                      <Zap className="w-4 h-4 text-[#EE0033] fill-red-100" />
                     )}
                     <span>{lane.title}</span>
-                    <span className="text-[10px] bg-gray-100 text-gray-600 font-semibold px-2 py-0.5 rounded-full">
+                    <span className="text-[10px] bg-white border border-[#D7D7D7] text-[#111827] font-semibold px-2 py-0.5 rounded-full">
                       {lane.issues.length} issues
                     </span>
                   </div>
 
-                  <span className="text-[11px] text-gray-400 font-normal">
+                  <span className="text-[11px] text-[#9B9B9B] font-normal">
                     {lane.issues.reduce((s, i) => s + (i.storyPoints || 0), 0)} pts
                   </span>
                 </div>
@@ -550,12 +550,12 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                       key={col.id}
                       onDragOver={(e) => handleDragOver(e, col.id)}
                       onDrop={(e) => handleDrop(e, col.id)}
-                      className={`w-72 flex-shrink-0 flex flex-col rounded-md transition-all ${
+                      className={`w-72 flex-shrink-0 flex flex-col rounded-lg transition-all border ${
                         isOver
-                          ? "bg-blue-50 ring-2 ring-blue-300 ring-dashed"
+                          ? "bg-emerald-50/60 border-2 border-dashed border-[#079455]"
                           : isWipExceeded
-                          ? "bg-red-50/70 border border-red-300 shadow-sm"
-                          : "bg-[#EBECF0]"
+                          ? "bg-rose-50/70 border-rose-300 shadow-sm"
+                          : "bg-[#F8F8F8] border-[#D7D7D7]"
                       }`}
                     >
                       {/* Column Header */}
@@ -565,27 +565,27 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                             className="w-2.5 h-2.5 rounded-full flex-shrink-0"
                             style={{ backgroundColor: col.color }}
                           />
-                          <span className="text-xs font-bold text-gray-700 tracking-wider uppercase truncate">
+                          <span className="text-xs font-bold text-[#111827] tracking-wider uppercase truncate">
                             {col.name}
                           </span>
                           <span
                             className={`text-[11px] font-bold px-2 py-0.5 rounded-full transition-colors flex items-center gap-1 ${
                               isWipExceeded
-                                ? "bg-red-100 text-red-700 border border-red-300"
+                                ? "bg-[#EE0033] text-white"
                                 : isWipMax
                                 ? "bg-amber-100 text-amber-800 border border-amber-300"
-                                : "bg-gray-300 text-gray-700"
+                                : "bg-white border border-[#D7D7D7] text-[#111827]"
                             }`}
                             title={hasWip ? `Giới hạn WIP: ${colIssues.length}/${col.maxWip}` : undefined}
                           >
                             <span>{hasWip ? `${colIssues.length}/${col.maxWip}` : colIssues.length}</span>
                             {isWipExceeded && (
-                              <AlertTriangle className="w-3 h-3 text-red-600 inline-block animate-pulse" />
+                              <AlertTriangle className="w-3 h-3 text-white inline-block animate-pulse" />
                             )}
                           </span>
                         </div>
                         {totalPoints > 0 && (
-                          <span className="text-[10px] font-semibold text-gray-500" title="Total Story Points">
+                          <span className="text-[10px] font-semibold text-[#9B9B9B]" title="Total Story Points">
                             {totalPoints} pts
                           </span>
                         )}
@@ -594,7 +594,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                       {/* Column Cards List */}
                       <div className="flex-1 p-2 pt-0 space-y-2.5 overflow-y-auto max-h-[calc(100vh-270px)]">
                         {dragOverCol === col.id && (
-                          <div className="h-16 border-2 border-dashed border-red-400 bg-red-50/80 rounded-xl flex items-center justify-center text-xs font-semibold text-red-600 animate-pulse">
+                          <div className="h-16 border-2 border-dashed border-[#079455] bg-emerald-50/80 rounded-lg flex items-center justify-center text-xs font-semibold text-[#079455] animate-pulse">
                             Thả thẻ vào cột {col.name}...
                           </div>
                         )}
@@ -620,7 +620,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                       {!isViewer && (
                         <div className="p-2 pt-0">
                           {quickAddStatus === col.id ? (
-                            <div className="bg-white p-2 rounded-xl border border-red-300 shadow-sm space-y-2 animate-in fade-in duration-100">
+                            <div className="bg-white p-2.5 rounded-lg border border-[#079455]/50 shadow-xs space-y-2 animate-in fade-in duration-100">
                               <textarea
                                 autoFocus
                                 rows={2}
@@ -644,7 +644,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                                   }
                                 }}
                                 placeholder="Nhập tiêu đề công việc... (Enter để tạo, Esc hủy)"
-                                className="w-full text-xs p-2 border border-slate-200 rounded-lg outline-none focus:border-red-500 resize-none font-medium text-slate-800"
+                                className="w-full text-xs p-2 border border-[#D7D7D7] rounded-lg outline-none focus:border-[#079455] focus:ring-2 focus:ring-[#079455]/20 resize-none font-medium text-[#111827]"
                               />
                               <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-1.5">
@@ -661,7 +661,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                                         setQuickAddStatus(null);
                                       }
                                     }}
-                                    className="px-2.5 py-1 text-xs font-semibold bg-red-600 hover:bg-red-700 text-white rounded-md shadow-xs transition"
+                                    className="px-3 py-1.5 text-xs font-semibold bg-[#079455] hover:bg-[#06854D] active:bg-[#057A44] text-white rounded-lg shadow-xs transition"
                                   >
                                     Thêm
                                   </button>
@@ -671,7 +671,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                                       setQuickAddStatus(null);
                                       setQuickAddTitle("");
                                     }}
-                                    className="px-2 py-1 text-xs text-slate-500 hover:text-slate-700 rounded transition"
+                                    className="px-2.5 py-1.5 text-xs text-[#9B9B9B] hover:text-[#111827] rounded-lg transition"
                                   >
                                     Hủy
                                   </button>
@@ -683,7 +683,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                                     setQuickAddStatus(null);
                                     onCreateInStatus(col.id);
                                   }}
-                                  className="text-[11px] text-slate-400 hover:text-slate-600 font-medium"
+                                  className="text-[11px] text-[#9B9B9B] hover:text-[#079455] font-medium"
                                 >
                                   Mở form...
                                 </button>
@@ -695,9 +695,9 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                                 setQuickAddStatus(col.id);
                                 setQuickAddTitle("");
                               }}
-                              className="w-full text-left px-2.5 py-1.5 text-xs text-slate-600 hover:text-slate-900 hover:bg-slate-200/70 rounded-lg transition font-medium flex items-center gap-1.5"
+                              className="w-full text-left px-2.5 py-1.5 text-xs text-[#111827] hover:bg-white rounded-lg border border-transparent hover:border-[#D7D7D7] transition font-medium flex items-center gap-1.5"
                             >
-                              <span className="text-sm font-bold leading-none text-red-600">+</span> Tạo nhanh công việc
+                              <span className="text-sm font-bold leading-none text-[#079455]">+</span> Tạo nhanh công việc
                             </button>
                           )}
                         </div>
