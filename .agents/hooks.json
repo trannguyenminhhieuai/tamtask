@@ -1,0 +1,17 @@
+{
+  "mouse1-guard": {
+    "enabled": true,
+    "PreToolUse": [
+      {
+        "matcher": "run_command",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if exist scripts\\mouse_guard.py (python scripts\\mouse_guard.py) else (python .agents\\scripts\\mouse_guard.py)",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}

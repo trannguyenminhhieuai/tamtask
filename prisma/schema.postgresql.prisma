@@ -1,0 +1,238 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id               String    @id @default(uuid())
+  name             String
+  email            String    @unique
+  avatar           String
+  role             String    @default("DEVELOPER") // ADMIN, PROJECT_LEAD, DEVELOPER, QA, VIEWER, PENDING
+  status           String    @default("ACTIVE")    // ACTIVE, PENDING_APPROVAL, SUSPENDED
+  activeTasksCount Int       @default(0)
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  assignedIssues   Issue[]   @relation("AssigneeRelation")
+  reportedIssues   Issue[]   @relation("ReporterRelation")
+  comments         Comment[]
+  activities       IssueActivity[]
+  memberships      ProjectMember[]
+  leadingProjects  Project[] @relation("ProjectLead")
+  notifications    Notification[]
+  worklogs         Worklog[]
+}
+
+model Project {
+  id          String   @id @default(uuid())
+  key         String   @unique // e.g. "PROJ", "JIRA", "VTT", "TT"
+  name        String
+  description String?
+  leadId      String?
+  lead        User?    @relation("ProjectLead", fields: [leadId], references: [id])
+  createdAt   DateTime @default(now())
+
+  epics       Epic[]
+  sprints     Sprint[]
+  issues      Issue[]
+  members     ProjectMember[]
+  statuses    ProjectWorkflowStatus[]
+}
+
+model ProjectMember {
+  id        String   @id @default(uuid())
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role      String   @default("DEVELOPER") // PROJECT_LEAD, DEVELOPER, QA, VIEWER
+  joinedAt  DateTime @default(now())
+
+  @@unique([projectId, userId])
+}
+
+model ProjectWorkflowStatus {
+  id        String   @id @default(uuid())
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  key       String   // e.g. "TODO", "IN_PROGRESS", "IN_REVIEW", "DONE"
+  name      String   // Tên hiển thị
+  category  String   @default("IN_PROGRESS") // TODO, IN_PROGRESS, DONE
+  color     String   @default("#C41230")
+  order     Int      @default(0)
+  maxWip    Int?     // WIP limit
+  createdAt DateTime @default(now())
+
+  @@unique([projectId, key])
+}
+
+model Epic {
+  id        String   @id @default(uuid())
+  name      String
+  color     String   @default("#C41230")
+  summary   String?
+  projectId String?
+  project   Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  issues    Issue[]
+  createdAt DateTime @default(now())
+}
+
+model Sprint {
+  id              String   @id @default(uuid())
+  name            String
+  goal            String?
+  status          String   @default("PLANNED") // PLANNED, ACTIVE, COMPLETED
+  startDate       String?
+  endDate         String?
+  totalPoints     Int      @default(0)
+  completedPoints Int      @default(0)
+  projectId       String?
+  project         Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  issues          Issue[]
+  createdAt       DateTime @default(now())
+}
+
+model Issue {
+  id          String   @id @default(uuid())
+  key         String   @unique
+  type        String   @default("TASK") // EPIC, STORY, TASK, BUG, SUBTASK
+  title       String
+  description String   @default("")
+  status      String   @default("TODO")
+  priority    String   @default("MEDIUM")
+  storyPoints Int?
+  dueDate     String?
+  prLink      String?
+  labels      String   @default("")
+  originalEstimate Int?
+  timeSpent   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  projectId   String?
+  project     Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  assigneeId  String?
+  assignee    User?    @relation("AssigneeRelation", fields: [assigneeId], references: [id])
+
+  reporterId  String?
+  reporter    User?    @relation("ReporterRelation", fields: [reporterId], references: [id])
+
+  epicId      String?
+  epic        Epic?    @relation(fields: [epicId], references: [id])
+
+  sprintId    String?
+  sprint      Sprint?  @relation(fields: [sprintId], references: [id])
+
+  parentId    String?
+  parent      Issue?   @relation("ParentSubtasks", fields: [parentId], references: [id], onDelete: Cascade)
+  children    Issue[]  @relation("ParentSubtasks")
+
+  subtasks    Subtask[]
+  comments    Comment[]
+  attachments Attachment[]
+  activities  IssueActivity[]
+  sourceLinks IssueLink[]       @relation("SourceLinks")
+  targetLinks IssueLink[]       @relation("TargetLinks")
+  worklogs    Worklog[]
+}
+
+model IssueActivity {
+  id           String   @id @default(uuid())
+  issueId      String
+  issue        Issue    @relation(fields: [issueId], references: [id], onDelete: Cascade)
+  actorId      String
+  actor        User     @relation(fields: [actorId], references: [id])
+  fieldChanged String
+  oldValue     String?
+  newValue     String?
+  createdAt    DateTime @default(now())
+}
+
+model Subtask {
+  id          String   @id @default(uuid())
+  title       String
+  isCompleted Boolean  @default(false)
+  issueId     String
+  issue       Issue    @relation(fields: [issueId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+}
+
+model Comment {
+  id        String   @id @default(uuid())
+  content   String
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id])
+  issueId   String
+  issue     Issue    @relation(fields: [issueId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+}
+
+model Attachment {
+  id        String   @id @default(uuid())
+  name      String
+  size      String
+  type      String
+  url       String
+  issueId   String
+  issue     Issue    @relation(fields: [issueId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+}
+
+model AutomationRule {
+  id              String   @id @default(uuid())
+  name            String
+  trigger         String
+  action          String
+  isActive        Boolean  @default(true)
+  useMouse1       Boolean  @default(false)
+  executionsCount Int      @default(0)
+  lastExecuted    String?
+  createdAt       DateTime @default(now())
+}
+
+model IssueLink {
+  id           String   @id @default(uuid())
+  type         String
+  sourceId     String
+  sourceIssue  Issue    @relation("SourceLinks", fields: [sourceId], references: [id], onDelete: Cascade)
+  targetId     String
+  targetIssue  Issue    @relation("TargetLinks", fields: [targetId], references: [id], onDelete: Cascade)
+  createdAt    DateTime @default(now())
+
+  @@unique([sourceId, targetId, type])
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  message   String
+  link      String?
+  type      String   @default("INFO")
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId, isRead])
+}
+
+model Worklog {
+  id           String   @id @default(uuid())
+  issueId      String
+  issue        Issue    @relation(fields: [issueId], references: [id], onDelete: Cascade)
+  authorId     String
+  author       User     @relation(fields: [authorId], references: [id])
+  timeSpentMin Int
+  remainingMin Int?
+  comment      String?
+  loggedAt     DateTime @default(now())
+
+  @@index([issueId])
+}
+
