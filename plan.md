@@ -3690,4 +3690,40 @@ Dựa trên 2 ảnh chụp màn hình thực tế được người dùng đánh
 | **TASK-RESPONSIVE-UI** | Tối ưu hóa Responsive toàn diện (Hamburger mobile, Backdrop Drawer, Touch Kanban & Backlog rows) | `src/components/jira/Navbar.tsx`, `src/components/jira/Sidebar.tsx`, `src/components/jira/BacklogView.tsx`, `src/components/jira/KanbanBoard.tsx`, `src/app/page.tsx` | **P0 (Khẩn)** |  Hoàn thành (Mượt mà trên Mobile & Tablet) |
 | **TASK-BUILD-VERIFY** | Kiểm thử Next.js build 0 lỗi & Push GitHub main deploy Vercel Production | Toàn bộ dự án | **P0 (Khẩn)** |  Hoàn thành (Build 0 lỗi & Đã push) |
 
+---
+
+# CHƯƠNG 29: KHẮC PHỤC TRIỆT ĐỂ LỖI DROPDOWN CHUYỂN DỰ ÁN BỊ CHÌM DƯỚI SIDEBAR VÀ KANBAN BOARD (CSS STACKING CONTEXT FIX)
+
+## 29.1. Phân Tích Nguyên Nhân Gốc Rễ (Root Cause Analysis)
+1. **Hiện tượng người dùng phản ánh**:
+   - Khi nhấp vào bộ chọn dự án ở góc trên bên trái (`[TT] TamTask Space` hoặc `[HCC] Hành Chính Công`), menu danh sách dự án mở ra nhưng bị chìm xuống phía dưới, bị thanh Sidebar bên trái và thanh công cụ Kanban bên phải đè lên che khuất, không thể nhấp chọn chuyển đổi dự án được.
+2. **Nguyên nhân kỹ thuật (Xung đột Stacking Context)**:
+   - Thẻ `<header>` trong [`src/components/jira/Navbar.tsx`](file:///c:/Users/Admin/Desktop/Tammi/Jira/src/components/jira/Navbar.tsx) được cấu hình `sticky top-0 z-40`.
+   - Trong [`src/app/page.tsx`](file:///c:/Users/Admin/Desktop/Tammi/Jira/src/app/page.tsx), khối không gian làm việc chính `<div className="flex-1 flex overflow-hidden relative">` là phần tử kế tiếp trong cấu trúc DOM, chứa vùng bao của Sidebar có `fixed inset-y-0 left-0 z-40`.
+   - Theo chuẩn quy tắc xếp tầng CSS (CSS Stacking Context Rules), khi hai phần tử có cùng chỉ số `z-index` (`z-40`), phần tử xuất hiện sau trong mã nguồn HTML sẽ được ưu tiên vẽ đè lên trên (paint on top).
+   - Do đó, phần menu thả xuống của Navbar (dài 288px `w-72`) khi mở ra theo chiều dọc lập tức bị Sidebar (chiều rộng 240px `w-60`) và thanh công cụ Kanban vẽ đè lên phía trước, dẫn đến việc Dropdown bị "chìm" hoàn toàn và không nhận diện được sự kiện click chuột.
+
+---
+
+## 29.2. Giải Pháp Xử Lý Toàn Diện
+1. **Thiết lập lại thang trật tự hiển thị z-index**:
+   - Header [`src/components/jira/Navbar.tsx`](file:///c:/Users/Admin/Desktop/Tammi/Jira/src/components/jira/Navbar.tsx): Nâng cấp lên `z-50` (hoặc `z-[60]`) đảm bảo toàn bộ Navbar luôn nổi lên trên cùng của không gian làm việc.
+   - Thùng chứa Dropdown dự án `projectMenuRef`: Thiết lập `relative z-50`.
+   - Menu Dropdown dự án: Đặt `z-[100]` kèm đổ bóng sâu `shadow-2xl` và viền rõ nét để nổi bật tuyệt đối trên mọi thành phần giao diện.
+   - Menu thông báo (Notification popover) và Menu tài khoản người dùng (User profile popover): Đều được nâng cấp lên `z-[100]`.
+2. **Chuẩn hóa tầng hiển thị của Workspace & Sidebar** ([`src/app/page.tsx`](file:///c:/Users/Admin/Desktop/Tammi/Jira/src/app/page.tsx)):
+   - Khối Workspace chính: Đặt tường minh `relative z-0` để tạo Stacking Context độc lập, không thể xung đột với Header.
+   - Vùng bao Sidebar trên màn hình máy tính: Bổ sung `md:z-auto` để giải phóng giá trị `z-40` của chế độ mobile, loại bỏ hoàn toàn khả năng che khuất menu trên desktop.
+
+---
+
+## 29.3. Ma Trận Công Việc Thực Thi (Action Execution Matrix)
+
+| Mã Công Việc | Nội Dung Thực Hiện | Tệp Tác Động Chính | Mức Độ | Trạng Thái |
+| :---: | :--- | :--- | :---: | :---: |
+| **TASK-NAVBAR-ZINDEX** | Nâng cấp Header lên `z-[60]` và toàn bộ Dropdown menu lên `z-[100]` với `shadow-2xl` | `src/components/jira/Navbar.tsx` | **P0 (Khẩn)** |  Hoàn thành (Dropdown luôn nổi lên trên cùng) |
+| **TASK-WORKSPACE-STACKING** | Cô lập z-index Workspace (`z-0`) và hủy `z-40` trên desktop (`md:z-auto`) | `src/app/page.tsx` | **P0 (Khẩn)** |  Hoàn thành (Không còn xung đột Stacking Context) |
+| **TASK-BUILD-VERIFY** | Kiểm tra toàn bộ bằng `next build` đảm bảo 0 lỗi TypeScript & Push GitHub Vercel | Toàn bộ dự án | **P0 (Khẩn)** |  Hoàn thành (Build 0 lỗi & Đã push) |
+
+
 

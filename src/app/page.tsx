@@ -827,7 +827,7 @@ export default function JiraApp() {
         />
 
       {/* Main Workspace: Sidebar + Dynamic View */}
-      <div className="flex-1 flex overflow-hidden relative">
+      <div className="flex-1 flex overflow-hidden relative z-0">
         {/* Mobile Backdrop Overlay when Sidebar is open */}
         {!isSidebarCollapsed && (
           <div
@@ -838,7 +838,7 @@ export default function JiraApp() {
 
         {/* Left Jira Sidebar (Responsive slide-in drawer on mobile, static on desktop) */}
         <div
-          className={`md:static fixed inset-y-0 left-0 z-40 transition-transform duration-200 md:translate-x-0 ${
+          className={`md:static fixed inset-y-0 left-0 md:z-auto z-40 transition-transform duration-200 md:translate-x-0 ${
             isSidebarCollapsed ? "-translate-x-full md:translate-x-0" : "translate-x-0"
           }`}
         >
