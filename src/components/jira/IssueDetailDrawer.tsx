@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 import { mouse1 } from "@/lib/mouse1";
 import { TiptapEditor } from "./TiptapEditor";
+import { notify } from "./Toast";
 
 interface IssueDetailDrawerProps {
   issue: Issue | null;
@@ -262,9 +263,14 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
           attachments: [...(issue.attachments || []), uploadedAtt],
         };
         onUpdateIssue(updated);
+        notify.success("Tải lên tệp thành công", file.name);
+      } else {
+        const errData = await res.json().catch(() => ({}));
+        notify.error("Không thể đính kèm tệp", errData.error || "Lỗi máy chủ khi tải lên tệp");
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error("Upload failed:", err);
+      notify.error("Lỗi mạng", err?.message || "Không thể tải lên tệp đính kèm");
     } finally {
       setIsUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = "";

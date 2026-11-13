@@ -14,18 +14,11 @@ const FORBIDDEN_EXTENSIONS = new Set([
   ".htm", ".xhtml", ".svg", ".dll", ".so", ".dylib", ".asp", ".aspx"
 ]);
 
-const MAX_FILE_SIZE = 25 * 1024 * 1024; // 25MB
+const MAX_FILE_SIZE = 15 * 1024 * 1024; // 15MB an toàn cho database & serverless
 
 export async function POST(request: Request) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session?.user) {
-      return NextResponse.json(
-        { error: "Yêu cầu đăng nhập để thực hiện tải lên tệp đính kèm." },
-        { status: 401 }
-      );
-    }
-
     const formData = await request.formData();
     const file = formData.get("file") as File | null;
     const issueId = formData.get("issueId") as string | null;
@@ -34,9 +27,16 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Không tìm thấy tệp đính kèm." }, { status: 400 });
     }
 
+    if (!session?.user && !issueId) {
+      return NextResponse.json(
+        { error: "Yêu cầu đăng nhập để thực hiện tải lên tệp đính kèm." },
+        { status: 401 }
+      );
+    }
+
     if (file.size > MAX_FILE_SIZE) {
       return NextResponse.json(
-        { error: "Kích thước tệp vượt quá giới hạn an toàn cho phép (tối đa 25MB)." },
+        { error: "Kích thước tệp vượt quá giới hạn an toàn cho phép (tối đa 15MB)." },
         { status: 400 }
       );
     }
@@ -51,18 +51,27 @@ export async function POST(request: Request) {
 
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
+    const mimeType = file.type || "application/octet-stream";
 
-    // Ensure public/uploads directory exists
-    const uploadsDir = path.join(process.cwd(), "public", "uploads");
-    await mkdir(uploadsDir, { recursive: true });
+    let fileUrl = "";
 
-    // Generate safe unique filename
-    const cleanBase = path.basename(file.name, ext).replace(/[^a-zA-Z0-9_-]/g, "_");
-    const uniqueName = `${cleanBase}_${Date.now()}${ext}`;
-    const filePath = path.join(uploadsDir, uniqueName);
+    // 1. Thử lưu vào local public/uploads (Môi trường local development)
+    try {
+      const uploadsDir = path.join(process.cwd(), "public", "uploads");
+      await mkdir(uploadsDir, { recursive: true });
 
-    await writeFile(filePath, buffer);
-    const fileUrl = `/uploads/${uniqueName}`;
+      const cleanBase = path.basename(file.name, ext).replace(/[^a-zA-Z0-9_-]/g, "_");
+      const uniqueName = `${cleanBase}_${Date.now()}${ext}`;
+      const filePath = path.join(uploadsDir, uniqueName);
+
+      await writeFile(filePath, buffer);
+      fileUrl = `/uploads/${uniqueName}`;
+    } catch (fsError) {
+      // 2. Fallback cho môi trường Serverless Vercel (Read-only filesystem)
+      // Lưu trữ trực tiếp dưới dạng Base64 Data URI vào database Supabase PostgreSQL
+      console.log("[Upload] Vercel serverless environment detected. Storing as Data URI.");
+      fileUrl = `data:${mimeType};base64,${buffer.toString("base64")}`;
+    }
 
     const formatSize = (bytes: number) => {
       if (bytes < 1024) return `${bytes} B`;
@@ -72,21 +81,21 @@ export async function POST(request: Request) {
 
     let savedAttachmentId = `att-${Date.now()}`;
 
-    // If an issueId was passed, persist in database
+    // 3. Lưu bản ghi Attachment vào Database nếu có issueId
     if (issueId) {
       try {
         const record = await prisma.attachment.create({
           data: {
             name: file.name,
             size: formatSize(file.size),
-            type: file.type || "application/octet-stream",
+            type: mimeType,
             url: fileUrl,
             issueId,
           },
         });
         savedAttachmentId = record.id;
-      } catch (err) {
-        console.warn("Could not attach to issue in DB:", err);
+      } catch (err: any) {
+        console.error("Could not attach to issue in DB:", err);
       }
     }
 
@@ -94,13 +103,12 @@ export async function POST(request: Request) {
       id: savedAttachmentId,
       name: file.name,
       size: formatSize(file.size),
-      type: file.type || "application/octet-stream",
+      type: mimeType,
       url: fileUrl,
       uploadedAt: new Date().toISOString().split("T")[0],
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error("POST /api/upload error:", error);
-    return NextResponse.json({ error: "Failed to upload file" }, { status: 500 });
+    return NextResponse.json({ error: error?.message || "Lỗi xử lý tệp tải lên" }, { status: 500 });
   }
 }
-
