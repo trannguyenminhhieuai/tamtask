@@ -189,7 +189,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
             </div>
             <div>
               <h3 className="text-sm font-bold text-[#111827]">Đăng Nhập TamTask</h3>
-              <p className="text-[11px] text-[#9B9B9B]">Bảo mật 2 lớp qua Email - Chuẩn Viettel</p>
+              <p className="text-[11px] text-[#9B9B9B]">Xác thực bảo mật tài khoản</p>
             </div>
           </div>
           <button

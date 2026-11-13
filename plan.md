@@ -3353,3 +3353,32 @@ sequenceDiagram
 | **TASK-VT-3** | **Xây dựng module gửi mail Nodemailer & HTML Template Viettel** | `src/lib/mail.ts`, `package.json` | **P0 (Khẩn)** |  Hoàn thành (Đã cài nodemailer & tạo template HTML) |
 | **TASK-VT-4** | **Xóa bỏ OTP Preview trên API & Giao diện, chỉ gửi qua Mail** | `src/app/api/auth/2fa/route.ts`, `LoginModal.tsx`, `AuthLandingScreen.tsx` | **P0 (Khẩn)** |  Hoàn thành (Loại bỏ triệt để otpPreview) |
 | **TASK-VT-5** | **Build kiểm thử toàn bộ dự án & Đẩy lên GitHub Main (Vercel Auto-deploy)** | Next.js Build, GitHub, Vercel | **P0 (Khẩn)** |  Hoàn thành (Build Exit 0 & Push main) |
+
+---
+
+# 🎯 CHƯƠNG 25: TINH GỌN GIAO DIỆN (UI SIMPLIFICATION) - LOẠI BỎ CHI TIẾT THỪA THEO PHẢN HỒI THỰC TẾ
+
+## 25.1. Phân Tích Hình Ảnh Yêu Cầu Cắt Bỏ Chi Tiết Thừa Từ Người Dùng
+Dựa trên 2 ảnh chụp màn hình thực tế được người dùng đánh dấu dấu chéo đỏ (`X` đỏ):
+1. **Ảnh 1: Màn hình Đăng nhập (`AuthLandingScreen.tsx`)**:
+   - ❌ **Xóa bỏ huy hiệu "Viettel Edition"** cạnh logo TamTask trên thanh tiêu đề trên cùng (gây rối mắt).
+   - ❌ **Xóa bỏ huy hiệu "Bảo mật 2 lớp qua Email"** trên góc phải header.
+   - ❌ **CẮT BỎ HOÀN TOÀN khối demo bên phải (7 cột)**: Khối chứa *"KHÔNG GIAN QUẢN TRỊ VIETTEL"*, sprint points, thẻ preview Micro-Kanban (Ý tưởng, Đang xử lý, Đã phát hành) và các chỉ số thống kê *"100% On-time"*, *"Vercel + Supabase"*.
+   - ✅ **Tái cấu trúc giao diện đăng nhập**: Chuyển sang bố cục trung tâm (**Centered Layout**) tinh gọn, chuyên nghiệp, chỉ tập trung vào Form đăng nhập chính giữa màn hình với nền trắng xám tối giản, chuẩn mực phần mềm quản trị doanh nghiệp Jira.
+2. **Ảnh 2: Thanh điều hướng bên trái (`Sidebar.tsx`)**:
+   - ❌ **Xóa bỏ huy hiệu "Trực quan"** bên cạnh mục menu **"Bảng Công Việc"**.
+   - ❌ **Xóa bỏ huy hiệu "Gantt"** bên cạnh mục menu **"Lộ Trình Tiến Độ"**.
+   - ❌ **Xóa bỏ card giới thiệu rườm rà** ở đáy sidebar (*"TamTask Space - Không gian quản trị công việc thông minh"*).
+   - ✅ **Giữ lại danh mục chức năng thanh lịch, chuẩn mực**: Tên mục rõ ràng, chỉ báo active màu đỏ Viettel `#EE0033`, nút thu gọn/mở rộng trực quan.
+
+---
+
+## 25.2. Ma Trận Công Việc Thực Thi (Action Execution Matrix)
+
+| Mã Công Việc | Nội Dung Thực Hiện | Tệp Tác Động Chính | Mức Độ | Trạng Thái |
+| :---: | :--- | :--- | :---: | :---: |
+| **TASK-SIMP-1** | **Xóa badge "Trực quan" & "Gantt" trên Sidebar** | `src/components/jira/Sidebar.tsx` | **P0 (Khẩn)** |  Hoàn thành (Menu tinh gọn, không rác chữ) |
+| **TASK-SIMP-2** | **Xóa toàn bộ khối showcase "Không gian quản trị Viettel" ở màn Login** | `src/components/jira/AuthLandingScreen.tsx` | **P0 (Khẩn)** |  Hoàn thành (Bỏ micro-kanban & chỉ số thừa) |
+| **TASK-SIMP-3** | **Căn giữa form đăng nhập chuẩn Enterprise, bỏ huy hiệu thừa trên Topbar** | `src/components/jira/AuthLandingScreen.tsx` | **P0 (Khẩn)** |  Hoàn thành (Centered card tối giản, thanh lịch) |
+| **TASK-SIMP-4** | **Tinh giản phụ đề trong LoginModal** | `src/components/jira/LoginModal.tsx` | **P0 (Khẩn)** |  Hoàn thành (Xóa slogan thừa) |
+| **TASK-SIMP-5** | **Build kiểm thử toàn bộ & Đồng bộ GitHub Main (Vercel Auto-deploy)** | Next.js Build, GitHub, Vercel | **P0 (Khẩn)** |  Hoàn thành (Exit 0 & Pushed to main) |

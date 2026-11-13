@@ -37,11 +37,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
 }) => {
   const role = currentUser.role || "DEVELOPER";
 
-  // Build navigation items based on strict RBAC
+  // Build navigation items based on strict RBAC - Clean, without unnecessary badges
   const allNavItems = [
-    { id: "BOARD" as NavView, label: "Bảng Công Việc", icon: Kanban, badge: "Trực quan", allowedRoles: ["ADMIN", "PROJECT_LEAD", "DEVELOPER", "QA", "VIEWER"] },
+    { id: "BOARD" as NavView, label: "Bảng Công Việc", icon: Kanban, allowedRoles: ["ADMIN", "PROJECT_LEAD", "DEVELOPER", "QA", "VIEWER"] },
     { id: "BACKLOG" as NavView, label: "Kế Hoạch Chu Kỳ", icon: ListTodo, allowedRoles: ["ADMIN", "PROJECT_LEAD", "DEVELOPER", "QA", "VIEWER"] },
-    { id: "TIMELINE" as NavView, label: "Lộ Trình Tiến Độ", icon: Calendar, badge: "Gantt", allowedRoles: ["ADMIN", "PROJECT_LEAD", "DEVELOPER", "QA", "VIEWER"] },
+    { id: "TIMELINE" as NavView, label: "Lộ Trình Tiến Độ", icon: Calendar, allowedRoles: ["ADMIN", "PROJECT_LEAD", "DEVELOPER", "QA", "VIEWER"] },
     { id: "DASHBOARD" as NavView, label: "Báo Cáo & Thống Kê", icon: TrendingUp, allowedRoles: ["ADMIN", "PROJECT_LEAD", "DEVELOPER", "QA", "VIEWER"] },
     { id: "AUTOMATION" as NavView, label: "Quy Tắc Tự Động", icon: Zap, allowedRoles: ["ADMIN", "PROJECT_LEAD"] },
     { id: "ADMIN" as NavView, label: "Quản Trị Hệ Thống", icon: Users, allowedRoles: ["ADMIN"] },
@@ -104,16 +104,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 )}
                 <Icon className={`w-4 h-4 shrink-0 ${isActive ? "text-[#EE0033]" : "text-[#9B9B9B] group-hover:text-[#EE0033]"}`} />
                 {!isCollapsed && (
-                  <div className="ml-3 flex-1 flex items-center justify-between text-left">
-                    <span>{item.label}</span>
-                    {item.badge && (
-                      <span className={`text-[9px] px-1.5 py-0.5 rounded font-mono font-medium ${
-                        isActive ? "bg-rose-100 text-[#EE0033]" : "bg-slate-200/70 text-slate-600"
-                      }`}>
-                        {item.badge}
-                      </span>
-                    )}
-                  </div>
+                  <span className="ml-3 truncate">{item.label}</span>
                 )}
               </button>
             );
@@ -121,23 +112,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </nav>
       </div>
 
-      {/* Bottom: TamTask Status & Collapse Button */}
+      {/* Bottom: Collapse Button */}
       <div className="p-3 border-t border-[#D7D7D7]">
-        {!isCollapsed && (
-          <div className="mb-2 bg-white border border-[#D7D7D7] rounded-lg p-2.5 shadow-2xs">
-            <div className="flex items-center space-x-1.5 text-[#111827] text-xs font-bold">
-              <span className="w-2 h-2 rounded-full bg-[#EE0033]" />
-              <span>TamTask Space</span>
-            </div>
-            <p className="text-[11px] text-[#9B9B9B] mt-0.5 leading-snug">
-              Không gian quản trị công việc thông minh.
-            </p>
-          </div>
-        )}
-
         <button
           onClick={onToggleCollapse}
-          className="w-full flex items-center justify-center p-1.5 text-[#9B9B9B] hover:text-[#111827] hover:bg-white rounded-lg border border-transparent hover:border-[#D7D7D7] transition"
+          className="w-full flex items-center justify-center p-2 text-[#9B9B9B] hover:text-[#111827] hover:bg-white rounded-lg border border-transparent hover:border-[#D7D7D7] transition"
           title={isCollapsed ? "Mở rộng thanh bên" : "Thu gọn thanh bên"}
         >
           {isCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}

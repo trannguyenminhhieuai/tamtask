@@ -138,3 +138,4 @@ export async function sendOtpEmail({ to, otp, userName }: SendOtpOptions): Promi
     return { success: true };
   }
 }
+
