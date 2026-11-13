@@ -682,15 +682,15 @@ export default function JiraApp() {
     }
   };
 
-  // 1. Loading Authentication State
+  // 1. Loading Authentication State - Viettel Red Signature
   if (authStatus === "loading") {
     return (
-      <div className="h-screen w-screen flex flex-col items-center justify-center bg-[#F4F6F9]">
-        <div className="w-12 h-12 rounded-2xl bg-slate-900 flex items-center justify-center text-white shadow-lg shadow-slate-900/20 animate-pulse mb-4 font-black text-base tracking-tight border border-slate-700">
+      <div className="h-screen w-screen flex flex-col items-center justify-center bg-[#F8F8F8]">
+        <div className="w-14 h-14 rounded-2xl bg-[#EE0033] flex items-center justify-center text-white shadow-xl shadow-[#EE0033]/25 animate-pulse mb-4 font-black text-lg tracking-tight">
           TT
         </div>
-        <div className="text-sm font-bold text-slate-800">Đang khởi động TamTask...</div>
-        <div className="text-xs text-slate-500 mt-1">Đang tải không gian làm việc và đồng bộ dữ liệu dự án</div>
+        <div className="text-sm font-bold text-[#111827]">Đang khởi động TamTask...</div>
+        <div className="text-xs text-[#9B9B9B] mt-1">Đang đồng bộ dữ liệu dự án</div>
       </div>
     );
   }

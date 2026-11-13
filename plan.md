@@ -3381,4 +3381,5 @@ Dựa trên 2 ảnh chụp màn hình thực tế được người dùng đánh
 | **TASK-SIMP-2** | **Xóa toàn bộ khối showcase "Không gian quản trị Viettel" ở màn Login** | `src/components/jira/AuthLandingScreen.tsx` | **P0 (Khẩn)** |  Hoàn thành (Bỏ micro-kanban & chỉ số thừa) |
 | **TASK-SIMP-3** | **Căn giữa form đăng nhập chuẩn Enterprise, bỏ huy hiệu thừa trên Topbar** | `src/components/jira/AuthLandingScreen.tsx` | **P0 (Khẩn)** |  Hoàn thành (Centered card tối giản, thanh lịch) |
 | **TASK-SIMP-4** | **Tinh giản phụ đề trong LoginModal** | `src/components/jira/LoginModal.tsx` | **P0 (Khẩn)** |  Hoàn thành (Xóa slogan thừa) |
-| **TASK-SIMP-5** | **Build kiểm thử toàn bộ & Đồng bộ GitHub Main (Vercel Auto-deploy)** | Next.js Build, GitHub, Vercel | **P0 (Khẩn)** |  Hoàn thành (Exit 0 & Pushed to main) |
+| **TASK-SIMP-5** | **Chuẩn hóa Logo & Loading State sang màu đỏ Viettel (#EE0033)** | `src/app/page.tsx`, `PendingApprovalScreen.tsx` | **P0 (Khẩn)** |  Hoàn thành (Logo TT đỏ Viettel #EE0033) |
+| **TASK-SIMP-6** | **Build kiểm thử toàn bộ & Đồng bộ GitHub Main (Vercel Auto-deploy)** | Next.js Build, GitHub, Vercel | **P0 (Khẩn)** |  Hoàn thành (Exit 0 & Pushed to main) |

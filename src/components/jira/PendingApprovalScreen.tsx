@@ -24,7 +24,7 @@ export const PendingApprovalScreen: React.FC<PendingApprovalScreenProps> = ({ cu
       {/* Header */}
       <header className="h-16 bg-white border-b border-slate-200/90 px-8 flex items-center justify-between shadow-xs">
         <div className="flex items-center space-x-3">
-          <div className="w-9 h-9 rounded-md bg-gradient-to-tr from-rose-600 to-indigo-600 flex items-center justify-center text-white shadow-xs font-black text-sm tracking-wider">
+          <div className="w-9 h-9 rounded-lg bg-[#EE0033] flex items-center justify-center text-white shadow-xs font-black text-sm tracking-wider">
             TT
           </div>
           <div>
