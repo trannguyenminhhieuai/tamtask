@@ -2,7 +2,48 @@
 
 import React from "react";
 import { Sprint, Issue } from "@/types/jira";
-import { X, Calendar, CheckCircle2, Award, Check } from "lucide-react";
+import { X, Calendar, CheckCircle2, Award, Check, ArrowUp, ArrowDown, Minus } from "lucide-react";
+
+const getPriorityBadge = (priority?: string) => {
+  switch (priority) {
+    case "HIGHEST":
+      return {
+        label: "Cao nhất",
+        colorClass: "bg-red-50 text-[#EE0033] border-red-200 font-bold",
+        icon: <ArrowUp className="w-3 h-3 text-[#EE0033] stroke-[3]" />,
+      };
+    case "HIGH":
+      return {
+        label: "Cao",
+        colorClass: "bg-orange-50 text-orange-700 border-orange-200 font-semibold",
+        icon: <ArrowUp className="w-3 h-3 text-orange-600 stroke-[2.5]" />,
+      };
+    case "MEDIUM":
+      return {
+        label: "Trung bình",
+        colorClass: "bg-amber-50 text-amber-700 border-amber-200 font-semibold",
+        icon: <Minus className="w-3 h-3 text-amber-600 stroke-[2.5]" />,
+      };
+    case "LOW":
+      return {
+        label: "Thấp",
+        colorClass: "bg-sky-50 text-sky-700 border-sky-200 font-semibold",
+        icon: <ArrowDown className="w-3 h-3 text-sky-600 stroke-[2]" />,
+      };
+    case "LOWEST":
+      return {
+        label: "Rất thấp",
+        colorClass: "bg-slate-100 text-slate-600 border-slate-200 font-medium",
+        icon: <ArrowDown className="w-3 h-3 text-slate-400 stroke-[1.5]" />,
+      };
+    default:
+      return {
+        label: "Trung bình",
+        colorClass: "bg-amber-50 text-amber-700 border-amber-200 font-medium",
+        icon: <Minus className="w-3 h-3 text-amber-600 stroke-[2.5]" />,
+      };
+  }
+};
 
 interface ClosedSprintsModalProps {
   isOpen: boolean;
@@ -113,6 +154,19 @@ export const ClosedSprintsModal: React.FC<ClosedSprintsModalProps> = ({
                               </span>
                             </div>
                             <div className="flex items-center space-x-2">
+                              {/* Priority Badge */}
+                              {(() => {
+                                const p = getPriorityBadge(issue.priority);
+                                return (
+                                  <span
+                                    className={`inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded border ${p.colorClass}`}
+                                    title={`Mức độ ưu tiên: ${p.label}`}
+                                  >
+                                    {p.icon}
+                                    <span>{p.label}</span>
+                                  </span>
+                                );
+                              })()}
                               <span className="text-[10px] px-1.5 py-0.5 bg-gray-100 rounded text-gray-600 font-semibold">
                                 {issue.status}
                               </span>

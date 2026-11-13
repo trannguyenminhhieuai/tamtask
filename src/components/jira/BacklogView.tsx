@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Issue, Sprint, User } from "@/types/jira";
+import { Issue, Sprint, User, IssuePriority } from "@/types/jira";
 import {
   Play,
   CheckCircle2,
@@ -17,11 +17,55 @@ import {
   X,
   Users,
   Pencil,
+  ArrowUp,
+  ArrowDown,
+  Minus,
 } from "lucide-react";
 import { CreateSprintModal } from "./CreateSprintModal";
 import { EditSprintModal } from "./EditSprintModal";
 import { CompleteSprintModal } from "./CompleteSprintModal";
 import { ClosedSprintsModal } from "./ClosedSprintsModal";
+
+export const getPriorityBadge = (priority?: string) => {
+  switch (priority) {
+    case "HIGHEST":
+      return {
+        label: "Cao nhất",
+        colorClass: "bg-red-50 text-[#EE0033] border-red-200 font-bold",
+        icon: <ArrowUp className="w-3 h-3 text-[#EE0033] stroke-[3]" />,
+      };
+    case "HIGH":
+      return {
+        label: "Cao",
+        colorClass: "bg-orange-50 text-orange-700 border-orange-200 font-semibold",
+        icon: <ArrowUp className="w-3 h-3 text-orange-600 stroke-[2.5]" />,
+      };
+    case "MEDIUM":
+      return {
+        label: "Trung bình",
+        colorClass: "bg-amber-50 text-amber-700 border-amber-200 font-semibold",
+        icon: <Minus className="w-3 h-3 text-amber-600 stroke-[2.5]" />,
+      };
+    case "LOW":
+      return {
+        label: "Thấp",
+        colorClass: "bg-sky-50 text-sky-700 border-sky-200 font-semibold",
+        icon: <ArrowDown className="w-3 h-3 text-sky-600 stroke-[2]" />,
+      };
+    case "LOWEST":
+      return {
+        label: "Rất thấp",
+        colorClass: "bg-slate-100 text-slate-600 border-slate-200 font-medium",
+        icon: <ArrowDown className="w-3 h-3 text-slate-400 stroke-[1.5]" />,
+      };
+    default:
+      return {
+        label: "Trung bình",
+        colorClass: "bg-amber-50 text-amber-700 border-amber-200 font-medium",
+        icon: <Minus className="w-3 h-3 text-amber-600 stroke-[2.5]" />,
+      };
+  }
+};
 
 interface BacklogViewProps {
   issues: Issue[];
@@ -436,6 +480,20 @@ export const BacklogView: React.FC<BacklogViewProps> = ({
                       </span>
                     )}
 
+                    {/* Priority Badge with Viettel & Priority Colors */}
+                    {(() => {
+                      const p = getPriorityBadge(issue.priority);
+                      return (
+                        <span
+                          className={`inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded border transition-colors shadow-2xs ${p.colorClass}`}
+                          title={`Mức độ ưu tiên: ${p.label}`}
+                        >
+                          {p.icon}
+                          <span>{p.label}</span>
+                        </span>
+                      );
+                    })()}
+
                     <span className="text-[10px] font-semibold bg-gray-100 text-gray-600 px-2 py-0.5 rounded">
                       {issue.status}
                     </span>
@@ -580,6 +638,20 @@ export const BacklogView: React.FC<BacklogViewProps> = ({
                     {issue.epic.name}
                   </span>
                 )}
+
+                {/* Priority Badge with Viettel & Priority Colors */}
+                {(() => {
+                  const p = getPriorityBadge(issue.priority);
+                  return (
+                    <span
+                      className={`inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded border transition-colors shadow-2xs ${p.colorClass}`}
+                      title={`Mức độ ưu tiên: ${p.label}`}
+                    >
+                      {p.icon}
+                      <span>{p.label}</span>
+                    </span>
+                  );
+                })()}
 
                 <span className="text-[10px] font-semibold bg-gray-100 text-gray-600 px-2 py-0.5 rounded">
                   {issue.status}

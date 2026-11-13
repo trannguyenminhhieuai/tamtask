@@ -65,7 +65,20 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   const [quickAddTitle, setQuickAddTitle] = useState("");
   const [showAssigneeOverflow, setShowAssigneeOverflow] = useState(false);
 
-  // Apply filters (including Quick Filter Pills)
+  // Active sprint computation (Sprint with status === "ACTIVE")
+  const activeSprint = useMemo(() => {
+    return sprints.find((s) => s.status === "ACTIVE");
+  }, [sprints]);
+
+  // Selected Sprint ID: Default to activeSprint?.id, fallback to first sprint or "ALL"
+  const effectiveSprintId = useMemo(() => {
+    if (filterState.sprintId !== undefined && filterState.sprintId !== "") {
+      return filterState.sprintId;
+    }
+    return activeSprint?.id || (sprints.length > 0 ? sprints[0].id : "ALL");
+  }, [filterState.sprintId, activeSprint, sprints]);
+
+  // Apply filters (including Quick Filter Pills & Sprint Selector)
   const filteredIssues = useMemo(() => {
     return issues.filter((issue) => {
       // 1. Quick Filters
@@ -112,14 +125,18 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
         return false;
       }
 
-      // 6. Sprint filter
-      if (filterState.sprintId && issue.sprintId !== filterState.sprintId) {
-        return false;
+      // 6. Sprint filter (Default to active sprint, or user-selected sprint)
+      if (effectiveSprintId && effectiveSprintId !== "ALL") {
+        if (effectiveSprintId === "BACKLOG") {
+          if (issue.sprintId) return false;
+        } else if (issue.sprintId !== effectiveSprintId) {
+          return false;
+        }
       }
 
       return true;
     });
-  }, [issues, quickFilter, filterState, currentUser.id]);
+  }, [issues, quickFilter, filterState, effectiveSprintId, currentUser.id]);
 
   // Swimlanes Grouping
   const swimlanes = useMemo(() => {
@@ -364,6 +381,82 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
             )}
           </div>
 
+          {/* Sprint Filter Dropdown */}
+          <div className="relative flex items-center">
+            <div className="flex items-center gap-1.5 bg-white border border-[#D7D7D7] rounded-lg px-2.5 py-1.5 text-xs shadow-2xs hover:border-[#EE0033]/40 transition">
+              <Layers className="w-3.5 h-3.5 text-[#EE0033] shrink-0" />
+              <span className="font-bold text-slate-500 hidden sm:inline">Sprint:</span>
+              <select
+                value={effectiveSprintId}
+                onChange={(e) =>
+                  onFilterChange({
+                    ...filterState,
+                    sprintId: e.target.value,
+                  })
+                }
+                className="bg-transparent text-xs font-semibold text-[#111827] focus:outline-none cursor-pointer pr-1"
+              >
+                {/* Active Sprint (Highlighted / First) */}
+                {activeSprint && (
+                  <option value={activeSprint.id} className="font-bold text-[#EE0033]">
+                    🏃 {activeSprint.name} (Đang chạy)
+                  </option>
+                )}
+
+                {/* Planned Sprints */}
+                {sprints
+                  .filter((s) => s.status === "PLANNED" && s.id !== activeSprint?.id)
+                  .map((s) => (
+                    <option key={s.id} value={s.id}>
+                      📋 {s.name} (Kế hoạch)
+                    </option>
+                  ))}
+
+                {/* Completed Sprints */}
+                {sprints
+                  .filter((s) => s.status === "COMPLETED" && s.id !== activeSprint?.id)
+                  .map((s) => (
+                    <option key={s.id} value={s.id}>
+                      ✓ {s.name} (Đã hoàn thành)
+                    </option>
+                  ))}
+
+                {/* Other Options */}
+                <option value="ALL">🌐 Tất cả chu kỳ (Tất cả task)</option>
+                <option value="BACKLOG">📦 Chỉ Backlog (Chưa gán chu kỳ)</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Selected Sprint Status Badge */}
+          {(() => {
+            const selectedSprint = sprints.find((s) => s.id === effectiveSprintId);
+            if (!selectedSprint) return null;
+            return (
+              <div className="hidden xl:flex items-center gap-1.5 text-[11px] font-medium">
+                {selectedSprint.status === "ACTIVE" ? (
+                  <span className="bg-rose-50 text-[#EE0033] border border-rose-200 px-2 py-0.5 rounded-md font-bold flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#EE0033] animate-pulse" />
+                    Đang chạy
+                  </span>
+                ) : selectedSprint.status === "COMPLETED" ? (
+                  <span className="bg-slate-100 text-slate-600 border border-slate-200 px-2 py-0.5 rounded-md font-semibold">
+                    ✓ Đã đóng
+                  </span>
+                ) : (
+                  <span className="bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 rounded-md font-semibold">
+                    Kế hoạch
+                  </span>
+                )}
+                {(selectedSprint.startDate || selectedSprint.endDate) && (
+                  <span className="text-slate-400">
+                    ({selectedSprint.startDate || "?"} ~ {selectedSprint.endDate || "?"})
+                  </span>
+                )}
+              </div>
+            );
+          })()}
+
           {/* Epic Filter Dropdown */}
           <div className="relative">
             <select
@@ -390,7 +483,8 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
             filterState.onlyMyIssues ||
             quickFilter !== "ALL" ||
             filterState.assigneeIds.length > 0 ||
-            filterState.epicIds.length > 0) && (
+            filterState.epicIds.length > 0 ||
+            (filterState.sprintId && filterState.sprintId !== (activeSprint?.id || ""))) && (
             <button
               onClick={() => {
                 setQuickFilter("ALL");
@@ -399,7 +493,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                   assigneeIds: [],
                   epicIds: [],
                   priorities: [],
-                  sprintId: sprints[0]?.id || "",
+                  sprintId: activeSprint?.id || "",
                   onlyMyIssues: false,
                 });
               }}

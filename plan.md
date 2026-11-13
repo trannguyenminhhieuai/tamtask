@@ -3609,4 +3609,43 @@ Dựa trên 2 ảnh chụp màn hình thực tế được người dùng đánh
 | **TASK-ATT-2** | **Thêm Toast thông báo tải tệp thành công/thất bại trên Drawer** | `src/components/jira/IssueDetailDrawer.tsx` | **P0 (Khẩn)** |  Hoàn thành (Phản hồi mượt mà) |
 | **TASK-IMP-1** | **Xây dựng kịch bản nạp dữ liệu dự án Hành Chính Công (HCC)** | `src/scripts/import-hcc.ts` | **P0 (Khẩn)** |  Hoàn thành (Đầy đủ 31 tasks) |
 | **TASK-IMP-2** | **Thực thi import trực tiếp lên CSDL Supabase Production** | Supabase DB ap-northeast-1 | **P0 (Khẩn)** |  Hoàn thành (31/31 tasks đã lưu DB) |
-| **TASK-IMP-3** | **Build kiểm thử toàn bộ & Đồng bộ GitHub Main (Vercel Auto-deploy)** | Next.js Build, GitHub, Vercel | **P0 (Khẩn)** |  Đang thực thi |
+| **TASK-IMP-3** | **Build kiểm thử toàn bộ & Đồng bộ GitHub Main (Vercel Auto-deploy)** | Next.js Build, GitHub, Vercel | **P0 (Khẩn)** |  Hoàn thành (Build 0 lỗi & Đã push) |
+
+---
+
+# CHƯƠNG 27: BỔ SUNG MỨC ĐỘ ƯU TIÊN THEO MÀU SẮC TRONG KẾ HOẠCH CHU KỲ & BỘ CHỌN SPRINT LINH HOẠT TRÊN KANBAN BOARD (MẶC ĐỊNH SPRINT ĐANG CHẠY)
+
+## 27.1. Bối Cảnh Và Yêu Cầu Cấp Thiết
+1. **Trực quan hóa mức độ ưu tiên trong Kế Hoạch Chu Kỳ (Backlog & Sprint Planning)**:
+   - Trong giao diện Kế Hoạch Chu Kỳ (`BacklogView.tsx`), danh sách các công việc trong từng Sprint và trong Backlog trước đây chưa hiển thị nhãn độ ưu tiên (Priority), khiến Product Owner / Tech Lead gặp khó khăn khi phân bổ và theo dõi thứ tự xử lý công việc.
+   - Yêu cầu: Bổ sung huy hiệu (Badge) mức độ ưu tiên trực quan với icon và màu sắc phân cấp rõ ràng theo chuẩn nhận diện thương hiệu Viettel / TamTask:
+     - **HIGHEST (Cao nhất)**: Màu đỏ thương hiệu Viettel `#EE0033` (nền `bg-red-50`, viền `border-red-200`, icon `ArrowUp` đậm nét stroke 3).
+     - **HIGH (Cao)**: Màu cam ấm `#C2410C` (nền `bg-orange-50`, viền `border-orange-200`, icon `ArrowUp` stroke 2.5).
+     - **MEDIUM (Trung bình)**: Màu vàng hổ phách `#B45309` (nền `bg-amber-50`, viền `border-amber-200`, icon `Minus` stroke 2.5).
+     - **LOW (Thấp)**: Màu xanh da trời `#0369A1` (nền `bg-sky-50`, viền `border-sky-200`, icon `ArrowDown` stroke 2).
+     - **LOWEST (Rất thấp)**: Màu xám thanh lịch `#475569` (nền `bg-slate-100`, viền `border-slate-200`, icon `ArrowDown` stroke 1.5).
+   - Đồng bộ hiển thị huy hiệu này sang cả màn hình lịch sử chu kỳ (`ClosedSprintsModal.tsx`).
+
+2. **Bộ chọn Sprint trực quan trên Kanban Board (Mặc định chọn Sprint đang chạy)**:
+   - Trước đây thanh lọc Kanban chỉ lọc theo Assignee và Epic, chưa cho phép người dùng chủ động chọn nhanh Sprint mong muốn, đồng thời logic khởi tạo tự động lấy sprint đầu tiên (thường là Sprint 01 đã đóng) thay vì Sprint đang chạy (`ACTIVE`).
+   - Yêu cầu:
+     - Tích hợp bộ chọn Sprint (`Sprint Selector Dropdown`) trực tiếp trên thanh công cụ trên cùng của Kanban Board (`KanbanBoard.tsx`), hiển thị rõ ràng icon `Layers`, phân biệt các nhóm:
+       - 🏃 **Sprint đang chạy** (Highlight viền đỏ Viettel, kèm nhãn Đang chạy).
+       - 📋 **Sprint kế hoạch** (Sắp diễn ra).
+       - ✓ **Sprint đã hoàn thành** (Xem lại kết quả).
+       - 🌐 **Tất cả chu kỳ** (Toàn bộ task).
+       - 📦 **Chỉ Backlog** (Chưa gán chu kỳ).
+     - Đặt giá trị mặc định là **Sprint đang chạy (`ACTIVE`)**. Nếu dự án chưa có sprint active thì tự động trỏ về sprint kế hoạch gần nhất hoặc toàn bộ task.
+     - Cập nhật luồng lọc tại `page.tsx` và cơ chế xóa bộ lọc (Clear Filter) để luôn khôi phục về Sprint đang chạy.
+
+---
+
+## 27.2. Ma Trận Công Việc Thực Thi (Action Execution Matrix)
+
+| Mã Công Việc | Nội Dung Thực Hiện | Tệp Tác Động Chính | Mức Độ | Trạng Thái |
+| :---: | :--- | :--- | :---: | :---: |
+| **TASK-PRIORITY-UI** | Bổ sung hàm định nghĩa màu sắc `getPriorityBadge` và render badge mức độ ưu tiên trong từng hàng task Sprint & Backlog | `src/components/jira/BacklogView.tsx`, `src/components/jira/ClosedSprintsModal.tsx` | **P0 (Khẩn)** |  Hoàn thành (Đầy đủ icon & màu sắc Viettel/Agile) |
+| **TASK-KANBAN-SPRINT** | Thiết kế bộ chọn Sprint đa năng trên Toolbar KanbanBoard với đầy đủ phân loại Sprint | `src/components/jira/KanbanBoard.tsx` | **P0 (Khẩn)** |  Hoàn thành (Sprint Selector + Badge chu kỳ) |
+| **TASK-DEFAULT-ACTIVE** | Chuẩn hóa logic khởi tạo và chuyển đổi dự án luôn mặc định chọn Sprint `ACTIVE` | `src/app/page.tsx`, `src/components/jira/KanbanBoard.tsx` | **P0 (Khẩn)** |  Hoàn thành (Mặc định Sprint đang chạy) |
+| **TASK-BUILD-VERIFY** | Kiểm tra toàn bộ bằng `next build` đảm bảo 0 lỗi TypeScript & Push GitHub Vercel | Toàn bộ dự án | **P0 (Khẩn)** |  Hoàn thành (Build 0 lỗi & Đã push) |
+

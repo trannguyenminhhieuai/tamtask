@@ -159,9 +159,10 @@ export default function JiraApp() {
         const sprintsData: Sprint[] = await sprintsRes.json();
         if (Array.isArray(sprintsData) && sprintsData.length > 0) {
           setSprints(sprintsData);
+          const active = sprintsData.find((s) => s.status === "ACTIVE") || sprintsData[0];
           setFilterState((f) => ({
             ...f,
-            sprintId: f.sprintId || sprintsData[0].id,
+            sprintId: f.sprintId || active?.id || "",
           }));
         }
       }
@@ -716,11 +717,10 @@ export default function JiraApp() {
           currentProject={currentProject}
           onSelectProject={(p) => {
             setCurrentProject(p);
-            // Set filter sprint to first sprint of that project if available
-            const firstSprint = sprints.find((s) => s.projectId === p.id);
-            if (firstSprint) {
-              setFilterState((f) => ({ ...f, sprintId: firstSprint.id }));
-            }
+            // Default filter sprint to the active sprint of the selected project
+            const projectSprints = sprints.filter((s) => s.projectId === p.id);
+            const active = projectSprints.find((s) => s.status === "ACTIVE") || projectSprints[0];
+            setFilterState((f) => ({ ...f, sprintId: active ? active.id : "" }));
           }}
           onOpenCreateProject={() => setIsCreateProjectModalOpen(true)}
           onOpenProjectMembers={() => setIsProjectMembersModalOpen(true)}
@@ -891,10 +891,9 @@ export default function JiraApp() {
         currentProject={currentProject}
         onSelectProject={(p) => {
           setCurrentProject(p);
-          const firstSprint = sprints.find((s) => s.projectId === p.id);
-          if (firstSprint) {
-            setFilterState((f) => ({ ...f, sprintId: firstSprint.id }));
-          }
+          const projectSprints = sprints.filter((s) => s.projectId === p.id);
+          const active = projectSprints.find((s) => s.status === "ACTIVE") || projectSprints[0];
+          setFilterState((f) => ({ ...f, sprintId: active ? active.id : "" }));
         }}
         onSelectIssue={(iss) => setSelectedIssue(iss)}
         onSelectView={(v) => setCurrentView(v)}
