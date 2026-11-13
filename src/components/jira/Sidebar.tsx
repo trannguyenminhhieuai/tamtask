@@ -89,7 +89,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
             return (
               <button
                 key={item.id}
-                onClick={() => onViewChange(item.id)}
+                onClick={() => {
+                  onViewChange(item.id);
+                  if (typeof window !== "undefined" && window.innerWidth < 768) {
+                    onToggleCollapse();
+                  }
+                }}
                 className={`w-full flex items-center ${
                   isCollapsed ? "justify-center px-0" : "px-3"
                 } py-2 rounded-lg text-xs transition relative group ${

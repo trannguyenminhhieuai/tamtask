@@ -19,6 +19,7 @@ import {
   CheckSquare,
   Eye,
   Clock,
+  Menu,
 } from "lucide-react";
 import { User, Project, NotificationItem } from "@/types/jira";
 import { useSession, signOut } from "next-auth/react";
@@ -36,6 +37,7 @@ interface NavbarProps {
   onSearchChange: (query: string) => void;
   onOpenCommandPalette?: () => void;
   onOpenShortcutsModal?: () => void;
+  onToggleSidebar?: () => void;
 }
 
 const ROLE_CONFIG: Record<
@@ -86,6 +88,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onSearchChange,
   onOpenCommandPalette,
   onOpenShortcutsModal,
+  onToggleSidebar,
 }) => {
   const { data: session } = useSession();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
@@ -161,29 +164,41 @@ export const Navbar: React.FC<NavbarProps> = ({
   }, []);
 
   return (
-    <header className="h-14 bg-white border-b border-[#D7D7D7] px-4 flex items-center justify-between sticky top-0 z-40 select-none shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
-      {/* Left: TamTask Brand & Project Selector */}
-      <div className="flex items-center space-x-2.5">
+    <header className="h-14 bg-white border-b border-[#D7D7D7] px-3 sm:px-4 flex items-center justify-between sticky top-0 z-40 select-none shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
+      {/* Left: Hamburger, TamTask Brand & Project Selector */}
+      <div className="flex items-center space-x-1.5 sm:space-x-2.5">
+        {/* Mobile Hamburger Menu Toggle */}
+        {onToggleSidebar && (
+          <button
+            type="button"
+            onClick={onToggleSidebar}
+            className="p-1.5 -ml-1 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg md:hidden transition"
+            title="Mở menu điều hướng"
+          >
+            <Menu className="w-5 h-5" />
+          </button>
+        )}
+
         {/* Project Selector Dropdown */}
         <div className="relative" ref={projectMenuRef}>
           <button
             onClick={() => setShowProjectDropdown(!showProjectDropdown)}
-            className="flex items-center space-x-2.5 p-1.5 rounded-lg hover:bg-[#F8F8F8] border border-transparent hover:border-[#D7D7D7] transition text-left group"
+            className="flex items-center space-x-2 sm:space-x-2.5 p-1 sm:p-1.5 rounded-lg hover:bg-[#F8F8F8] border border-transparent hover:border-[#D7D7D7] transition text-left group"
           >
-            <div className="w-8 h-8 rounded-lg bg-[#EE0033] flex items-center justify-center text-white shadow-xs font-black text-xs tracking-tight">
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-[#EE0033] flex items-center justify-center text-white shadow-xs font-black text-xs tracking-tight shrink-0">
               {currentProject ? currentProject.key.slice(0, 3) : "TT"}
             </div>
             <div>
-              <div className="font-bold text-[#111827] text-sm leading-none flex items-center gap-1.5">
-                <span className="truncate max-w-[150px]">
+              <div className="font-bold text-[#111827] text-xs sm:text-sm leading-none flex items-center gap-1 sm:gap-1.5">
+                <span className="truncate max-w-[90px] xs:max-w-[120px] sm:max-w-[160px]">
                   {currentProject?.name || "TamTask Space"}
                 </span>
-                <span className="text-[10px] bg-[#F8F8F8] text-[#111827] font-mono font-medium px-1.5 py-0.5 rounded border border-[#D7D7D7]">
+                <span className="text-[10px] bg-[#F8F8F8] text-[#111827] font-mono font-medium px-1 sm:px-1.5 py-0.5 rounded border border-[#D7D7D7] hidden xs:inline">
                   {currentProject?.key || "TAM"}
                 </span>
-                <ChevronDown className="w-3.5 h-3.5 text-[#9B9B9B] group-hover:text-[#111827] transition" />
+                <ChevronDown className="w-3.5 h-3.5 text-[#9B9B9B] group-hover:text-[#111827] transition shrink-0" />
               </div>
-              <div className="text-[11px] text-[#9B9B9B] font-medium mt-0.5">TamTask Workspace</div>
+              <div className="text-[10px] sm:text-[11px] text-[#9B9B9B] font-medium mt-0.5 hidden xs:block">TamTask Workspace</div>
             </div>
           </button>
 
@@ -267,14 +282,14 @@ export const Navbar: React.FC<NavbarProps> = ({
         {canCreateIssue ? (
           <button
             onClick={onCreateIssueClick}
-            className="flex items-center space-x-1.5 bg-[#EE0033] hover:bg-[#D6002E] active:bg-[#BD0029] focus:ring-3 focus:ring-[#EE0033]/20 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition shadow-xs"
+            className="flex items-center space-x-1.5 bg-[#EE0033] hover:bg-[#D6002E] active:bg-[#BD0029] focus:ring-3 focus:ring-[#EE0033]/20 text-white text-xs font-semibold px-2.5 sm:px-3 py-1.5 rounded-lg transition shadow-xs shrink-0"
           >
-            <Plus className="w-4 h-4 text-white" />
-            <span>Tạo Công Việc</span>
+            <Plus className="w-4 h-4 text-white shrink-0" />
+            <span className="hidden sm:inline">Tạo Công Việc</span>
           </button>
         ) : (
           <div
-            className="flex items-center space-x-1 text-[#9B9B9B] text-xs px-2.5 py-1 rounded-lg border border-[#D7D7D7] bg-[#F8F8F8] cursor-not-allowed"
+            className="flex items-center space-x-1 text-[#9B9B9B] text-xs px-2 sm:px-2.5 py-1 rounded-lg border border-[#D7D7D7] bg-[#F8F8F8] cursor-not-allowed shrink-0"
             title="Quyền chỉ được xem, không thể tạo task"
           >
             <span>Chỉ xem</span>
@@ -283,7 +298,7 @@ export const Navbar: React.FC<NavbarProps> = ({
       </div>
 
       {/* Middle: Quick Search & Command Palette Trigger */}
-      <div className="flex-1 max-w-md mx-6 hidden sm:block">
+      <div className="flex-1 max-w-md mx-3 sm:mx-6 hidden sm:block">
         <button
           type="button"
           onClick={() => onOpenCommandPalette?.()}
@@ -300,14 +315,14 @@ export const Navbar: React.FC<NavbarProps> = ({
       </div>
 
       {/* Right: Actions, Role Badge & User Profile */}
-      <div className="flex items-center space-x-2.5">
+      <div className="flex items-center space-x-1.5 sm:space-x-2.5">
         {/* Role Badge Indicator - Non-AI, Icon-based */}
         <div
           className={`flex items-center space-x-1 text-[11px] font-medium px-2 py-0.5 rounded-md border ${roleConfig.color}`}
           title={`Quyền hạn hiện tại: ${roleConfig.label}`}
         >
           <RoleIcon className="w-3 h-3" />
-          <span>{roleConfig.label}</span>
+          <span className="hidden md:inline">{roleConfig.label}</span>
         </div>
 
         <button

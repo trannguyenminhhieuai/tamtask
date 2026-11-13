@@ -127,7 +127,19 @@ export default function JiraApp() {
           setCurrentProject((prev) => {
             if (prev) {
               const matched = projectsData.find((p) => p.id === prev.id);
-              return matched || projectsData[0];
+              if (matched) return matched;
+            }
+            // Load last accessed project from localStorage
+            if (typeof window !== "undefined") {
+              try {
+                const lastId = localStorage.getItem("tamtask_last_project_id");
+                if (lastId) {
+                  const matchedLast = projectsData.find(
+                    (p) => p.id === lastId || p.key === lastId
+                  );
+                  if (matchedLast) return matchedLast;
+                }
+              } catch {}
             }
             return projectsData[0];
           });
@@ -159,7 +171,20 @@ export default function JiraApp() {
         const sprintsData: Sprint[] = await sprintsRes.json();
         if (Array.isArray(sprintsData) && sprintsData.length > 0) {
           setSprints(sprintsData);
-          const active = sprintsData.find((s) => s.status === "ACTIVE") || sprintsData[0];
+          // Check last project to align active sprint
+          let targetProjectId = "";
+          if (typeof window !== "undefined") {
+            try {
+              targetProjectId = localStorage.getItem("tamtask_last_project_id") || "";
+            } catch {}
+          }
+          const relevantSprints = targetProjectId
+            ? sprintsData.filter((s) => s.projectId === targetProjectId)
+            : sprintsData;
+          const active = (relevantSprints.length > 0 ? relevantSprints : sprintsData).find(
+            (s) => s.status === "ACTIVE"
+          ) || relevantSprints[0] || sprintsData[0];
+
           setFilterState((f) => ({
             ...f,
             sprintId: f.sprintId || active?.id || "",
@@ -178,6 +203,22 @@ export default function JiraApp() {
       loadData();
     }
   }, [authStatus, loadData]);
+
+  // Auto-collapse sidebar on mobile screens on initial mount
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.innerWidth < 768) {
+      setIsSidebarCollapsed(true);
+    }
+  }, []);
+
+  // Save current project to localStorage whenever it changes
+  useEffect(() => {
+    if (currentProject?.id && typeof window !== "undefined") {
+      try {
+        localStorage.setItem("tamtask_last_project_id", currentProject.id);
+      } catch {}
+    }
+  }, [currentProject?.id]);
 
   // Global Jira Keyboard Shortcuts Listener
   useEffect(() => {
@@ -557,6 +598,57 @@ export default function JiraApp() {
     }
   };
 
+  // Reorder or Move Issue within Same Board or Across Boards
+  const handleReorderOrMoveIssue = async (
+    sourceIssueId: string,
+    targetIssueId: string,
+    targetSprintId: string | null,
+    position: "before" | "after"
+  ) => {
+    // 1. Optimistic list reorder in client state
+    setIssues((prev) => {
+      const source = prev.find((i) => i.id === sourceIssueId);
+      if (!source) return prev;
+      const updatedSource: Issue = {
+        ...source,
+        sprintId: targetSprintId || undefined,
+        updatedAt: new Date().toISOString().split("T")[0],
+      };
+      const withoutSource = prev.filter((i) => i.id !== sourceIssueId);
+      const targetIndex = withoutSource.findIndex((i) => i.id === targetIssueId);
+      if (targetIndex === -1) {
+        return [updatedSource, ...withoutSource];
+      }
+      const insertIndex = position === "before" ? targetIndex : targetIndex + 1;
+      const nextList = [...withoutSource];
+      nextList.splice(insertIndex, 0, updatedSource);
+      return nextList;
+    });
+
+    if (selectedIssue && selectedIssue.id === sourceIssueId) {
+      setSelectedIssue((prev) =>
+        prev ? { ...prev, sprintId: targetSprintId || undefined } : null
+      );
+    }
+
+    // 2. If sprintId changed, persist to DB API
+    const currentSource = issues.find((i) => i.id === sourceIssueId);
+    if (currentSource && (currentSource.sprintId || null) !== (targetSprintId || null)) {
+      try {
+        await fetch(`/api/issues/${sourceIssueId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            sprintId: targetSprintId,
+            actorId: currentUser.id,
+          }),
+        });
+      } catch (err) {
+        console.error("Failed to update issue sprint on reorder:", err);
+      }
+    }
+  };
+
   // User Administration Actions (Persisted directly to SQLite DB)
   const handleUpdateUserRole = async (userId: string, newRole: User["role"]) => {
     // Optimistic UI update
@@ -731,20 +823,35 @@ export default function JiraApp() {
           }
           onOpenCommandPalette={() => setIsCommandPaletteOpen(true)}
           onOpenShortcutsModal={() => setIsShortcutsModalOpen(true)}
+          onToggleSidebar={() => setIsSidebarCollapsed((prev) => !prev)}
         />
 
       {/* Main Workspace: Sidebar + Dynamic View */}
-      <div className="flex-1 flex overflow-hidden">
-        {/* Left Jira Sidebar */}
-        <Sidebar
-          currentView={currentView}
-          onViewChange={setCurrentView}
-          isCollapsed={isSidebarCollapsed}
-          onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-          currentUser={currentUser}
-          currentProject={currentProject}
-          activeSprintName={activeSprint?.name}
-        />
+      <div className="flex-1 flex overflow-hidden relative">
+        {/* Mobile Backdrop Overlay when Sidebar is open */}
+        {!isSidebarCollapsed && (
+          <div
+            onClick={() => setIsSidebarCollapsed(true)}
+            className="fixed inset-0 bg-black/40 backdrop-blur-[1px] z-30 md:hidden"
+          />
+        )}
+
+        {/* Left Jira Sidebar (Responsive slide-in drawer on mobile, static on desktop) */}
+        <div
+          className={`md:static fixed inset-y-0 left-0 z-40 transition-transform duration-200 md:translate-x-0 ${
+            isSidebarCollapsed ? "-translate-x-full md:translate-x-0" : "translate-x-0"
+          }`}
+        >
+          <Sidebar
+            currentView={currentView}
+            onViewChange={setCurrentView}
+            isCollapsed={isSidebarCollapsed}
+            onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+            currentUser={currentUser}
+            currentProject={currentProject}
+            activeSprintName={activeSprint?.name}
+          />
+        </div>
 
         {/* Central View Area */}
         <main className="flex-1 flex flex-col overflow-hidden">
@@ -782,6 +889,7 @@ export default function JiraApp() {
               onCompleteSprint={handleCompleteSprint}
               onDeleteSprint={handleDeleteSprint}
               onMoveIssueToSprint={handleMoveIssueToSprint}
+              onReorderOrMoveIssue={handleReorderOrMoveIssue}
               onRefresh={loadData}
             />
           )}

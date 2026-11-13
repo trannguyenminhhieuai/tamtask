@@ -3649,3 +3649,45 @@ Dựa trên 2 ảnh chụp màn hình thực tế được người dùng đánh
 | **TASK-DEFAULT-ACTIVE** | Chuẩn hóa logic khởi tạo và chuyển đổi dự án luôn mặc định chọn Sprint `ACTIVE` | `src/app/page.tsx`, `src/components/jira/KanbanBoard.tsx` | **P0 (Khẩn)** |  Hoàn thành (Mặc định Sprint đang chạy) |
 | **TASK-BUILD-VERIFY** | Kiểm tra toàn bộ bằng `next build` đảm bảo 0 lỗi TypeScript & Push GitHub Vercel | Toàn bộ dự án | **P0 (Khẩn)** |  Hoàn thành (Build 0 lỗi & Đã push) |
 
+---
+
+# CHƯƠNG 28: KÉO THẢ SẮP XẾP TASK TRONG CÙNG BOARD, NÂNG CẤP RESPONSIVE TOÀN DIỆN, GHI NHỚ DỰ ÁN TRUY CẬP GẦN NHẤT & CHUẨN HÓA 6 TRẠNG THÁI DỰ ÁN HÀNH CHÍNH CÔNG
+
+## 28.1. Phân Tích Kỹ Thuật Và Yêu Cầu Người Dùng
+
+1. **Cho phép kéo thả trong cùng một board trong Kế hoạch chu kỳ (Sprint Reordering)**:
+   - Trước đây trong `BacklogView.tsx`, kéo thả chỉ bắt sự kiện ở cấp độ container Sprint (chuyển container). Khi thả task trong cùng một sprint hoặc trong Backlog, danh sách không cập nhật lại thứ tự ưu tiên hiển thị.
+   - Giải pháp: Bổ sung cơ chế Drag-over và Drop theo từng thẻ task riêng biệt (`handleIssueDragOver`, `handleIssueDrop`), tính toán tọa độ con trỏ (`before` / `after`) kèm đường chỉ báo vị trí chèn (`border-t-2` / `border-b-2` viền đỏ Viettel `#EE0033`). Khi thả, hoán đổi và chèn đúng vị trí mong muốn ngay trên state và đồng bộ DB.
+
+2. **Nâng cấp giao diện Responsive tối ưu trải nghiệm người dùng (Mobile & Tablet)**:
+   - **Navbar**: Thêm nút Menu Hamburger trên thiết bị di động, tự động thu nhỏ các nhãn dài (`max-w-[100px]`, ẩn nhãn chữ trên các nút thao tác nhanh, chỉ giữ icon tinh gọn).
+   - **Sidebar**: Chuyển đổi thành Drawer trượt có lớp nền mờ (Backdrop overlay) khi mở trên mobile, tự động đóng khi người dùng chọn tab xem.
+   - **BacklogView & KanbanBoard**: Các hàng task tự động ngắt dòng linh hoạt (`flex-col sm:flex-row`), không tràn khung, cuộn ngang mượt mà với cảm ứng chạm (`touch-pan-x`).
+
+3. **Ghi nhớ và mặc định truy cập Dự án gần nhất khi đăng nhập**:
+   - Sử dụng khóa lưu trữ `localStorage` (`tamtask_last_project_id`).
+   - Mỗi khi người dùng chuyển dự án, ID dự án được ghi nhận.
+   - Khi đăng nhập hoặc tải lại trang, hệ thống tự động nhận diện và mở trực tiếp dự án gần nhất kèm Sprint đang chạy của dự án đó.
+
+4. **Chuẩn hóa Dự án Hành Chính Công (HCC) theo 6 trạng thái mặc định của hệ thống**:
+   - Đưa hệ thống cột trạng thái của HCC về chuẩn 6 bước:
+     1. `TODO`: To do (Màu `#6B778C`, Thứ tự 0)
+     2. `IN_PROGRESS`: In progress (Màu `#0052CC`, Thứ tự 1, Max WIP: 5)
+     3. `IN_REVIEW`: In review (Màu `#8777D9`, Thứ tự 2, Max WIP: 4)
+     4. `IN_QA`: In QA/QC (Màu `#FFAB00`, Thứ tự 3, Max WIP: 3)
+     5. `DONE`: Done (Màu `#36B37E`, Thứ tự 4)
+     6. `RELEASED`: Released (Màu `#00875A`, Thứ tự 5)
+
+---
+
+## 28.2. Ma Trận Công Việc Thực Thi (Action Execution Matrix)
+
+| Mã Công Việc | Nội Dung Thực Hiện | Tệp Tác Động Chính | Mức Độ | Trạng Thái |
+| :---: | :--- | :--- | :---: | :---: |
+| **TASK-HCC-STATUS-RULE** | Chuẩn hóa 6 trạng thái mặc định cho dự án Hành Chính Công trên CSDL Supabase Production | `src/scripts/standardize-hcc-statuses.ts`, Supabase DB | **P0 (Khẩn)** |  Hoàn thành (Đã cập nhật 6 cột chuẩn) |
+| **TASK-PERSIST-PROJECT** | Lưu trữ và khôi phục dự án truy cập gần nhất qua `localStorage` khi vào trang | `src/app/page.tsx`, `src/components/jira/Navbar.tsx` | **P0 (Khẩn)** |  Hoàn thành (Tự động mở dự án gần nhất) |
+| **TASK-BACKLOG-REORDER** | Hỗ trợ kéo thả sắp xếp thứ tự và chèn vị trí task trong cùng một sprint hoặc backlog | `src/components/jira/BacklogView.tsx`, `src/app/page.tsx` | **P0 (Khẩn)** |  Hoàn thành (Chỉ báo chèn vị trí Viettel Red) |
+| **TASK-RESPONSIVE-UI** | Tối ưu hóa Responsive toàn diện (Hamburger mobile, Backdrop Drawer, Touch Kanban & Backlog rows) | `src/components/jira/Navbar.tsx`, `src/components/jira/Sidebar.tsx`, `src/components/jira/BacklogView.tsx`, `src/components/jira/KanbanBoard.tsx`, `src/app/page.tsx` | **P0 (Khẩn)** |  Hoàn thành (Mượt mà trên Mobile & Tablet) |
+| **TASK-BUILD-VERIFY** | Kiểm thử Next.js build 0 lỗi & Push GitHub main deploy Vercel Production | Toàn bộ dự án | **P0 (Khẩn)** |  Hoàn thành (Build 0 lỗi & Đã push) |
+
+

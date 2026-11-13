@@ -85,6 +85,12 @@ interface BacklogViewProps {
   onCompleteSprint: (sprintId: string) => void;
   onDeleteSprint?: (sprintId: string) => void;
   onMoveIssueToSprint: (issueId: string, sprintId: string | null) => void;
+  onReorderOrMoveIssue?: (
+    sourceIssueId: string,
+    targetIssueId: string,
+    targetSprintId: string | null,
+    position: "before" | "after"
+  ) => void;
   onRefresh?: () => void;
 }
 
@@ -101,6 +107,7 @@ export const BacklogView: React.FC<BacklogViewProps> = ({
   onCompleteSprint,
   onDeleteSprint,
   onMoveIssueToSprint,
+  onReorderOrMoveIssue,
   onRefresh,
 }) => {
   const [isCreateSprintOpen, setIsCreateSprintOpen] = useState(false);
@@ -109,6 +116,8 @@ export const BacklogView: React.FC<BacklogViewProps> = ({
   const [showClosedModal, setShowClosedModal] = useState(false);
   const [draggedIssueId, setDraggedIssueId] = useState<string | null>(null);
   const [dragOverContainerId, setDragOverContainerId] = useState<string | null>(null);
+  const [dragOverIssueId, setDragOverIssueId] = useState<string | null>(null);
+  const [dragPosition, setDragPosition] = useState<"before" | "after" | null>(null);
 
   // Smart Bulk Actions State
   const [selectedIssueIds, setSelectedIssueIds] = useState<string[]>([]);
@@ -191,6 +200,50 @@ export const BacklogView: React.FC<BacklogViewProps> = ({
     setDragOverContainerId(containerId);
   };
 
+  const handleIssueDragOver = (e: React.DragEvent, issueId: string) => {
+    if (isViewer) return;
+    e.preventDefault();
+    e.stopPropagation();
+    const rect = e.currentTarget.getBoundingClientRect();
+    const midY = rect.top + rect.height / 2;
+    const pos = e.clientY < midY ? "before" : "after";
+    setDragOverIssueId(issueId);
+    setDragPosition(pos);
+  };
+
+  const handleIssueDragLeave = (e: React.DragEvent, issueId: string) => {
+    e.stopPropagation();
+    if (dragOverIssueId === issueId) {
+      setDragOverIssueId(null);
+      setDragPosition(null);
+    }
+  };
+
+  const handleIssueDrop = (
+    e: React.DragEvent,
+    targetIssueId: string,
+    targetSprintId: string | null
+  ) => {
+    if (isViewer) return;
+    e.preventDefault();
+    e.stopPropagation();
+    const sourceIssueId = draggedIssueId || e.dataTransfer.getData("text/plain");
+    const pos = dragPosition || "before";
+
+    setDraggedIssueId(null);
+    setDragOverIssueId(null);
+    setDragPosition(null);
+    setDragOverContainerId(null);
+
+    if (!sourceIssueId || sourceIssueId === targetIssueId) return;
+
+    if (onReorderOrMoveIssue) {
+      onReorderOrMoveIssue(sourceIssueId, targetIssueId, targetSprintId, pos);
+    } else {
+      onMoveIssueToSprint(sourceIssueId, targetSprintId);
+    }
+  };
+
   const handleDrop = (e: React.DragEvent, targetSprintId: string | null) => {
     if (isViewer) return;
     e.preventDefault();
@@ -200,6 +253,8 @@ export const BacklogView: React.FC<BacklogViewProps> = ({
 
     onMoveIssueToSprint(issueId, targetSprintId);
     setDraggedIssueId(null);
+    setDragOverIssueId(null);
+    setDragPosition(null);
   };
 
   const handleSaveSprint = async (
@@ -221,7 +276,7 @@ export const BacklogView: React.FC<BacklogViewProps> = ({
   };
 
   return (
-    <div className="flex-1 overflow-y-auto p-8 bg-[#F4F5F7] space-y-6">
+    <div className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8 bg-[#F4F5F7] space-y-4 sm:space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
@@ -421,18 +476,31 @@ export const BacklogView: React.FC<BacklogViewProps> = ({
                   key={issue.id}
                   draggable={!isViewer}
                   onDragStart={(e) => handleDragStart(e, issue.id)}
-                  onDragEnd={() => setDraggedIssueId(null)}
+                  onDragEnd={() => {
+                    setDraggedIssueId(null);
+                    setDragOverIssueId(null);
+                    setDragPosition(null);
+                  }}
+                  onDragOver={(e) => handleIssueDragOver(e, issue.id)}
+                  onDragLeave={(e) => handleIssueDragLeave(e, issue.id)}
+                  onDrop={(e) => handleIssueDrop(e, issue.id, sprint.id)}
                   onClick={() => onIssueClick(issue)}
-                  className={`flex items-center justify-between p-3 bg-white hover:bg-gray-50 border border-gray-200/80 rounded-md transition shadow-xs group ${
+                  className={`flex flex-col sm:flex-row sm:items-center justify-between p-2.5 sm:p-3 bg-white hover:bg-gray-50 border rounded-md transition shadow-xs group gap-2 relative ${
                     isViewer ? "cursor-pointer" : "cursor-grab active:cursor-grabbing hover:border-red-300"
-                  } ${draggedIssueId === issue.id ? "opacity-40" : ""}`}
+                  } ${draggedIssueId === issue.id ? "opacity-40" : ""} ${
+                    dragOverIssueId === issue.id && dragPosition === "before"
+                      ? "border-t-2 border-t-[#EE0033] bg-rose-50/20"
+                      : dragOverIssueId === issue.id && dragPosition === "after"
+                      ? "border-b-2 border-b-[#EE0033] bg-rose-50/20"
+                      : "border-gray-200/80"
+                  }`}
                 >
-                  <div className="flex items-center space-x-3">
+                  <div className="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1">
                     {!isViewer && (
                       <button
                         type="button"
                         onClick={(e) => toggleSelectIssue(issue.id, e)}
-                        className="text-slate-400 hover:text-slate-700 transition"
+                        className="text-slate-400 hover:text-slate-700 transition shrink-0"
                       >
                         {selectedIssueIds.includes(issue.id) ? (
                           <CheckSquare className="w-4 h-4 text-[#EE0033]" />
@@ -442,15 +510,15 @@ export const BacklogView: React.FC<BacklogViewProps> = ({
                       </button>
                     )}
                     {!isViewer && (
-                      <span className="text-gray-300 group-hover:text-gray-500 cursor-grab">
+                      <span className="text-gray-300 group-hover:text-gray-500 cursor-grab shrink-0">
                         <GripVertical className="w-4 h-4" />
                       </span>
                     )}
-                    <span className="text-xs font-semibold text-slate-700 font-mono group-hover:text-[#EE0033] transition">{issue.key}</span>
-                    <span className="text-xs text-gray-900 font-medium">{issue.title}</span>
+                    <span className="text-xs font-semibold text-slate-700 font-mono group-hover:text-[#EE0033] transition shrink-0">{issue.key}</span>
+                    <span className="text-xs text-gray-900 font-medium truncate">{issue.title}</span>
                   </div>
 
-                  <div className="flex items-center space-x-3">
+                  <div className="flex items-center flex-wrap gap-1.5 sm:gap-2.5 shrink-0 pl-7 sm:pl-0">
                     {/* Quick Move Dropdown */}
                     {!isViewer && (
                       <select
@@ -578,18 +646,31 @@ export const BacklogView: React.FC<BacklogViewProps> = ({
               key={issue.id}
               draggable={!isViewer}
               onDragStart={(e) => handleDragStart(e, issue.id)}
-              onDragEnd={() => setDraggedIssueId(null)}
+              onDragEnd={() => {
+                setDraggedIssueId(null);
+                setDragOverIssueId(null);
+                setDragPosition(null);
+              }}
+              onDragOver={(e) => handleIssueDragOver(e, issue.id)}
+              onDragLeave={(e) => handleIssueDragLeave(e, issue.id)}
+              onDrop={(e) => handleIssueDrop(e, issue.id, null)}
               onClick={() => onIssueClick(issue)}
-              className={`flex items-center justify-between p-3 bg-white hover:bg-gray-50 border border-gray-200/80 rounded-md transition shadow-xs group ${
+              className={`flex flex-col sm:flex-row sm:items-center justify-between p-2.5 sm:p-3 bg-white hover:bg-gray-50 border rounded-md transition shadow-xs group gap-2 relative ${
                 isViewer ? "cursor-pointer" : "cursor-grab active:cursor-grabbing hover:border-red-300"
-              } ${draggedIssueId === issue.id ? "opacity-40" : ""}`}
+              } ${draggedIssueId === issue.id ? "opacity-40" : ""} ${
+                dragOverIssueId === issue.id && dragPosition === "before"
+                  ? "border-t-2 border-t-[#EE0033] bg-rose-50/20"
+                  : dragOverIssueId === issue.id && dragPosition === "after"
+                  ? "border-b-2 border-b-[#EE0033] bg-rose-50/20"
+                  : "border-gray-200/80"
+              }`}
             >
-              <div className="flex items-center space-x-3">
+              <div className="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1">
                 {!isViewer && (
                   <button
                     type="button"
                     onClick={(e) => toggleSelectIssue(issue.id, e)}
-                    className="text-slate-400 hover:text-slate-700 transition"
+                    className="text-slate-400 hover:text-slate-700 transition shrink-0"
                   >
                     {selectedIssueIds.includes(issue.id) ? (
                       <CheckSquare className="w-4 h-4 text-[#EE0033]" />
@@ -599,15 +680,15 @@ export const BacklogView: React.FC<BacklogViewProps> = ({
                   </button>
                 )}
                 {!isViewer && (
-                  <span className="text-gray-300 group-hover:text-gray-500 cursor-grab">
+                  <span className="text-gray-300 group-hover:text-gray-500 cursor-grab shrink-0">
                     <GripVertical className="w-4 h-4" />
                   </span>
                 )}
-                <span className="text-xs font-semibold text-slate-700 font-mono group-hover:text-[#EE0033] transition">{issue.key}</span>
-                <span className="text-xs text-gray-900 font-medium">{issue.title}</span>
+                <span className="text-xs font-semibold text-slate-700 font-mono group-hover:text-[#EE0033] transition shrink-0">{issue.key}</span>
+                <span className="text-xs text-gray-900 font-medium truncate">{issue.title}</span>
               </div>
 
-              <div className="flex items-center space-x-3">
+              <div className="flex items-center flex-wrap gap-1.5 sm:gap-2.5 shrink-0 pl-7 sm:pl-0">
                 {/* Quick Move Dropdown */}
                 {!isViewer && (
                   <select

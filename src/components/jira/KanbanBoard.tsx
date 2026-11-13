@@ -266,7 +266,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   return (
     <div className="flex-1 flex flex-col h-full overflow-hidden bg-white">
       {/* Top Filter Bar */}
-      <div className="px-6 py-2.5 border-b border-[#D7D7D7] bg-[#F8F8F8] flex flex-wrap items-center justify-between gap-3">
+      <div className="px-3 sm:px-6 py-2 sm:py-2.5 border-b border-[#D7D7D7] bg-[#F8F8F8] flex flex-wrap items-center justify-between gap-2 sm:gap-3">
         {/* Left: Quick Filters & Search */}
         <div className="flex flex-wrap items-center gap-2">
           {/* Only My Issues Button */}
@@ -506,7 +506,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
         </div>
 
         {/* Right side: Swimlane Switcher, Sprint Info & Workflow Customizer */}
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center flex-wrap gap-2 sm:gap-3">
           {/* Swimlane Mode Selector */}
           <div className="flex items-center space-x-1.5 text-xs text-gray-600">
             <span className="font-semibold text-gray-500">Phân làn:</span>
@@ -560,7 +560,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
       )}
 
       {/* Board Columns & Swimlanes Container */}
-      <div className="flex-1 overflow-auto p-6 space-y-6 bg-white">
+      <div className="flex-1 overflow-auto p-3 sm:p-6 space-y-4 sm:space-y-6 bg-white touch-pan-x">
         {isLoading ? (
           <div className="grid grid-flow-col auto-cols-[300px] gap-4 min-h-[500px]">
             {[1, 2, 3, 4].map((n) => (
