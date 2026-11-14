@@ -80,6 +80,17 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
     setIsLoggingWork(false);
   }, [issue.id]);
 
+  // Close on Escape key press
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        onClose();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [onClose]);
+
   // Linking state
   const [isLinkingOpen, setIsLinkingOpen] = useState(false);
   const [linkTargetId, setLinkTargetId] = useState("");
@@ -414,8 +425,14 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex justify-end bg-black/30 backdrop-blur-[1px] animate-in fade-in">
-      <div className="w-full max-w-4xl bg-white h-full shadow-2xl flex flex-col border-l border-[#D7D7D7] rounded-l-xl overflow-hidden animate-in slide-in-from-right duration-200">
+    <div
+      className="fixed inset-0 z-[70] flex justify-end bg-black/40 backdrop-blur-xs animate-in fade-in"
+      onClick={onClose}
+    >
+      <div
+        className="w-full md:max-w-4xl bg-white h-full shadow-2xl flex flex-col border-l border-[#D7D7D7] rounded-l-xl overflow-hidden animate-in slide-in-from-right duration-200"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Top Header */}
         <div className="px-6 py-3 border-b border-[#D7D7D7] flex items-center justify-between bg-[#F8F8F8]">
           <div className="flex items-center space-x-3">

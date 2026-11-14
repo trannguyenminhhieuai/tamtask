@@ -125,8 +125,28 @@ export default function JiraApp() {
         if (Array.isArray(projectsData) && projectsData.length > 0) {
           setProjects(projectsData);
           setCurrentProject((prev) => {
+            const accessible =
+              currentUser.role === "ADMIN"
+                ? projectsData
+                : projectsData.filter((p) => {
+                    const isLead =
+                      p.leadId === currentUser.id ||
+                      p.lead?.id === currentUser.id;
+                    const isMember =
+                      Array.isArray(p.members) &&
+                      p.members.some(
+                        (m) =>
+                          m.userId === currentUser.id ||
+                          m.user?.id === currentUser.id
+                      );
+                    return isLead || isMember;
+                  });
+
+            const candidateList =
+              accessible.length > 0 ? accessible : projectsData;
+
             if (prev) {
-              const matched = projectsData.find((p) => p.id === prev.id);
+              const matched = candidateList.find((p) => p.id === prev.id);
               if (matched) return matched;
             }
             // Load last accessed project from localStorage
@@ -134,14 +154,14 @@ export default function JiraApp() {
               try {
                 const lastId = localStorage.getItem("tamtask_last_project_id");
                 if (lastId) {
-                  const matchedLast = projectsData.find(
+                  const matchedLast = candidateList.find(
                     (p) => p.id === lastId || p.key === lastId
                   );
                   if (matchedLast) return matchedLast;
                 }
               } catch {}
             }
-            return projectsData[0];
+            return candidateList[0];
           });
         }
       }
@@ -220,6 +240,37 @@ export default function JiraApp() {
     }
   }, [currentProject?.id]);
 
+  // Guard project access: Ensure non-admin users cannot stay on an inaccessible project
+  useEffect(() => {
+    if (currentUser.role !== "ADMIN" && currentProject && projects.length > 0) {
+      const isLead =
+        currentProject.leadId === currentUser.id ||
+        currentProject.lead?.id === currentUser.id;
+      const isMember =
+        Array.isArray(currentProject.members) &&
+        currentProject.members.some(
+          (m) =>
+            m.userId === currentUser.id || m.user?.id === currentUser.id
+        );
+      if (!isLead && !isMember) {
+        const accessible = projects.filter((p) => {
+          const l =
+            p.leadId === currentUser.id || p.lead?.id === currentUser.id;
+          const m =
+            Array.isArray(p.members) &&
+            p.members.some(
+              (mem) =>
+                mem.userId === currentUser.id || mem.user?.id === currentUser.id
+            );
+          return l || m;
+        });
+        if (accessible.length > 0) {
+          setCurrentProject(accessible[0]);
+        }
+      }
+    }
+  }, [currentUser, currentProject, projects]);
+
   // Global Jira Keyboard Shortcuts Listener
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -278,23 +329,12 @@ export default function JiraApp() {
     );
   }, [epics, currentProject]);
 
-  // Scoped project users (members + lead + existing assignees for historical integrity)
+  // Scoped project users (strictly members and lead of the current project)
   const projectUsers = useMemo(() => {
     if (!currentProject) return users;
     const memberMap = new Map<string, User>();
 
-    // 1. Add Project Lead
-    if (currentProject.lead) {
-      const fullUser =
-        users.find((u) => u.id === currentProject.lead?.id) ||
-        (currentProject.lead as User);
-      if (fullUser) memberMap.set(fullUser.id, fullUser);
-    } else if (currentProject.leadId) {
-      const leadUser = users.find((u) => u.id === currentProject.leadId);
-      if (leadUser) memberMap.set(leadUser.id, leadUser);
-    }
-
-    // 2. Add Project Members
+    // 1. Add all members from currentProject.members
     if (Array.isArray(currentProject.members)) {
       currentProject.members.forEach((m) => {
         if (m.user) {
@@ -308,17 +348,21 @@ export default function JiraApp() {
       });
     }
 
-    // 3. Keep any existing assignees of current project tasks for historical integrity
-    projectIssues.forEach((iss) => {
-      if (iss.assignee && !memberMap.has(iss.assignee.id)) {
-        const fullUser =
-          users.find((u) => u.id === iss.assignee?.id) || iss.assignee;
+    // 2. Add Project Lead if not already added
+    if (currentProject.lead) {
+      const fullUser =
+        users.find((u) => u.id === currentProject.lead?.id) ||
+        (currentProject.lead as User);
+      if (fullUser && !memberMap.has(fullUser.id)) {
         memberMap.set(fullUser.id, fullUser);
       }
-    });
+    } else if (currentProject.leadId && !memberMap.has(currentProject.leadId)) {
+      const leadUser = users.find((u) => u.id === currentProject.leadId);
+      if (leadUser) memberMap.set(leadUser.id, leadUser);
+    }
 
     return memberMap.size > 0 ? Array.from(memberMap.values()) : users;
-  }, [currentProject, users, projectIssues]);
+  }, [currentProject, users]);
 
   // Active sprint for sidebar display
   const activeSprint = useMemo(() => {

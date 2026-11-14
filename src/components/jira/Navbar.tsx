@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 import {
   Search,
   Plus,
@@ -125,18 +125,20 @@ export const Navbar: React.FC<NavbarProps> = ({
   const unreadCount = notifications.filter((n) => !n.isRead).length;
 
   // Filter projects by user membership: Admins see all; others see projects they are member of
-  const accessibleProjects = currentRole === "ADMIN"
-    ? projects
-    : projects.filter((p) => {
-        if (p.members && Array.isArray(p.members)) {
-          return p.members.some((m) => m.userId === currentUser.id);
-        }
-        return p.leadId === currentUser.id;
-      });
+  const accessibleProjects = useMemo(() => {
+    if (currentRole === "ADMIN") return projects;
+    return projects.filter((p) => {
+      const isLead = p.leadId === currentUser.id || p.lead?.id === currentUser.id;
+      const isMember =
+        Array.isArray(p.members) &&
+        p.members.some(
+          (m) => m.userId === currentUser.id || m.user?.id === currentUser.id
+        );
+      return isLead || isMember;
+    });
+  }, [currentRole, projects, currentUser.id]);
 
-  const displayedProjects = accessibleProjects.length > 0
-    ? accessibleProjects
-    : (currentProject ? [currentProject] : projects);
+  const displayedProjects = accessibleProjects;
 
   const handleMarkAllAsRead = async () => {
     setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
@@ -164,7 +166,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   }, []);
 
   return (
-    <header className="h-14 bg-white border-b border-[#D7D7D7] px-3 sm:px-4 flex items-center justify-between sticky top-0 z-[60] select-none shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
+    <header className="h-14 bg-white border-b border-[#D7D7D7] px-3 sm:px-4 flex items-center justify-between sticky top-0 z-30 select-none shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
       {/* Left: Hamburger, TamTask Brand & Project Selector */}
       <div className="flex items-center space-x-1.5 sm:space-x-2.5">
         {/* Mobile Hamburger Menu Toggle */}
@@ -180,7 +182,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         )}
 
         {/* Project Selector Dropdown */}
-        <div className="relative z-50" ref={projectMenuRef}>
+        <div className="relative z-40" ref={projectMenuRef}>
           <button
             onClick={() => setShowProjectDropdown(!showProjectDropdown)}
             className="flex items-center space-x-2 sm:space-x-2.5 p-1 sm:p-1.5 rounded-lg hover:bg-[#F8F8F8] border border-transparent hover:border-[#D7D7D7] transition text-left group"
@@ -204,7 +206,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
           {/* Project Dropdown Menu */}
           {showProjectDropdown && (
-            <div className="absolute left-0 mt-2 w-72 bg-white border border-slate-200 rounded-lg shadow-2xl py-1.5 z-[100] animate-in fade-in zoom-in-95">
+            <div className="absolute left-0 mt-2 w-72 bg-white border border-slate-200 rounded-lg shadow-2xl py-1.5 z-50 animate-in fade-in zoom-in-95">
               <div className="px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-400 border-b border-slate-100 flex items-center justify-between">
                 <span>Dự Án Khả Dụng</span>
                 <span className="text-[10px] text-slate-400 font-mono">{displayedProjects.length} dự án</span>
@@ -350,7 +352,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           </button>
 
           {showNotifMenu && (
-            <div className="absolute right-0 mt-2 w-80 bg-white border border-[#D7D7D7] rounded-xl shadow-2xl py-2 z-[100] animate-in fade-in zoom-in-95">
+            <div className="absolute right-0 mt-2 w-80 bg-white border border-[#D7D7D7] rounded-xl shadow-2xl py-2 z-50 animate-in fade-in zoom-in-95">
               <div className="px-3.5 py-2 border-b border-slate-100 flex items-center justify-between">
                 <span className="text-xs font-semibold text-slate-900">Thông báo</span>
                 {unreadCount > 0 && (
@@ -423,7 +425,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             </button>
 
             {showProfileMenu && (
-              <div className="absolute right-0 mt-2 w-52 bg-white border border-slate-200 rounded-md shadow-2xl py-1 z-[100] animate-in fade-in zoom-in-95">
+              <div className="absolute right-0 mt-2 w-52 bg-white border border-slate-200 rounded-md shadow-2xl py-1 z-50 animate-in fade-in zoom-in-95">
                 <div className="px-3 py-2 border-b border-slate-100">
                   <div className="text-xs font-semibold text-slate-800">{displayUser.name}</div>
                   <div className="text-[10px] text-slate-400 truncate">{displayUser.email}</div>

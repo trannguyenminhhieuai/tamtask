@@ -408,8 +408,14 @@ export const AdminView: React.FC<AdminViewProps> = ({
 
       {/* Approve User Modal */}
       {approvingUser && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-[2px] p-4 animate-in fade-in">
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 space-y-4 border border-gray-200 animate-in zoom-in-95">
+        <div
+          className="fixed inset-0 z-[80] flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 animate-in fade-in"
+          onClick={() => setApprovingUser(null)}
+        >
+          <div
+            className="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 space-y-4 border border-gray-200 animate-in zoom-in-95"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex items-center space-x-2 border-b border-slate-200 pb-3">
               <Check className="w-5 h-5 text-[#EE0033]" />
               <h3 className="font-semibold text-sm text-slate-900">
@@ -483,8 +489,14 @@ export const AdminView: React.FC<AdminViewProps> = ({
 
       {/* Invite Member Modal */}
       {showInviteModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-[2px] p-4 animate-in fade-in">
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 space-y-4 border border-slate-200 animate-in zoom-in-95">
+        <div
+          className="fixed inset-0 z-[80] flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 animate-in fade-in"
+          onClick={() => setShowInviteModal(false)}
+        >
+          <div
+            className="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 space-y-4 border border-slate-200 animate-in zoom-in-95"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex items-center space-x-2 border-b border-slate-200 pb-3">
               <UserPlus className="w-5 h-5 text-[#EE0033]" />
               <h3 className="font-semibold text-sm text-slate-900">

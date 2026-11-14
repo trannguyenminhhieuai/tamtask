@@ -3779,6 +3779,61 @@ Dựa trên 2 ảnh chụp màn hình thực tế được người dùng đánh
 | **TASK-KANBAN-ASSIGNEE-FILTER** | Chuẩn hóa bộ lọc avatar và swimlane Kanban chỉ hiển thị nhân sự thuộc dự án | `src/components/jira/KanbanBoard.tsx` | **P0 (Khẩn)** |  Hoàn thành (Hiển thị đầy đủ avatar & +N) |
 | **TASK-BUILD-DEPLOY** | Build Next.js 0 lỗi và Git commit & push lên GitHub main để Vercel deploy | Toàn bộ dự án | **P0 (Khẩn)** |  Hoàn thành (Ready for Production) |
 
+---
+
+# CHƯƠNG 31: HOÀN THIỆN QUYỀN TRUY CẬP DỰ ÁN, CHUẨN HÓA 3 NHÂN SỰ HÀNH CHÍNH CÔNG, KHẮC PHỤC TRIỆT ĐỂ LỖI HEADER CHỒNG ĐÈ DRAWER & HỖ TRỢ CLICK BACKDROP ĐÓNG DRAWER
+
+## 31.1. Phân Tích & Nguyên Nhân Kỹ Thuật (Root Cause Analysis)
+
+1. **Vấn đề 1: Thanh Header phía trên cùng chồng đè lên Drawer và Modal (CSS Stacking Order)**:
+   - Trong bản cập nhật trước, Header của `Navbar.tsx` được đặt `sticky top-0 z-[60]`.
+   - Trong khi đó, `IssueDetailDrawer.tsx` và toàn bộ các hộp thoại (`ProjectMembersModal`, `CreateIssueModal`, v.v.) lại đang đặt `z-50`.
+   - Vì `z-[60]` > `z-50`, Header bị vẽ đè lên trên backdrop và nội dung của Drawer/Modal, che khuất thanh tiêu đề và các nút thao tác phía trên của modal.
+   - **Giải pháp**:
+     - Hạ Header về `z-30` (đủ cao hơn workspace `z-0` và cột kanban `z-10`).
+     - Menu thả xuống cục bộ của Header (Project dropdown, Notifications) đặt `z-50`.
+     - Ngăn kéo trượt `IssueDetailDrawer` nâng lên `z-[70]`.
+     - Toàn bộ các Modal/Popup (`CreateIssueModal`, `ProjectMembersModal`, `WorkflowSettingsModal`, etc.) nâng lên `z-[80]`.
+     - Đảm bảo theo đúng thứ tự: `Workspace (0) < Header (30) < Drawer (70) < Modals (80) < CommandPalette (9990) < Toasts (9999)`.
+
+2. **Vấn đề 2: Bấm ra ngoài vùng tối của Drawer không đóng được (Backdrop Dismissal)**:
+   - Thẻ `<div>` backdrop ngoài cùng của `IssueDetailDrawer.tsx` thiếu sự kiện `onClick={onClose}`.
+   - Thẻ nội dung bên trong thiếu `onClick={(e) => e.stopPropagation()}` khiến cho người dùng click ra vùng tối ngoài ngăn kéo không thể đóng được giao diện.
+   - Cần bổ sung thêm lắng nghe phím `Escape` để người dùng có thể bấm phím Esc đóng Drawer ngay lập tức.
+
+3. **Vấn đề 3: Giới hạn nhân sự dự án Hành Chính Công & Phân quyền truy cập dự án**:
+   - Dự án *Hành Chính Công (HCC)* theo cấu hình thực tế của người dùng chỉ có đúng **3 nhân sự**:
+     1. `Hieu Tran` (`trannguyenminhhieu.ind@gmail.com`) - Trưởng dự án (Project Lead)
+     2. `Hiếu Trần` (`hieutnm3@gmail.com`) - Kỹ sư Dev (Developer)
+     3. `Annabelle Dam` (`huyendtm.ptit@gmail.com`) - Trưởng dự án (Project Lead)
+   - Trong cơ sở dữ liệu trước đó, trường `leadId` của dự án vẫn đang trỏ về `Trần Minh Hiếu (ADMIN)`, đồng thời trong các task cũ được import từ markdown có chứa các assignee ngoài 3 người này.
+   - Do đoạn code cũ cố gắng "bảo tồn assignee lịch sử" nên đã tự động đưa những người dùng ngoài dự án vào danh sách phân công!
+   - **Giải pháp**:
+     - Cập nhật cơ sở dữ liệu: Đặt `leadId` của dự án Hành Chính Công về `Hieu Tran` (`1db2cf1e-1224-4c21-a1fb-d89c6f0e2349`).
+     - Làm sạch bảng `ProjectMember` của dự án HCC để chỉ gồm đúng 3 nhân sự trên.
+     - Với các task cũ thuộc HCC đang gán cho người ngoài 3 thành viên này: Chuyển về trạng thái chưa gán (`null`) hoặc gán cho Trưởng dự án `Hieu Tran`.
+     - Code trong `page.tsx`: Danh sách `projectUsers` **chỉ** lấy từ `currentProject.members` và `currentProject.lead`, tuyệt đối không lấy thêm bất kỳ người nào ngoài dự án.
+     - Phân quyền truy cập dự án (`Project Access Guard`): Người dùng không phải ADMIN chỉ được nhìn thấy và truy cập các dự án mà họ là thành viên hoặc trưởng dự án trong Navbar.
+
+4. **Vấn đề 4: Rà soát & Đề xuất cải tiến UI/UX toàn diện**:
+   - Thêm hiệu ứng backdrop blur mượt mà (`backdrop-blur-xs`), đóng mở Drawer mượt mà (`duration-200`).
+   - Hỗ trợ đóng tất cả Modal/Drawer khi bấm ra vùng tối hoặc bấm phím `Escape`.
+   - Giữ nguyên màu đỏ thương hiệu Viettel `#EE0033` cho các nút bấm chính, tabs, active state.
+   - Đảm bảo hiển thị hoàn hảo trên Mobile và Tablet (`w-full md:max-w-4xl`).
+
+---
+
+## 31.2. Ma Trận Công Việc Thực Thi (Action Execution Matrix)
+
+| Mã Công Việc | Nội Dung Thực Hiện | Tệp Tác Động Chính | Mức Độ | Trạng Thái |
+| :---: | :--- | :--- | :---: | :---: |
+| **TASK-ZINDEX-LAYER-FIX** | Chuẩn hóa thang z-index: Header `z-30`, Drawer `z-[70]`, Modals `z-[80]` | `Navbar.tsx`, `IssueDetailDrawer.tsx`, các Modal files | **P0 (Khẩn)** |  Sẵn sàng thực thi |
+| **TASK-DRAWER-BACKDROP** | Bổ sung sự kiện `onClick={onClose}` cho backdrop và lắng nghe phím `Escape` cho Drawer | `src/components/jira/IssueDetailDrawer.tsx` | **P0 (Khẩn)** |  Sẵn sàng thực thi |
+| **TASK-DB-HCC-SCOPING** | Đặt leadId HCC về Hieu Tran, giữ đúng 3 thành viên HCC và gán lại task ngoài dự án | Database Script, Supabase | **P0 (Khẩn)** |  Sẵn sàng thực thi |
+| **TASK-PROJECT-ACCESS-GUARD** | Giới hạn quyền truy cập và phân công task strictly chỉ cho thành viên dự án | `src/app/page.tsx`, `src/components/jira/Navbar.tsx` | **P0 (Khẩn)** |  Sẵn sàng thực thi |
+| **TASK-BUILD-AND-DEPLOY** | Kiểm thử `npm run build` đạt exit code 0, Git commit và push lên production | Toàn bộ dự án | **P0 (Khẩn)** |  Sẵn sàng thực thi |
+
+
 
 
 
