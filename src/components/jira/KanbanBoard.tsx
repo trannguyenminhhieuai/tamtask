@@ -186,13 +186,8 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
     return [{ id: "default", title: "", issues: filteredIssues }];
   }, [swimlaneMode, filteredIssues, epics, users]);
 
-  // Scoped project users for assignee filter
-  const projectUsers = useMemo(() => {
-    const assignedIds = new Set(issues.map((i) => i.assignee?.id).filter(Boolean) as string[]);
-    assignedIds.add(currentUser.id);
-    const matched = users.filter((u) => assignedIds.has(u.id));
-    return matched.length > 0 ? matched : users;
-  }, [users, issues, currentUser.id]);
+  // Scoped project users for assignee filter (strictly scoped to project members)
+  const projectUsers = useMemo(() => users, [users]);
 
   const visibleUsers = useMemo(() => projectUsers.slice(0, 4), [projectUsers]);
   const overflowUsers = useMemo(() => projectUsers.slice(4), [projectUsers]);

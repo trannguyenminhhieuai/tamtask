@@ -3725,5 +3725,60 @@ Dựa trên 2 ảnh chụp màn hình thực tế được người dùng đánh
 | **TASK-WORKSPACE-STACKING** | Cô lập z-index Workspace (`z-0`) và hủy `z-40` trên desktop (`md:z-auto`) | `src/app/page.tsx` | **P0 (Khẩn)** |  Hoàn thành (Không còn xung đột Stacking Context) |
 | **TASK-BUILD-VERIFY** | Kiểm tra toàn bộ bằng `next build` đảm bảo 0 lỗi TypeScript & Push GitHub Vercel | Toàn bộ dự án | **P0 (Khẩn)** |  Hoàn thành (Build 0 lỗi & Đã push) |
 
+---
+
+# CHƯƠNG 30: GIỚI HẠN PHÂN CÔNG TASK VÀ BỘ LỌC KANBAN THEO ĐÚNG NHÂN SỰ THUỘC TỪNG DỰ ÁN (PROJECT MEMBER SCOPING)
+
+## 30.1. Phân Tích Yêu Cầu & Hiện Trạng Hệ Thống
+1. **Yêu cầu từ người dùng**:
+   - Khi tạo mới công việc (`CreateIssueModal`), chỉnh sửa chi tiết công việc (`IssueDetailDrawer`), hoặc phân công hàng loạt (`BacklogView`), danh sách người thực hiện (Assignee) chỉ được phép hiển thị các nhân sự thuộc về dự án đang chọn (bao gồm Trưởng dự án và các thành viên đã tham gia dự án).
+   - Trên thanh công cụ Bảng Kanban (`KanbanBoard`), nhóm ảnh đại diện (Avatar filter bar) và danh sách lọc phân công công việc chỉ hiển thị đúng các nhân sự thuộc dự án hiện tại, đồng thời hỗ trợ lọc chính xác các công việc theo từng thành viên.
+   - Khi chuyển đổi qua lại giữa các dự án (ví dụ từ *TamTask Space* sang *Hành Chính Công*), danh sách nhân sự phân công và avatar bộ lọc phải tự động chuyển đổi tương ứng theo từng dự án.
+2. **Nguyên nhân kỹ thuật trước khi chỉnh sửa**:
+   - Trong [`src/app/page.tsx`](file:///c:/Users/Admin/Desktop/Tammi/Jira/src/app/page.tsx), prop `users={users}` (chứa toàn bộ 11 tài khoản của toàn hệ thống) được truyền trực tiếp vào các component con: `KanbanBoard`, `BacklogView`, `CreateIssueModal`, `IssueDetailDrawer`, và `DashboardView`.
+   - Trong [`src/components/jira/KanbanBoard.tsx`](file:///c:/Users/Admin/Desktop/Tammi/Jira/src/components/jira/KanbanBoard.tsx), bộ lọc avatar trước đây dùng `assignedIds` (chỉ lấy những ai đã được gán ít nhất 1 task trong bảng) khiến cho những thành viên mới gia nhập dự án nhưng chưa có task nào bị ẩn đi khỏi thanh lọc.
+   - Bảng `ProjectMember` trong cơ sở dữ liệu Supabase của dự án *Hành Chính Công (HCC)* trước đó chưa được liên kết đầy đủ các nhân sự tham gia.
+
+---
+
+## 30.2. Kiến Trúc & Giải Pháp Kỹ Thuật Đã Triển Khai
+1. **Đồng bộ hóa dữ liệu thành viên dự án Hành Chính Công (HCC)**:
+   - Đã khởi tạo và chạy script [`src/scripts/sync-hcc-members.ts`](file:///c:/Users/Admin/Desktop/Tammi/Jira/src/scripts/sync-hcc-members.ts) liên kết thành công 7 nhân sự nòng cốt vào bảng `ProjectMember` của dự án *Hành Chính Công* trên Supabase:
+     - `Hieu Tran` (`trannguyenminhhieu.ind@gmail.com`) - `PROJECT_LEAD`
+     - `Trần Minh Hiếu` (`hieu.tran@company.com`) - `PROJECT_LEAD`
+     - `Nguyễn Văn An` (`an.nguyen@company.com`) - `DEVELOPER`
+     - `Lê Hoàng Nam` (`nam.le@company.com`) - `DEVELOPER`
+     - `Phạm Thị Mai` (`mai.pham@company.com`) - `QA`
+     - `Nguyễn Thu Hà` (`ha.nguyen@company.com`) - `PROJECT_LEAD`
+     - `Hiếu Trần` (`hieutnm3@gmail.com`) - `DEVELOPER`
+2. **Khởi tạo cơ chế tính toán nhân sự dự án động (`projectUsers`) trong [`src/app/page.tsx`](file:///c:/Users/Admin/Desktop/Tammi/Jira/src/app/page.tsx)**:
+   - Sử dụng `useMemo` tính toán danh sách `projectUsers` theo dự án hiện hành:
+     - Bổ sung Trưởng dự án (`currentProject.lead` hoặc `currentProject.leadId`).
+     - Bổ sung tất cả các thành viên trong danh sách `currentProject.members` (với thông tin chi tiết từ bảng `User`).
+     - Bảo toàn nguyên vẹn nhân sự đã gán vào các task hiện có của dự án để đảm bảo tính toàn vẹn dữ liệu lịch sử.
+     - Fallback an toàn về `users` nếu dự án mới chưa cấu hình thành viên.
+   - Truyền `projectUsers` làm prop `users` tới các component:
+     - `<KanbanBoard users={projectUsers} ... />`
+     - `<BacklogView users={projectUsers} ... />`
+     - `<CreateIssueModal users={projectUsers} ... />`
+     - `<IssueDetailDrawer users={projectUsers} ... />`
+     - `<DashboardView users={projectUsers} ... />`
+3. **Nâng cấp thanh lọc Avatar & Swimlane trên [`src/components/jira/KanbanBoard.tsx`](file:///c:/Users/Admin/Desktop/Tammi/Jira/src/components/jira/KanbanBoard.tsx)**:
+   - Chuẩn hóa `projectUsers = useMemo(() => users, [users])`, hiển thị trực tiếp tất cả thành viên của dự án hiện tại trên thanh lọc avatar.
+   - Hiển thị tối đa các avatar trực quan và hiển thị số lượng còn lại qua nút `+N` với danh sách chi tiết nhân sự dự án khi nhấn vào.
+   - Đồng bộ chế độ xem phân làn theo người thực hiện (`Swimlane ASSIGNEE`) chỉ nhóm các công việc theo đúng danh sách nhân sự thuộc dự án.
+
+---
+
+## 30.3. Ma Trận Công Việc Thực Thi (Action Execution Matrix)
+
+| Mã Công Việc | Nội Dung Thực Hiện | Tệp Tác Động Chính | Mức Độ | Trạng Thái |
+| :---: | :--- | :--- | :---: | :---: |
+| **TASK-SYNC-HCC-MEMBERS** | Đồng bộ hóa 7 thành viên nòng cốt vào bảng `ProjectMember` dự án Hành Chính Công trên Supabase | `src/scripts/sync-hcc-members.ts`, Database | **P0 (Khẩn)** |  Hoàn thành (Đã nạp 7 thành viên) |
+| **TASK-PROJECT-USERS-MEMO** | Tính toán danh sách `projectUsers` scoped theo dự án trong `page.tsx` và truyền cho Modal/Drawer/Kanban | `src/app/page.tsx` | **P0 (Khẩn)** |  Hoàn thành (Scoped chính xác theo dự án) |
+| **TASK-KANBAN-ASSIGNEE-FILTER** | Chuẩn hóa bộ lọc avatar và swimlane Kanban chỉ hiển thị nhân sự thuộc dự án | `src/components/jira/KanbanBoard.tsx` | **P0 (Khẩn)** |  Hoàn thành (Hiển thị đầy đủ avatar & +N) |
+| **TASK-BUILD-DEPLOY** | Build Next.js 0 lỗi và Git commit & push lên GitHub main để Vercel deploy | Toàn bộ dự án | **P0 (Khẩn)** |  Hoàn thành (Ready for Production) |
+
+
 
 

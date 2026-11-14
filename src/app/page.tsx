@@ -278,6 +278,48 @@ export default function JiraApp() {
     );
   }, [epics, currentProject]);
 
+  // Scoped project users (members + lead + existing assignees for historical integrity)
+  const projectUsers = useMemo(() => {
+    if (!currentProject) return users;
+    const memberMap = new Map<string, User>();
+
+    // 1. Add Project Lead
+    if (currentProject.lead) {
+      const fullUser =
+        users.find((u) => u.id === currentProject.lead?.id) ||
+        (currentProject.lead as User);
+      if (fullUser) memberMap.set(fullUser.id, fullUser);
+    } else if (currentProject.leadId) {
+      const leadUser = users.find((u) => u.id === currentProject.leadId);
+      if (leadUser) memberMap.set(leadUser.id, leadUser);
+    }
+
+    // 2. Add Project Members
+    if (Array.isArray(currentProject.members)) {
+      currentProject.members.forEach((m) => {
+        if (m.user) {
+          const fullUser =
+            users.find((u) => u.id === m.user?.id) || (m.user as User);
+          if (fullUser) memberMap.set(fullUser.id, fullUser);
+        } else if (m.userId) {
+          const u = users.find((user) => user.id === m.userId);
+          if (u) memberMap.set(u.id, u);
+        }
+      });
+    }
+
+    // 3. Keep any existing assignees of current project tasks for historical integrity
+    projectIssues.forEach((iss) => {
+      if (iss.assignee && !memberMap.has(iss.assignee.id)) {
+        const fullUser =
+          users.find((u) => u.id === iss.assignee?.id) || iss.assignee;
+        memberMap.set(fullUser.id, fullUser);
+      }
+    });
+
+    return memberMap.size > 0 ? Array.from(memberMap.values()) : users;
+  }, [currentProject, users, projectIssues]);
+
   // Active sprint for sidebar display
   const activeSprint = useMemo(() => {
     return (
@@ -858,7 +900,7 @@ export default function JiraApp() {
           {currentView === "BOARD" && (
             <KanbanBoard
               issues={projectIssues}
-              users={users}
+              users={projectUsers}
               epics={projectEpics}
               sprints={projectSprints}
               statuses={statuses}
@@ -879,7 +921,7 @@ export default function JiraApp() {
             <BacklogView
               issues={projectIssues}
               sprints={projectSprints}
-              users={users}
+              users={projectUsers}
               currentUser={currentUser}
               isLoading={isLoadingData}
               onIssueClick={setSelectedIssue}
@@ -908,7 +950,7 @@ export default function JiraApp() {
             <DashboardView
               issues={projectIssues}
               sprints={projectSprints}
-              users={users}
+              users={projectUsers}
             />
           )}
 
@@ -931,7 +973,7 @@ export default function JiraApp() {
       <IssueDetailDrawer
         issue={selectedIssue}
         allIssues={issues}
-        users={users}
+        users={projectUsers}
         epics={projectEpics}
         statuses={statuses}
         currentUser={currentUser}
@@ -944,7 +986,7 @@ export default function JiraApp() {
       {/* Create Issue Modal */}
       <CreateIssueModal
         isOpen={isCreateModalOpen}
-        users={users}
+        users={projectUsers}
         epics={projectEpics}
         sprints={projectSprints}
         currentUser={currentUser}
