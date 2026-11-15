@@ -376,8 +376,8 @@ export const AuthBackgroundIllustration: React.FC = () => {
             <circle cx="32" cy="195" r="4" fill="#EE0033" fillOpacity="0.4" />
           </g>
 
-          {/* Huge 3D Magnifying Glass Hovering Over Document (Shifted left & up — not covering anything) */}
-          <g transform="translate(195, 10)">
+          {/* Huge 3D Magnifying Glass Hovering Over Document (Shifted further left — not covering anything) */}
+          <g transform="translate(140, 10)">
             <g className="anim-float-2">
               {/* Long Handle */}
               <line x1="55" y1="65" x2="115" y2="135" stroke="#BE123C" strokeWidth="12" strokeLinecap="round" />
@@ -423,8 +423,8 @@ export const AuthBackgroundIllustration: React.FC = () => {
             <circle cx="44" cy="27" r="2.5" fill="#FBBF24" />
           </g>
 
-          {/* Floating Metric Card: Burndown Trend (Shifted up — clear of bottom objects) */}
-          <g transform="translate(390, 70)">
+          {/* Floating Metric Card: Burndown Trend (Shifted left to not cover bottom block) */}
+          <g transform="translate(295, 45)">
             <g className="anim-float-1">
               <rect x="0" y="0" width="90" height="48" rx="10" fill="#FFFFFF" stroke="#FECDD3" strokeWidth="1.5" filter="drop-shadow(0 6px 14px rgba(238,0,51,0.12))" />
               <text x="8" y="14" fill="#9CA3AF" fontSize="8" fontWeight="700" fontFamily="sans-serif">

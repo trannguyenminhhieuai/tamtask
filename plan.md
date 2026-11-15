@@ -4187,3 +4187,14 @@ bg-white dark:bg-zinc-800/90 border-[#EE0033]/50 dark:border-[#EE0033]/30
 | **2** | **Nâng thẻ Velocity lên trên** | Thẻ Velocity ở vị trí cũ gần sát khối phía dưới | Dời sang vị trí góc trên thông thoáng: `translate(390, 70)`, không dính đáy | `AuthBackgroundIllustration.tsx` |
 | **3** | **Bổ sung hiệu ứng chấm bi nhẹ nền Dark Mode** | Nền Dark Mode trước đó bị trống trải, độ mờ chấm bi quá thấp | Tăng `opacity-[0.30]` cho pattern dot matrix đỏ Viettel `tamtask-auth-dots`, kèm các chấm phát sáng điểm xuyết mờ ảo | `AuthBackgroundIllustration.tsx` |
 | **4** | **Kiểm thử Production Build** | Yêu cầu đảm bảo toàn bộ hệ thống sẵn sàng production | Đã chạy `npm run build` thành công xuất sắc: **Exit code 0**, 6/6 static routes tối ưu | Toàn bộ codebase |
+
+
+## 46. Chương 46: Khóa Chặt Max-Width Subtask (Ngăn Vỡ Cột Trái/Phải) & Tinh Chỉnh Vị Trí Motion Graphics
+
+> **Thời điểm**: 2026-11-16 | **Trạng thái**: ✅ Hoàn thành | **TypeScript**: ✅ 0 errors | **Build**: ✅ Production Ready
+
+| # | Hạng Mục Yêu Cầu | Thực Trạng & Nguyên Nhân | Giải Pháp Triển Khai | Tệp Nguồn |
+| :- | :--- | :--- | :--- | :--- |
+| **1** | **Khóa cứng max-width cho Subtask chống vỡ layout** | Cột trái dùng `flex-1` nhưng thiếu `min-w-0` và `overflow-hidden`; khi nhập tiêu đề/mô tả subtask dài không có khoảng trắng, flexbox tự mở rộng chiều ngang đẩy cột phải metadata ra khỏi màn hình | Thêm `min-w-0`, `overflow-x-hidden`, `w-full max-w-full` cho cột trái và mọi container cha/con của subtask; input & textarea subtask áp dụng `min-w-0 max-w-full break-all` | `IssueDetailDrawer.tsx` |
+| **2** | **Kính lúp Motion Graphics dời thêm sang trái** | Kính lúp cần thoáng hơn và dời sang bên trái nhiều hơn | Dời từ `translate(195, 10)` sang `translate(140, 10)`, cách xa tài liệu và hoàn toàn không che khối nào | `AuthBackgroundIllustration.tsx` |
+| **3** | **Thẻ Velocity dời sang trái tránh che khối dưới** | Thẻ Velocity ở góc phải che khối nền bậc thang phía dưới | Dời sang bên trái: `translate(295, 45)`, bay lơ lửng phía trên tài liệu thông thoáng | `AuthBackgroundIllustration.tsx` |

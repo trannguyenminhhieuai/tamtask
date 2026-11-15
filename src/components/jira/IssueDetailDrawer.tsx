@@ -509,10 +509,10 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
         </div>
 
         {/* Content Body (2 Columns) - Unified Single Scrollbar with 16px bottom padding */}
-        <div className="flex-1 overflow-y-auto">
-          <div className="flex flex-col md:flex-row md:items-start min-h-full pb-4">
-            {/* Left Column: Title, Description, Subtasks, Comments */}
-            <div className="flex-1 p-6 pb-6 md:border-r border-gray-200 dark:border-zinc-800 space-y-6 bg-white dark:bg-zinc-900 flex flex-col justify-start">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden">
+          <div className="flex flex-col md:flex-row md:items-start min-h-full pb-4 w-full">
+            {/* Left Column: Title, Description, Subtasks, Comments (Strict min-w-0 and overflow-hidden to prevent layout blow-out) */}
+            <div className="flex-1 min-w-0 w-full p-6 pb-6 md:border-r border-gray-200 dark:border-zinc-800 space-y-6 bg-white dark:bg-zinc-900 flex flex-col justify-start overflow-hidden">
             {/* Title */}
             <div>
               <input
@@ -596,23 +596,23 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
             )}
 
             {/* Subtasks Section */}
-            <div>
+            <div className="w-full max-w-full min-w-0 overflow-hidden">
               <div className="flex items-center justify-between mb-2">
                 <label className="text-xs font-bold text-gray-700 dark:text-zinc-300 uppercase tracking-wider">
                   Subtasks ({issue.subtasks.filter((s) => s.isCompleted).length}/{issue.subtasks.length})
                 </label>
               </div>
 
-              <div className="space-y-2 mb-3">
+              <div className="space-y-2 mb-3 w-full max-w-full min-w-0 overflow-hidden">
                 {issue.subtasks.map((sub) => {
                   const isExpanded = expandedSubtaskId === sub.id;
                   return (
                     <div
                       key={sub.id}
-                      className="bg-gray-50 dark:bg-zinc-800/60 rounded-xl border border-gray-200/80 dark:border-zinc-700/60 transition overflow-hidden"
+                      className="bg-gray-50 dark:bg-zinc-800/60 rounded-xl border border-gray-200/80 dark:border-zinc-700/60 transition overflow-hidden w-full max-w-full min-w-0"
                     >
                       <div
-                        className="flex items-center justify-between space-x-2.5 p-2.5 hover:bg-gray-100/80 dark:hover:bg-zinc-800 cursor-pointer overflow-hidden"
+                        className="flex items-center justify-between space-x-2.5 p-2.5 hover:bg-gray-100/80 dark:hover:bg-zinc-800 cursor-pointer overflow-hidden w-full max-w-full min-w-0"
                         onClick={() => {
                           if (isExpanded) {
                             setExpandedSubtaskId(null);
@@ -676,12 +676,12 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
 
                       {/* Subtask Details & Editor */}
                       {isExpanded && (
-                        <div className="px-3.5 pb-3.5 pt-2.5 border-t border-gray-200/60 dark:border-zinc-700/60 bg-white/60 dark:bg-zinc-900/40 space-y-3 animate-in fade-in duration-150">
-                          <div className="flex items-center justify-between">
-                            <label className="block text-[11px] font-bold text-slate-700 dark:text-zinc-300 uppercase tracking-wider">
+                        <div className="px-3.5 pb-3.5 pt-2.5 border-t border-gray-200/60 dark:border-zinc-700/60 bg-white/60 dark:bg-zinc-900/40 space-y-3 animate-in fade-in duration-150 w-full max-w-full min-w-0 overflow-hidden">
+                          <div className="flex items-center justify-between gap-2">
+                            <label className="block text-[11px] font-bold text-slate-700 dark:text-zinc-300 uppercase tracking-wider shrink-0">
                               Tên công việc phụ:
                             </label>
-                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${
+                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold shrink-0 ${
                               sub.isCompleted
                                 ? "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300"
                                 : "bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300"
@@ -690,18 +690,18 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
                             </span>
                           </div>
 
-                          <div>
+                          <div className="w-full max-w-full min-w-0">
                             <input
                               type="text"
                               disabled={isViewer}
                               value={subtaskTitleInput}
                               onChange={(e) => setSubtaskTitleInput(e.target.value)}
                               placeholder="Nhập tên công việc phụ..."
-                              className="w-full text-xs px-3 py-2 bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-slate-900 dark:text-zinc-100 placeholder:text-slate-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-[#EE0033]/20 focus:border-[#EE0033] transition font-semibold"
+                              className="w-full max-w-full min-w-0 text-xs px-3 py-2 bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-slate-900 dark:text-zinc-100 placeholder:text-slate-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-[#EE0033]/20 focus:border-[#EE0033] transition font-semibold"
                             />
                           </div>
 
-                          <div>
+                          <div className="w-full max-w-full min-w-0">
                             <label className="block text-[11px] font-bold text-slate-700 dark:text-zinc-300 uppercase tracking-wider mb-1">
                               Mô tả chi tiết:
                             </label>
@@ -711,7 +711,7 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
                               value={subtaskDescInput}
                               onChange={(e) => setSubtaskDescInput(e.target.value)}
                               placeholder="Nhập mô tả chi tiết, hướng dẫn hoặc tiêu chí..."
-                              className="w-full text-xs p-2.5 bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-slate-900 dark:text-zinc-100 placeholder:text-slate-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-[#EE0033]/20 focus:border-[#EE0033] transition"
+                              className="w-full max-w-full min-w-0 text-xs p-2.5 bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-slate-900 dark:text-zinc-100 placeholder:text-slate-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-[#EE0033]/20 focus:border-[#EE0033] transition break-all resize-y"
                             />
                           </div>
 
@@ -742,18 +742,18 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
 
               {/* Add subtask input (Hidden for VIEWER) */}
               {!isViewer && (
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-2 w-full max-w-full min-w-0">
                   <input
                     type="text"
                     value={newSubtaskTitle}
                     onChange={(e) => setNewSubtaskTitle(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && addSubtask()}
                     placeholder="+ Add a subtask..."
-                    className="flex-1 text-xs bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 text-gray-900 dark:text-zinc-100 placeholder:text-gray-400 dark:placeholder:text-zinc-500 rounded px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#EE0033]"
+                    className="flex-1 min-w-0 text-xs bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 text-gray-900 dark:text-zinc-100 placeholder:text-gray-400 dark:placeholder:text-zinc-500 rounded px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#EE0033]"
                   />
                   <button
                     onClick={addSubtask}
-                    className="bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 dark:hover:bg-zinc-700 text-gray-700 dark:text-zinc-200 border border-transparent dark:border-zinc-700 text-xs px-3 py-1.5 rounded font-semibold transition"
+                    className="bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 dark:hover:bg-zinc-700 text-gray-700 dark:text-zinc-200 border border-transparent dark:border-zinc-700 text-xs px-3 py-1.5 rounded font-semibold transition shrink-0"
                   >
                     Add
                   </button>
