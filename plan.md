@@ -3830,8 +3830,39 @@ Dựa trên 2 ảnh chụp màn hình thực tế được người dùng đánh
 | **TASK-ZINDEX-LAYER-FIX** | Chuẩn hóa thang z-index: Header `z-30`, Drawer `z-[70]`, Modals `z-[80]` | `Navbar.tsx`, `IssueDetailDrawer.tsx`, các Modal files | **P0 (Khẩn)** |  Sẵn sàng thực thi |
 | **TASK-DRAWER-BACKDROP** | Bổ sung sự kiện `onClick={onClose}` cho backdrop và lắng nghe phím `Escape` cho Drawer | `src/components/jira/IssueDetailDrawer.tsx` | **P0 (Khẩn)** |  Sẵn sàng thực thi |
 | **TASK-DB-HCC-SCOPING** | Đặt leadId HCC về Hieu Tran, giữ đúng 3 thành viên HCC và gán lại task ngoài dự án | Database Script, Supabase | **P0 (Khẩn)** |  Sẵn sàng thực thi |
-| **TASK-PROJECT-ACCESS-GUARD** | Giới hạn quyền truy cập và phân công task strictly chỉ cho thành viên dự án | `src/app/page.tsx`, `src/components/jira/Navbar.tsx` | **P0 (Khẩn)** |  Sẵn sàng thực thi |
+| **TASK-PROJECT-ACCESS-GUARD** | Giới hạn quyền truy cập và phân công task strictly chỉ cho thành viên dự án | `src/app/page.tsx`, `src/components/jira/Navbar.tsx` | **P0 (Khẩn)** |  Đã hoàn thành |
 | **TASK-BUILD-AND-DEPLOY** | Kiểm thử `npm run build` đạt exit code 0, Git commit và push lên production | Toàn bộ dự án | **P0 (Khẩn)** |  Sẵn sàng thực thi |
+
+---
+
+## 32. Kế Hoạch Chuẩn Hóa Giao Diện Toàn Diện Theo Thư Viện Figma Tammi OA ([WEB] Tammi OA)
+
+> **Căn cứ**: Yêu cầu đồng bộ giao diện theo thư viện Figma `[WEB] Tammi OA (Copy)` (`t=5QmfDJjMIuC9r66g-0`, Node `155-16880`), giải quyết triệt để tình trạng local không hiển thị thay đổi, đồng bộ design tokens và tối ưu hóa trải nghiệm người dùng (UX).
+
+### 32.1. Phân Tích Nguyên Nhân & Mục Tiêu
+
+1. **Nguyên nhân người dùng không thấy thay đổi trên Local**:
+   - Tiến trình dev server (`npm run dev`) trước đó đã bị dừng ngắt đột ngột (hoặc người dùng truy cập tab cũ của trình duyệt đang cache).
+   - Các điều chỉnh styling Tammi OA mới chỉ dừng lại ở tệp cấu hình `tailwind.config.ts` và `DESIGN.md`, chưa được áp dụng triệt để vào các component chi tiết (`KanbanBoard.tsx`, `IssueDetailDrawer.tsx`, `CreateIssueModal.tsx`, `Navbar.tsx`).
+2. **Mục tiêu triển khai**:
+   - Áp dụng đầy đủ bảng mã màu chuẩn Tammi OA: Viettel Red `#EE0033`, Tammi Emerald `#079455`, Surface `#F8F8F8`, Canvas `#FFFFFF`, Border `#D7D7D7`.
+   - Chuẩn hóa bo góc hệ thống: 8px (`rounded-lg`) cho nút bấm, ô input, select, card; 12px (`rounded-xl`) cho cột Kanban, modal window, drawer container.
+   - Giữ nghiêm ngặt thang phân tầng z-index: Navbar `z-30`, Drawer `z-[70]`, Modal `z-[80]`.
+   - Giữ nghiêm ngặt giới hạn nhân sự: Chỉ 3 nhân sự của dự án Hành Chính Công (HCC) được xuất hiện trong danh sách assign/filter.
+   - Đảm bảo biên dịch `npm run build` đạt exit code 0 và duy trì máy chủ local `npm run dev` chạy nền ổn định trên port 3000.
+
+### 32.2. Lộ Trình Triển Khai (Roadmap)
+
+| Bước | Nội Dung Thực Hiện | Tệp Tác Động | Trạng Thái |
+| :---: | :--- | :--- | :---: |
+| **1** | Cập nhật và hoàn thiện tài liệu `DESIGN.md` theo chuẩn Figma Tammi OA | `DESIGN.md` | ✅ Đã hoàn thành |
+| **2** | Cập nhật `tailwind.config.ts` với đầy đủ semantic color tokens | `tailwind.config.ts` | ✅ Đã hoàn thành |
+| **3** | Đồng bộ phong cách Tammi OA cho `Navbar.tsx` (bo góc 8px/12px, viền `#D7D7D7`, logo đỏ) | `src/components/jira/Navbar.tsx` |  Đang thực thi |
+| **4** | Đồng bộ phong cách Tammi OA cho `KanbanBoard.tsx` (cột `rounded-xl`, bo góc 12px, viền `#D7D7D7`) | `src/components/jira/KanbanBoard.tsx` |  Đang thực thi |
+| **5** | Đồng bộ phong cách Tammi OA cho `IssueDetailDrawer.tsx` (panel phải `#F8F8F8`, viền `#D7D7D7`) | `src/components/jira/IssueDetailDrawer.tsx` |  Đang thực thi |
+| **6** | Đồng bộ phong cách Tammi OA cho `CreateIssueModal.tsx` & `ProjectMembersModal.tsx` | Các Modal files |  Đang thực thi |
+| **7** | Biên dịch kiểm thử toàn dự án `npm run build` và khởi động dev server nền | Terminal / Process |  Chờ thực thi |
+
 
 
 

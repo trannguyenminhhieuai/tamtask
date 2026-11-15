@@ -559,7 +559,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
         {isLoading ? (
           <div className="grid grid-flow-col auto-cols-[300px] gap-4 min-h-[500px]">
             {[1, 2, 3, 4].map((n) => (
-              <div key={n} className="bg-[#F8F8F8] rounded-lg p-3 flex flex-col space-y-3 animate-pulse border border-[#D7D7D7]">
+              <div key={n} className="bg-[#F8F8F8] rounded-xl p-3 flex flex-col space-y-3 animate-pulse border border-[#D7D7D7]">
                 <div className="flex items-center justify-between pb-2 border-b border-[#D7D7D7]">
                   <div className="h-4 bg-slate-300 rounded w-28"></div>
                   <div className="h-4 bg-slate-300 rounded-full w-6"></div>
@@ -639,7 +639,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                       key={col.id}
                       onDragOver={(e) => handleDragOver(e, col.id)}
                       onDrop={(e) => handleDrop(e, col.id)}
-                      className={`w-72 flex-shrink-0 flex flex-col rounded-lg transition-all border ${
+                      className={`w-72 flex-shrink-0 flex flex-col rounded-xl transition-all border ${
                         isOver
                           ? "bg-rose-50/60 border-2 border-dashed border-[#EE0033]"
                           : isWipExceeded

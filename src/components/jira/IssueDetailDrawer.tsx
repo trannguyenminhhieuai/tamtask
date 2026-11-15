@@ -1068,19 +1068,19 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
           </div>
 
           {/* Right Column: Metadata & Fast Actions */}
-          <div className="w-full md:w-80 p-6 bg-[#FAFBFC] space-y-5">
+          <div className="w-full md:w-80 p-6 bg-[#F8F8F8] md:border-l border-[#D7D7D7] space-y-5">
             {/* Auto Triage Action Button */}
             {!isViewer && (
-              <div className="bg-slate-50 border border-slate-200 rounded-lg p-3">
+              <div className="bg-white border border-[#D7D7D7] rounded-lg p-3 shadow-2xs">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-1.5 text-xs font-bold text-slate-800">
+                  <div className="flex items-center space-x-1.5 text-xs font-bold text-[#111827]">
                     <Sparkles className="w-3.5 h-3.5 text-[#EE0033]" />
                     <span>Gợi Ý Phân Phối Tự Động</span>
                   </div>
                   <button
                     onClick={triggerMouse1Triage}
                     disabled={isTriaging}
-                    className="text-[11px] bg-[#EE0033] hover:bg-[#D6002E] text-white font-semibold px-2.5 py-1 rounded transition disabled:opacity-50"
+                    className="text-[11px] bg-[#EE0033] hover:bg-[#D6002E] active:bg-[#BD0029] text-white font-semibold px-2.5 py-1 rounded-lg transition shadow-xs disabled:opacity-50"
                   >
                     {isTriaging ? "Đang tính..." : "Phân phối ngay"}
                   </button>
@@ -1089,7 +1089,7 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
                   Tự động tối ưu người thực hiện, mức ưu tiên và Epic phù hợp cho công việc.
                 </p>
                 {mouseFeedback && (
-                  <div className="mt-2 text-[10px] text-emerald-800 bg-emerald-50 border border-emerald-200 p-1.5 rounded">
+                  <div className="mt-2 text-[10px] text-emerald-800 bg-emerald-50 border border-emerald-200 p-1.5 rounded-lg">
                     {mouseFeedback}
                   </div>
                 )}
@@ -1098,15 +1098,15 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
 
             {/* Status Selector */}
             <div>
-              <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1">
+              <label className="block text-[11px] font-bold text-[#4B5563] uppercase tracking-wider mb-1.5">
                 Status
               </label>
               <select
                 value={issue.status}
                 disabled={isViewer}
                 onChange={(e) => handleStatusChange(e.target.value as IssueStatus)}
-                className={`w-full text-xs font-bold border rounded px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#EE0033] ${
-                  isViewer ? "bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200" : "bg-white text-gray-900 border-gray-300"
+                className={`w-full text-xs font-bold border rounded-lg px-3 py-2 transition focus:outline-none focus:ring-2 focus:ring-[#EE0033]/20 focus:border-[#EE0033] ${
+                  isViewer ? "bg-gray-100 text-gray-500 cursor-not-allowed border-[#D7D7D7]" : "bg-white text-[#111827] border-[#D7D7D7]"
                 }`}
               >
                 {statuses && statuses.length > 0 ? (
@@ -1129,7 +1129,7 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
 
             {/* Assignee Selector */}
             <div>
-              <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1">
+              <label className="block text-[11px] font-bold text-[#4B5563] uppercase tracking-wider mb-1.5">
                 Assignee
               </label>
               <select
@@ -1139,8 +1139,8 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
                   const user = users.find((u) => u.id === e.target.value);
                   onUpdateIssue({ ...issue, assignee: user });
                 }}
-                className={`w-full text-xs border rounded px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#EE0033] ${
-                  isViewer ? "bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200" : "bg-white text-gray-900 border-gray-300"
+                className={`w-full text-xs font-medium border rounded-lg px-3 py-2 transition focus:outline-none focus:ring-2 focus:ring-[#EE0033]/20 focus:border-[#EE0033] ${
+                  isViewer ? "bg-gray-100 text-gray-500 cursor-not-allowed border-[#D7D7D7]" : "bg-white text-[#111827] border-[#D7D7D7]"
                 }`}
               >
                 <option value="">Unassigned</option>
@@ -1154,7 +1154,7 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
 
             {/* Epic Selector with Highlight Color */}
             <div>
-              <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1">
+              <label className="block text-[11px] font-bold text-[#4B5563] uppercase tracking-wider mb-1.5">
                 Epic Link
               </label>
               <select
@@ -1164,8 +1164,8 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
                   const epic = epics.find((ep) => ep.id === e.target.value);
                   onUpdateIssue({ ...issue, epic });
                 }}
-                className={`w-full text-xs border rounded px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#EE0033] ${
-                  isViewer ? "bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200" : "bg-white text-gray-900 border-gray-300"
+                className={`w-full text-xs font-medium border rounded-lg px-3 py-2 transition focus:outline-none focus:ring-2 focus:ring-[#EE0033]/20 focus:border-[#EE0033] ${
+                  isViewer ? "bg-gray-100 text-gray-500 cursor-not-allowed border-[#D7D7D7]" : "bg-white text-[#111827] border-[#D7D7D7]"
                 }`}
               >
                 <option value="">None</option>
@@ -1190,7 +1190,7 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
 
             {/* Priority Selector */}
             <div>
-              <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1">
+              <label className="block text-[11px] font-bold text-[#4B5563] uppercase tracking-wider mb-1.5">
                 Priority
               </label>
               <select
@@ -1199,8 +1199,8 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
                 onChange={(e) =>
                   onUpdateIssue({ ...issue, priority: e.target.value as IssuePriority })
                 }
-                className={`w-full text-xs border rounded px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#EE0033] ${
-                  isViewer ? "bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200" : "bg-white text-gray-900 border-gray-300"
+                className={`w-full text-xs font-medium border rounded-lg px-3 py-2 transition focus:outline-none focus:ring-2 focus:ring-[#EE0033]/20 focus:border-[#EE0033] ${
+                  isViewer ? "bg-gray-100 text-gray-500 cursor-not-allowed border-[#D7D7D7]" : "bg-white text-[#111827] border-[#D7D7D7]"
                 }`}
               >
                 <option value="HIGHEST">Highest</option>
@@ -1213,7 +1213,7 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
 
             {/* Story Points */}
             <div>
-              <label className="block text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1">
+              <label className="block text-[11px] font-bold text-[#4B5563] uppercase tracking-wider mb-1.5">
                 Story Points (Estimate)
               </label>
               <input
@@ -1226,8 +1226,8 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
                     storyPoints: e.target.value ? parseInt(e.target.value) : undefined,
                   })
                 }
-                className={`w-full text-xs border rounded px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#EE0033] ${
-                  isViewer ? "bg-gray-100 text-gray-500 cursor-not-allowed border-gray-200" : "bg-white text-gray-900 border-gray-300"
+                className={`w-full text-xs font-medium border rounded-lg px-3 py-2 transition focus:outline-none focus:ring-2 focus:ring-[#EE0033]/20 focus:border-[#EE0033] ${
+                  isViewer ? "bg-gray-100 text-gray-500 cursor-not-allowed border-[#D7D7D7]" : "bg-white text-[#111827] border-[#D7D7D7]"
                 }`}
                 placeholder="0"
                 min="0"

@@ -229,20 +229,20 @@ export const CreateIssueModal: React.FC<CreateIssueModalProps> = ({
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-lg shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden border border-gray-200 animate-in fade-in zoom-in-95 duration-150"
+        className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden border border-[#D7D7D7] animate-in fade-in zoom-in-95 duration-150"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between bg-[#FAFBFC] flex-shrink-0">
+        <div className="px-6 py-4 border-b border-[#D7D7D7] flex items-center justify-between bg-[#F8F8F8] flex-shrink-0">
           <div className="flex items-center gap-2">
-            <h3 className="text-base font-bold text-gray-900">Tạo Công Việc</h3>
+            <h3 className="text-base font-bold text-[#111827]">Tạo Công Việc</h3>
             {currentProject && (
-              <span className="text-xs bg-gray-100 text-gray-700 font-semibold px-2 py-0.5 rounded border border-gray-200">
+              <span className="text-xs bg-white text-[#111827] font-semibold px-2 py-0.5 rounded border border-[#D7D7D7]">
                 {currentProject.key}
               </span>
             )}
           </div>
-          <button onClick={onClose} className="p-1 text-gray-400 hover:text-gray-600 rounded">
+          <button onClick={onClose} className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-slate-100 rounded-lg transition">
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -257,7 +257,7 @@ export const CreateIssueModal: React.FC<CreateIssueModalProps> = ({
             <select
               value={type}
               onChange={(e) => setType(e.target.value as IssueType)}
-              className="w-full text-xs bg-white border border-gray-300 rounded px-3 py-2 font-semibold text-gray-800 focus:outline-none focus:ring-1 focus:ring-[#0052CC]"
+              className="w-full text-xs bg-white border border-[#D7D7D7] rounded-lg px-3 py-2 font-semibold text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#EE0033]/20 focus:border-[#EE0033] transition"
             >
               <option value="STORY">📖 Story</option>
               <option value="TASK">☑️ Task</option>
@@ -374,7 +374,7 @@ export const CreateIssueModal: React.FC<CreateIssueModalProps> = ({
               <select
                 value={assigneeId}
                 onChange={(e) => setAssigneeId(e.target.value)}
-                className="w-full text-xs bg-white border border-gray-300 rounded px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#0052CC]"
+                className="w-full text-xs bg-white border border-[#D7D7D7] rounded-lg px-3 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#EE0033]/20 focus:border-[#EE0033] transition"
               >
                 <option value="">Chưa phân công</option>
                 {users.map((u) => (
@@ -393,7 +393,7 @@ export const CreateIssueModal: React.FC<CreateIssueModalProps> = ({
               <select
                 value={epicId}
                 onChange={(e) => setEpicId(e.target.value)}
-                className="w-full text-xs bg-white border border-gray-300 rounded px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#0052CC]"
+                className="w-full text-xs bg-white border border-[#D7D7D7] rounded-lg px-3 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#EE0033]/20 focus:border-[#EE0033] transition"
               >
                 <option value="">Không có</option>
                 {epics.map((e) => (
@@ -412,7 +412,7 @@ export const CreateIssueModal: React.FC<CreateIssueModalProps> = ({
               <select
                 value={priority}
                 onChange={(e) => setPriority(e.target.value as IssuePriority)}
-                className="w-full text-xs bg-white border border-gray-300 rounded px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#0052CC]"
+                className="w-full text-xs bg-white border border-[#D7D7D7] rounded-lg px-3 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#EE0033]/20 focus:border-[#EE0033] transition"
               >
                 <option value="HIGHEST">Rất cao (Highest)</option>
                 <option value="HIGH">Cao (High)</option>
@@ -431,7 +431,7 @@ export const CreateIssueModal: React.FC<CreateIssueModalProps> = ({
                 type="number"
                 value={storyPoints}
                 onChange={(e) => setStoryPoints(e.target.value)}
-                className="w-full text-xs bg-white border border-gray-300 rounded px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#0052CC]"
+                className="w-full text-xs bg-white border border-[#D7D7D7] rounded-lg px-3 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#EE0033]/20 focus:border-[#EE0033] transition"
                 placeholder="Điểm ước tính (vd: 3, 5, 8)"
                 min="0"
               />
@@ -446,7 +446,7 @@ export const CreateIssueModal: React.FC<CreateIssueModalProps> = ({
             <select
               value={sprintId}
               onChange={(e) => setSprintId(e.target.value)}
-              className="w-full text-xs bg-white border border-gray-300 rounded px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#0052CC]"
+              className="w-full text-xs bg-white border border-[#D7D7D7] rounded-lg px-3 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#EE0033]/20 focus:border-[#EE0033] transition"
             >
               <option value="">Hàng đợi công việc (Backlog)</option>
               {sprints.map((s) => (
@@ -458,17 +458,17 @@ export const CreateIssueModal: React.FC<CreateIssueModalProps> = ({
           </div>
 
           {/* Footer Buttons */}
-          <div className="pt-4 border-t border-gray-200 flex items-center justify-end space-x-3">
+          <div className="pt-4 border-t border-[#D7D7D7] flex items-center justify-end space-x-3">
             <button
               type="button"
               onClick={onClose}
-              className="px-3 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-100 rounded transition"
+              className="px-3 py-2 text-xs font-semibold text-gray-600 hover:bg-[#F8F8F8] rounded-lg border border-[#D7D7D7] transition"
             >
               Hủy
             </button>
             <button
               type="submit"
-              className="px-4 py-2 text-xs font-medium bg-[#EE0033] hover:bg-[#D6002E] text-white rounded-md transition shadow-xs"
+              className="px-4 py-2 text-xs font-bold bg-[#EE0033] hover:bg-[#D6002E] active:bg-[#BD0029] text-white rounded-lg transition shadow-xs"
             >
               Tạo Công Việc
             </button>

@@ -239,27 +239,27 @@ export const ProjectMembersModal: React.FC<ProjectMembersModalProps> = ({
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden border border-gray-200 animate-in zoom-in-95 duration-150 flex flex-col max-h-[88vh]"
+        className="bg-white rounded-xl shadow-2xl w-full max-w-2xl overflow-hidden border border-[#D7D7D7] animate-in zoom-in-95 duration-150 flex flex-col max-h-[88vh]"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-50/80">
+        <div className="px-6 py-4 border-b border-[#D7D7D7] flex items-center justify-between bg-[#F8F8F8]">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-rose-600 to-indigo-600 flex items-center justify-center text-white text-xs font-bold shadow-xs">
+            <div className="w-8 h-8 rounded-lg bg-[#EE0033] flex items-center justify-center text-white text-xs font-bold shadow-xs">
               {project.key.slice(0, 3)}
             </div>
             <div>
               <h3 className="text-base font-semibold text-slate-900 flex items-center gap-2">
                 <span>Quản Lý Nhân Sự Dự Án</span>
-                <span className="text-xs bg-slate-100 text-slate-700 font-mono font-medium px-2 py-0.5 rounded border border-slate-200">
+                <span className="text-xs bg-white text-[#111827] font-mono font-medium px-2 py-0.5 rounded border border-[#D7D7D7]">
                   {project.name} ({project.key})
                 </span>
               </h3>
               <p className="text-xs text-slate-500">Phân bổ nhân sự, cấu hình quyền và bảo mật 2FA</p>
             </div>
           </div>
-          <button onClick={onClose} className="p-1 text-slate-400 hover:text-slate-600 rounded">
-            <X className="w-5 h-5" />
+          <button onClick={onClose} className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition">
+            <X className="w-4 h-4" />
           </button>
         </div>
 
