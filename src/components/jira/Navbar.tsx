@@ -133,16 +133,23 @@ export const Navbar: React.FC<NavbarProps> = ({
   // Filter projects by user membership: Admins see all; others see projects they are member of
   const accessibleProjects = useMemo(() => {
     if (currentRole === "ADMIN") return projects;
+    const uEmail = currentUser.email?.toLowerCase();
     return projects.filter((p) => {
-      const isLead = p.leadId === currentUser.id || p.lead?.id === currentUser.id;
+      const isLead =
+        p.leadId === currentUser.id ||
+        p.lead?.id === currentUser.id ||
+        Boolean(uEmail && p.lead?.email && p.lead.email.toLowerCase() === uEmail);
       const isMember =
         Array.isArray(p.members) &&
         p.members.some(
-          (m) => m.userId === currentUser.id || m.user?.id === currentUser.id
+          (m) =>
+            m.userId === currentUser.id ||
+            m.user?.id === currentUser.id ||
+            Boolean(uEmail && m.user?.email && m.user.email.toLowerCase() === uEmail)
         );
       return isLead || isMember;
     });
-  }, [currentRole, projects, currentUser.id]);
+  }, [currentRole, projects, currentUser.id, currentUser.email]);
 
   const displayedProjects = accessibleProjects;
 

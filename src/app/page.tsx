@@ -41,6 +41,24 @@ import {
 } from "@/types/jira";
 import { Layers } from "lucide-react";
 
+// Helper to determine if a user is actively assigned to a project (as Lead or Member)
+const isUserAssignedToProject = (p: Project, uId: string, uEmail?: string): boolean => {
+  if (!uId && !uEmail) return false;
+  const isLead =
+    p.leadId === uId ||
+    p.lead?.id === uId ||
+    Boolean(uEmail && p.lead?.email && p.lead.email.toLowerCase() === uEmail.toLowerCase());
+  const isMember =
+    Array.isArray(p.members) &&
+    p.members.some(
+      (m) =>
+        m.userId === uId ||
+        m.user?.id === uId ||
+        Boolean(uEmail && m.user?.email && m.user.email.toLowerCase() === uEmail.toLowerCase())
+    );
+  return isLead || isMember;
+};
+
 export default function JiraApp() {
   const { data: session, status: authStatus } = useSession();
 
@@ -149,38 +167,52 @@ export default function JiraApp() {
           freshProjects = projectsData;
           setProjects(projectsData);
           setCurrentProject((prev) => {
+            const uId = (session?.user as any)?.id || currentUser.id;
+            const uEmail = session?.user?.email || currentUser.email;
+
+            // Prioritize projects actively assigned to this logged-in user
+            const assigned = projectsData.filter((p) => isUserAssignedToProject(p, uId, uEmail));
+
+            // Load user-specific last accessed project from localStorage
+            let userLastId: string | null = null;
+            if (typeof window !== "undefined") {
+              try {
+                userLastId =
+                  localStorage.getItem(`tamtask_last_project_id_${uId}`) ||
+                  localStorage.getItem(`tamtask_last_project_id_${uEmail}`);
+              } catch {}
+            }
+
+            if (assigned.length > 0) {
+              if (userLastId) {
+                const matchedLast = assigned.find((p) => p.id === userLastId || p.key === userLastId);
+                if (matchedLast) return matchedLast;
+              }
+              if (prev && assigned.some((p) => p.id === prev.id)) {
+                const matchedPrev = assigned.find((p) => p.id === prev.id);
+                if (matchedPrev) return matchedPrev;
+              }
+              // Automatically switch to user's assigned project immediately!
+              return assigned[0];
+            }
+
+            // Fallback for users with no assigned project yet (e.g. brand-new user or global Admin)
             const accessible =
               currentUser.role === "ADMIN"
                 ? projectsData
-                : projectsData.filter((p) => {
-                    const isLead =
-                      p.leadId === currentUser.id ||
-                      p.lead?.id === currentUser.id;
-                    const isMember =
-                      Array.isArray(p.members) &&
-                      p.members.some(
-                        (m) =>
-                          m.userId === currentUser.id ||
-                          m.user?.id === currentUser.id
-                      );
-                    return isLead || isMember;
-                  });
+                : projectsData.filter((p) => isUserAssignedToProject(p, uId, uEmail));
 
-            const candidateList =
-              accessible.length > 0 ? accessible : projectsData;
+            const candidateList = accessible.length > 0 ? accessible : projectsData;
 
             if (prev) {
               const matched = candidateList.find((p) => p.id === prev.id);
               if (matched) return matched;
             }
-            // Load last accessed project from localStorage
             if (typeof window !== "undefined") {
               try {
                 const lastId = localStorage.getItem("tamtask_last_project_id");
                 if (lastId) {
-                  const matchedLast = candidateList.find(
-                    (p) => p.id === lastId || p.key === lastId
-                  );
+                  const matchedLast = candidateList.find((p) => p.id === lastId || p.key === lastId);
                   if (matchedLast) return matchedLast;
                 }
               } catch {}
@@ -280,34 +312,62 @@ export default function JiraApp() {
     if (currentProject?.id && typeof window !== "undefined") {
       try {
         localStorage.setItem("tamtask_last_project_id", currentProject.id);
+        const uId = (session?.user as any)?.id || currentUser.id;
+        const uEmail = session?.user?.email || currentUser.email;
+        if (uId) {
+          localStorage.setItem(`tamtask_last_project_id_${uId}`, currentProject.id);
+        }
+        if (uEmail) {
+          localStorage.setItem(`tamtask_last_project_id_${uEmail}`, currentProject.id);
+        }
       } catch {}
     }
-  }, [currentProject?.id]);
+  }, [currentProject?.id, session?.user, currentUser.id, currentUser.email]);
+
+  // Automatically switch to user's assigned project immediately upon login
+  useEffect(() => {
+    if (authStatus === "authenticated" && session?.user && projects.length > 0) {
+      const uId = (session.user as any).id || currentUser.id;
+      const uEmail = session.user.email || currentUser.email;
+
+      const myAssigned = projects.filter((p) => isUserAssignedToProject(p, uId, uEmail));
+
+      if (myAssigned.length > 0) {
+        // If current project is already one of the user's assigned projects, don't interrupt
+        if (currentProject && myAssigned.some((p) => p.id === currentProject.id)) {
+          return;
+        }
+
+        // Check user's last chosen project
+        let userLastId: string | null = null;
+        try {
+          userLastId =
+            localStorage.getItem(`tamtask_last_project_id_${uId}`) ||
+            localStorage.getItem(`tamtask_last_project_id_${uEmail}`);
+        } catch {}
+
+        if (userLastId) {
+          const match = myAssigned.find((p) => p.id === userLastId || p.key === userLastId);
+          if (match) {
+            setCurrentProject(match);
+            return;
+          }
+        }
+
+        // Otherwise switch directly to their assigned project!
+        setCurrentProject(myAssigned[0]);
+      }
+    }
+  }, [authStatus, session, projects]);
 
   // Guard project access: Ensure non-admin users cannot stay on an inaccessible project
   useEffect(() => {
     if (currentUser.role !== "ADMIN" && currentProject && projects.length > 0) {
-      const isLead =
-        currentProject.leadId === currentUser.id ||
-        currentProject.lead?.id === currentUser.id;
-      const isMember =
-        Array.isArray(currentProject.members) &&
-        currentProject.members.some(
-          (m) =>
-            m.userId === currentUser.id || m.user?.id === currentUser.id
+      const isAssigned = isUserAssignedToProject(currentProject, currentUser.id, currentUser.email);
+      if (!isAssigned) {
+        const accessible = projects.filter((p) =>
+          isUserAssignedToProject(p, currentUser.id, currentUser.email)
         );
-      if (!isLead && !isMember) {
-        const accessible = projects.filter((p) => {
-          const l =
-            p.leadId === currentUser.id || p.lead?.id === currentUser.id;
-          const m =
-            Array.isArray(p.members) &&
-            p.members.some(
-              (mem) =>
-                mem.userId === currentUser.id || mem.user?.id === currentUser.id
-            );
-          return l || m;
-        });
         if (accessible.length > 0) {
           setCurrentProject(accessible[0]);
         }

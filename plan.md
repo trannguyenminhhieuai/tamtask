@@ -4198,3 +4198,13 @@ bg-white dark:bg-zinc-800/90 border-[#EE0033]/50 dark:border-[#EE0033]/30
 | **1** | **Khóa cứng max-width cho Subtask chống vỡ layout** | Cột trái dùng `flex-1` nhưng thiếu `min-w-0` và `overflow-hidden`; khi nhập tiêu đề/mô tả subtask dài không có khoảng trắng, flexbox tự mở rộng chiều ngang đẩy cột phải metadata ra khỏi màn hình | Thêm `min-w-0`, `overflow-x-hidden`, `w-full max-w-full` cho cột trái và mọi container cha/con của subtask; input & textarea subtask áp dụng `min-w-0 max-w-full break-all` | `IssueDetailDrawer.tsx` |
 | **2** | **Kính lúp Motion Graphics dời thêm sang trái** | Kính lúp cần thoáng hơn và dời sang bên trái nhiều hơn | Dời từ `translate(195, 10)` sang `translate(140, 10)`, cách xa tài liệu và hoàn toàn không che khối nào | `AuthBackgroundIllustration.tsx` |
 | **3** | **Thẻ Velocity dời sang trái tránh che khối dưới** | Thẻ Velocity ở góc phải che khối nền bậc thang phía dưới | Dời sang bên trái: `translate(295, 45)`, bay lơ lửng phía trên tài liệu thông thoáng | `AuthBackgroundIllustration.tsx` |
+
+
+## 47. Chương 47: Chuyển Velocity Sang Trái (Kế Trên Phải Sprint) & Tự Động Mở Dự Án Được Gán Cho User Khi Đăng Nhập
+
+> **Thời điểm**: 2026-11-16 | **Trạng thái**: ✅ Hoàn thành | **TypeScript**: ✅ 0 errors | **Build**: ✅ Production Ready
+
+| # | Hạng Mục Yêu Cầu | Thực Trạng & Nguyên Nhân | Giải Pháp Triển Khai | Tệp Nguồn |
+| :- | :--- | :--- | :--- | :--- |
+| **1** | **Chuyển Velocity sang bên trái màn hình kế trên phải Sprint** | Thẻ Velocity ở góc phải màn hình đăng nhập che khối nền | Dời thẻ Velocity sang SVG bên trái, đặt tại tọa độ `translate(215, 15)` ngay phía trên bên phải của viên con nhộng SPRINT 1 `translate(130, 45)`; gỡ bỏ hoàn toàn khỏi khối bên phải | `AuthBackgroundIllustration.tsx` |
+| **2** | **Tự động mở dự án được assign khi login** | Khi đăng nhập, hệ thống luôn ưu tiên mở dự án mặc định (HCC) hoặc cache cũ thay vì dự án mà user thực sự được phân công | Viết hàm `isUserAssignedToProject` (kiểm tra `leadId`, `lead.email`, `members.userId`, `members.user.email`); trong `loadData` và hook đăng nhập tự động quét và kích hoạt ngay dự án user được gán (`assigned[0]`) thay vì mở dự án mặc định; lưu cache riêng theo ID/email user | `src/app/page.tsx`, `Navbar.tsx` |

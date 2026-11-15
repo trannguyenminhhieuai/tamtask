@@ -287,7 +287,7 @@ export const AuthBackgroundIllustration: React.FC = () => {
             <circle cx="12" cy="22" r="1.5" fill="#EE0033" />
           </g>
 
-          {/* Floating Agile Feature Pill: "SPRINT 1" (Shifted up to avoid covering Kanban board underneath) */}
+          {/* Floating Agile Feature Pill: "SPRINT 1" */}
           <g transform="translate(130, 45)">
             <g className="anim-float-3">
               <rect x="0" y="0" width="78" height="24" rx="12" fill="#FFFFFF" stroke="#EE0033" strokeWidth="1.5" filter="drop-shadow(0 6px 14px rgba(238,0,51,0.22))" />
@@ -295,6 +295,22 @@ export const AuthBackgroundIllustration: React.FC = () => {
               <text x="22" y="16" fill="#EE0033" fontSize="9.5" fontWeight="800" fontFamily="sans-serif">
                 SPRINT 1
               </text>
+            </g>
+          </g>
+
+          {/* Floating Metric Card: VELOCITY (Positioned to the upper-right of SPRINT 1) */}
+          <g transform="translate(215, 15)">
+            <g className="anim-float-1">
+              <rect x="0" y="0" width="88" height="46" rx="10" fill="#FFFFFF" stroke="#FECDD3" strokeWidth="1.5" filter="drop-shadow(0 6px 14px rgba(238,0,51,0.12))" />
+              <text x="8" y="14" fill="#9CA3AF" fontSize="8" fontWeight="700" fontFamily="sans-serif">
+                VELOCITY
+              </text>
+              <text x="8" y="28" fill="#EE0033" fontSize="13" fontWeight="900" fontFamily="sans-serif">
+                98.5%
+              </text>
+              {/* Mini Trend Line */}
+              <path d="M46 34 Q58 18, 76 22" fill="none" stroke="#10B981" strokeWidth="2.5" strokeLinecap="round" />
+              <circle cx="76" cy="22" r="2.5" fill="#10B981" />
             </g>
           </g>
         </svg>
@@ -421,22 +437,6 @@ export const AuthBackgroundIllustration: React.FC = () => {
             {/* Reaching Out Arm */}
             <path d="M28 17 L44 26 L42 29 L26 20 Z" fill="#059669" />
             <circle cx="44" cy="27" r="2.5" fill="#FBBF24" />
-          </g>
-
-          {/* Floating Metric Card: Burndown Trend (Shifted left to not cover bottom block) */}
-          <g transform="translate(295, 45)">
-            <g className="anim-float-1">
-              <rect x="0" y="0" width="90" height="48" rx="10" fill="#FFFFFF" stroke="#FECDD3" strokeWidth="1.5" filter="drop-shadow(0 6px 14px rgba(238,0,51,0.12))" />
-              <text x="8" y="14" fill="#9CA3AF" fontSize="8" fontWeight="700" fontFamily="sans-serif">
-                VELOCITY
-              </text>
-              <text x="8" y="28" fill="#EE0033" fontSize="13" fontWeight="900" fontFamily="sans-serif">
-                98.5%
-              </text>
-              {/* Mini Trend Line */}
-              <path d="M46 36 Q60 18, 80 22" fill="none" stroke="#10B981" strokeWidth="2.5" strokeLinecap="round" />
-              <circle cx="80" cy="22" r="2.5" fill="#10B981" />
-            </g>
           </g>
         </svg>
       </div>
