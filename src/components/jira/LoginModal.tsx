@@ -187,52 +187,55 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
   };
 
   const handleGoogleSignIn = () => {
-    signIn("google", { callbackUrl: "/" });
+    signIn("google", { callbackUrl: "/" }, { prompt: "select_account" });
   };
 
   return (
     <div
-      className="fixed inset-0 z-[80] flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 animate-in fade-in"
+      className="fixed inset-0 z-[80] flex items-center justify-center bg-slate-900/60 dark:bg-black/75 backdrop-blur-md p-4 animate-in fade-in"
       onClick={onClose}
     >
       <div
-        className="bg-[#FFFFFF] rounded-xl shadow-2xl w-full max-w-md overflow-hidden border border-[#D7D7D7] animate-in zoom-in-95 duration-150"
+        className="bg-white/95 dark:bg-zinc-900/95 backdrop-blur-2xl rounded-3xl shadow-[0_24px_64px_rgba(0,0,0,0.18)] w-full max-w-sm overflow-hidden border border-white/60 dark:border-white/10 p-7 relative animate-in zoom-in-95 duration-200"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header - Viettel Red Brand Theme (#EE0033) */}
-        <div className="px-6 py-4 border-b border-[#D7D7D7] flex items-center justify-between bg-[#F8F8F8]">
-          <div className="flex items-center space-x-2.5">
-            <div className="w-8 h-8 rounded-lg bg-[#EE0033] flex items-center justify-center text-white text-xs font-black shadow-xs tracking-wider">
-              TT
-            </div>
-            <div>
-              <h3 className="text-sm font-bold text-[#111827]">Đăng Nhập TamTask</h3>
-              <p className="text-[11px] text-[#9B9B9B]">Xác thực bảo mật tài khoản</p>
-            </div>
+        {/* Close Button */}
+        <button
+          onClick={onClose}
+          className="p-1.5 text-slate-400 hover:text-slate-700 dark:hover:text-zinc-200 rounded-full hover:bg-slate-100 dark:hover:bg-zinc-800 transition absolute right-4 top-4"
+          title="Đóng"
+        >
+          <X className="w-4 h-4" />
+        </button>
+
+        {/* Brand Header */}
+        <div className="text-center pt-2 pb-5">
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#EE0033] to-[#C7002B] flex items-center justify-center text-white text-xl font-black shadow-lg shadow-[#EE0033]/25 mx-auto mb-3">
+            TT
           </div>
-          <button
-            onClick={onClose}
-            className="p-1 text-[#9B9B9B] hover:text-[#111827] rounded-md transition"
-          >
-            <X className="w-4 h-4" />
-          </button>
+          <h2 className="text-xl font-extrabold text-[#111827] dark:text-zinc-100 tracking-tight">
+            TamTask
+          </h2>
+          <p className="text-xs text-slate-500 dark:text-zinc-400 mt-1">
+            Đăng nhập để điều hành công việc dự án
+          </p>
         </div>
 
-        <div className="p-6 space-y-4">
+        <div className="space-y-4">
           {error && (
-            <div className="p-3 bg-rose-50 border border-rose-200 rounded-lg text-xs font-medium text-[#EE0033] animate-in fade-in">
+            <div className="p-3 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/60 rounded-xl text-xs font-medium text-[#EE0033] animate-in fade-in">
               {error}
             </div>
           )}
 
           {step === "credentials" ? (
-            <form onSubmit={handlePasswordSubmit} className="space-y-4">
+            <form onSubmit={handlePasswordSubmit} className="space-y-3.5">
               <div>
-                <label className="block text-xs font-semibold text-[#111827] mb-1.5">
+                <label className="block text-[11px] font-bold text-slate-600 dark:text-zinc-400 uppercase tracking-wider mb-1.5">
                   Email tài khoản *
                 </label>
                 <div className="relative">
-                  <Mail className="w-4 h-4 text-[#9B9B9B] absolute left-3 top-1/2 -translate-y-1/2" />
+                  <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                   <input
                     type="email"
                     required
@@ -240,31 +243,29 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="name@company.com"
-                    className="w-full text-xs bg-[#F8F8F8] border border-[#D7D7D7] rounded-lg pl-9 pr-3 py-2.5 text-[#111827] focus:bg-[#FFFFFF] focus:outline-none focus:border-[#EE0033] focus:ring-3 focus:ring-[#EE0033]/20 transition"
+                    className="w-full text-xs bg-slate-100/80 dark:bg-zinc-800/80 border border-slate-200 dark:border-zinc-700 rounded-2xl pl-10 pr-3.5 py-2.5 text-slate-900 dark:text-zinc-100 focus:bg-white dark:focus:bg-zinc-800 focus:outline-none focus:border-[#EE0033] focus:ring-3 focus:ring-[#EE0033]/15 transition"
                   />
                 </div>
               </div>
 
               <div>
-                <div className="flex items-center justify-between mb-1.5">
-                  <label className="text-xs font-semibold text-[#111827]">
-                    Mật khẩu xác thực *
-                  </label>
-                </div>
+                <label className="block text-[11px] font-bold text-slate-600 dark:text-zinc-400 uppercase tracking-wider mb-1.5">
+                  Mật khẩu xác thực *
+                </label>
                 <div className="relative">
-                  <Lock className="w-4 h-4 text-[#9B9B9B] absolute left-3 top-1/2 -translate-y-1/2" />
+                  <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                   <input
                     type={showPassword ? "text" : "password"}
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Nhập mật khẩu của bạn..."
-                    className="w-full text-xs bg-[#F8F8F8] border border-[#D7D7D7] rounded-lg pl-9 pr-9 py-2.5 text-[#111827] focus:bg-[#FFFFFF] focus:outline-none focus:border-[#EE0033] focus:ring-3 focus:ring-[#EE0033]/20 transition"
+                    placeholder="Nhập mật khẩu..."
+                    className="w-full text-xs bg-slate-100/80 dark:bg-zinc-800/80 border border-slate-200 dark:border-zinc-700 rounded-2xl pl-10 pr-10 py-2.5 text-slate-900 dark:text-zinc-100 focus:bg-white dark:focus:bg-zinc-800 focus:outline-none focus:border-[#EE0033] focus:ring-3 focus:ring-[#EE0033]/15 transition"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#9B9B9B] hover:text-[#111827]"
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-zinc-200"
                     title={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
                   >
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -275,7 +276,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full bg-[#EE0033] hover:bg-[#D6002E] active:bg-[#BD0029] text-white text-xs font-bold py-2.5 rounded-lg transition shadow-xs flex items-center justify-center gap-2 disabled:opacity-50"
+                className="w-full bg-[#EE0033] hover:bg-[#D6002E] active:bg-[#BD0029] text-white text-xs font-bold py-3 rounded-full transition shadow-md shadow-[#EE0033]/20 flex items-center justify-center gap-2 disabled:opacity-50 mt-2 focus:ring-3 focus:ring-[#EE0033]/25"
               >
                 <span>{isLoading ? "Đang kiểm tra mật khẩu..." : "Tiếp Tục"}</span>
                 <ArrowRight className="w-4 h-4" />
@@ -283,32 +284,32 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
             </form>
           ) : (
             <form onSubmit={handleOtpVerify} className="space-y-4 animate-in fade-in">
-              <div className="p-3.5 bg-rose-50/70 border border-rose-200 rounded-lg space-y-1.5">
+              <div className="p-3.5 bg-rose-50/70 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/60 rounded-2xl space-y-1.5">
                 <div className="flex items-center justify-between text-xs font-bold text-[#EE0033]">
                   <div className="flex items-center gap-1.5">
                     <ShieldCheck className="w-4 h-4 text-[#EE0033]" />
-                    <span>Xác Thực 2 Lớp (2FA Security)</span>
+                    <span>Xác Thực 2 Lớp (2FA)</span>
                   </div>
-                  <span className="text-[11px] font-mono text-rose-900 bg-rose-100 px-2 py-0.5 rounded font-bold">
+                  <span className="text-[11px] font-mono text-rose-900 dark:text-rose-200 bg-rose-100 dark:bg-rose-900/60 px-2 py-0.5 rounded-full font-bold">
                     {formatTimer(timeLeft)}
                   </span>
                 </div>
-                <p className="text-[11px] text-slate-700 leading-relaxed">
-                  Mã OTP 6 chữ số đã được gửi trực tiếp đến hộp thư: <strong>{email}</strong>. Vui lòng kiểm tra hộp thư đến (hoặc hòm thư Spam) để lấy mã xác nhận:
+                <p className="text-[11px] text-slate-700 dark:text-zinc-300 leading-relaxed">
+                  Mã OTP đã gửi tới email <strong>{email}</strong>:
                 </p>
                 {otpNotice && (
-                  <div className="text-[10px] text-slate-500 italic mt-0.5">
+                  <div className="text-[10px] text-slate-500 dark:text-zinc-400 italic mt-0.5">
                     {otpNotice}
                   </div>
                 )}
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-[#111827] mb-1.5 text-center">
-                  Nhập mã OTP 6 chữ số từ email
+                <label className="block text-xs font-semibold text-[#111827] dark:text-zinc-200 mb-1.5 text-center">
+                  Nhập mã OTP 6 chữ số
                 </label>
                 <div className="relative">
-                  <KeyRound className="w-4 h-4 text-[#9B9B9B] absolute left-3 top-1/2 -translate-y-1/2" />
+                  <KeyRound className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                   <input
                     type="text"
                     required
@@ -317,7 +318,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
                     value={otpCode}
                     onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ""))}
                     placeholder="••••••"
-                    className="w-full text-center text-lg tracking-[0.35em] font-mono font-bold bg-[#F8F8F8] border border-[#D7D7D7] rounded-lg py-2.5 text-[#111827] focus:bg-[#FFFFFF] focus:outline-none focus:border-[#EE0033] focus:ring-3 focus:ring-[#EE0033]/20 transition"
+                    className="w-full text-center text-lg tracking-[0.35em] font-mono font-bold bg-slate-100/80 dark:bg-zinc-800/80 border border-slate-200 dark:border-zinc-700 rounded-2xl py-2.5 text-slate-900 dark:text-zinc-100 focus:bg-white dark:focus:bg-zinc-800 focus:outline-none focus:border-[#EE0033] focus:ring-3 focus:ring-[#EE0033]/20 transition"
                   />
                 </div>
               </div>
@@ -330,14 +331,14 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
                   className="text-[11px] text-[#EE0033] hover:underline font-semibold flex items-center gap-1 disabled:opacity-40"
                 >
                   <RefreshCw className="w-3 h-3" />
-                  <span>Gửi lại mã vào email</span>
+                  <span>Gửi lại mã</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setStep("credentials")}
-                  className="text-[11px] text-[#9B9B9B] hover:text-[#111827]"
+                  className="text-[11px] text-slate-500 dark:text-zinc-400 hover:text-slate-800 dark:hover:text-zinc-200"
                 >
-                  Đổi tài khoản khác
+                  Đổi tài khoản
                 </button>
               </div>
 
@@ -345,25 +346,25 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
                 <button
                   type="button"
                   onClick={() => setStep("credentials")}
-                  className="w-1/3 bg-[#F8F8F8] hover:bg-[#E5E7EB] text-[#111827] text-xs font-semibold py-2.5 rounded-lg border border-[#D7D7D7] transition"
+                  className="w-1/3 bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 dark:hover:bg-zinc-700 text-slate-700 dark:text-zinc-200 text-xs font-semibold py-2.5 rounded-full border border-slate-200 dark:border-zinc-700 transition"
                 >
                   Quay lại
                 </button>
                 <button
                   type="submit"
                   disabled={isLoading || otpCode.length !== 6}
-                  className="w-2/3 bg-[#EE0033] hover:bg-[#D6002E] active:bg-[#BD0029] text-white text-xs font-bold py-2.5 rounded-lg transition shadow-xs flex items-center justify-center gap-1.5 disabled:opacity-50"
+                  className="w-2/3 bg-[#EE0033] hover:bg-[#D6002E] active:bg-[#BD0029] text-white text-xs font-bold py-2.5 rounded-full transition shadow-xs flex items-center justify-center gap-1.5 disabled:opacity-50"
                 >
                   <CheckCircle2 className="w-4 h-4" />
-                  <span>{isLoading ? "Đang xác minh..." : "Xác Nhận & Đăng Nhập"}</span>
+                  <span>{isLoading ? "Đang xác minh..." : "Xác Nhận"}</span>
                 </button>
               </div>
             </form>
           )}
 
           <div className="relative flex items-center justify-center py-1">
-            <div className="border-t border-[#D7D7D7] w-full" />
-            <span className="bg-[#FFFFFF] px-3 text-[10px] uppercase font-bold text-[#9B9B9B] absolute">
+            <div className="border-t border-slate-200 dark:border-zinc-800 w-full" />
+            <span className="bg-white dark:bg-zinc-900 px-3 text-[10px] uppercase font-bold text-slate-400 dark:text-zinc-500 absolute">
               HOẶC
             </span>
           </div>
@@ -372,7 +373,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
           <div>
             <button
               onClick={handleGoogleSignIn}
-              className="w-full flex items-center justify-center space-x-2.5 bg-[#FFFFFF] border border-[#D7D7D7] hover:bg-[#F8F8F8] text-[#111827] py-2.5 rounded-lg text-xs font-semibold transition shadow-xs"
+              className="w-full flex items-center justify-center space-x-2.5 bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 hover:bg-slate-50 dark:hover:bg-zinc-700/80 text-[#111827] dark:text-zinc-200 py-2.5 rounded-full text-xs font-semibold transition shadow-2xs"
             >
               <svg className="w-4 h-4" viewBox="0 0 24 24">
                 <path

@@ -171,3 +171,244 @@ Hệ thống lưới dựa trên cơ số **8px** (với bước bán nguyên 4p
 - **Light Mode**: Nền Canvas `#F5F6F8`, Nền Đảo Nổi/Navbar `bg-white/85 backdrop-blur-md`, Viền `border-[#E5E7EB]`, Chữ chính `#111827`, Chữ phụ `#4B5563`.
 - **Dark Mode**: Nền Canvas `#09090B`, Nền Đảo Nổi/Navbar `dark:bg-zinc-900/85 dark:backdrop-blur-md`, Viền `dark:border-zinc-800`, Chữ chính `dark:text-zinc-100`, Chữ phụ `dark:text-zinc-400`.
 - **Thương hiệu**: Giữ vẹn nguyên Viettel Red `#EE0033` cho các hành động trọng yếu, active indicators, và hover highlights ở cả hai chế độ.
+
+
+---
+
+## 5. Chuẩn Hóa Lần 2 — 8 Quy Tắc Bắt Buộc (v2.0 — 2026-11-15)
+
+> Áp dụng cho toàn bộ hệ thống hiện tại và **mọi tính năng bổ sung sau này**. Không được phép có ngoại lệ.
+
+### 5.1. Quy Tắc Spacing & Gap Thống Nhất 16px
+
+**Đơn vị chuẩn**: `16px` (Tailwind: `p-4`, `gap-4`, `space-y-4`).
+
+| Ngữ cảnh | Class Tailwind | Giá trị |
+| :--- | :--- | :--- |
+| Padding nội dung chính (card, panel, island) | `p-4` | 16px |
+| Khoảng cách giữa các phần tử (flex/grid gap) | `gap-4` | 16px |
+| Khoảng cách dọc giữa các card/item | `space-y-4` | 16px |
+| Padding ngang nút bấm chính | `px-4` | 16px |
+
+> [!WARNING]
+> **Nghiêm cấm** sử dụng `p-2`, `p-3`, `gap-2`, `gap-3`, `space-y-2`, `space-y-3` cho containers chính. Chỉ dùng các giá trị nhỏ hơn trong trường hợp nested element cực kỳ hẹp (badge nội dung, kbd shortcut).
+
+---
+
+### 5.2. Phân Cấp Border Radius Dự Án (Radius Hierarchy)
+
+| Cấp độ | Class Tailwind | px | Áp dụng cho |
+| :--- | :--- | :---: | :--- |
+| **Island / Modal / Drawer / Column** | `rounded-2xl` | 16px | Tất cả "đảo nổi" (island header), Kanban columns, Drawer container, Modal frame, right panel island |
+| **Card / Input / Select / Textarea** | `rounded-xl` | 12px | `IssueCard`, form inputs, select boxes, dropdown menus |
+| **Button / Badge / Search / Avatar** | `rounded-full` | 9999px | Mọi nút bấm (primary/secondary/icon), status badges, epic tags, search bar, avatar |
+
+---
+
+### 5.3. Glassmorphic Token Chuẩn (Glass Surface System)
+
+#### Light Mode Glass
+```css
+/* Island Header / Navbar */
+background: rgba(255, 255, 255, 0.85);
+backdrop-filter: blur(12px);
+-webkit-backdrop-filter: blur(12px);
+border: 1px solid rgba(255, 255, 255, 0.60);
+box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.70), 0 4px 20px rgba(0, 0, 0, 0.03);
+
+/* Tailwind class: bg-white/85 backdrop-blur-md border border-white/60 */
+/* Global CSS: .glass-surface */
+```
+
+#### Dark Mode Glass
+```css
+/* Island Header / Navbar dark */
+background: rgba(24, 24, 27, 0.85); /* zinc-900/85 */
+backdrop-filter: blur(12px);
+border: 1px solid rgba(63, 63, 70, 1); /* zinc-700 */
+box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.05), 0 4px 20px rgba(0, 0, 0, 0.3);
+
+/* Tailwind: dark:bg-zinc-900/85 dark:border-zinc-700 */
+```
+
+#### Glass Pill (Search bar, Buttons)
+```css
+/* .glass-pill */
+background: rgba(255, 255, 255, 0.70);
+backdrop-filter: blur(8px);
+box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.80), 0 1px 3px rgba(0,0,0,0.06);
+border-radius: 9999px;
+```
+
+---
+
+### 5.4. Dark Mode Token Map Toàn Hệ Thống
+
+| Yếu tố | Light Token | Dark Token |
+| :--- | :--- | :--- |
+| Canvas (nền trang) | `bg-[#F5F6F8]` | `dark:bg-[#09090B]` |
+| Island / Panel nổi | `bg-white/85` | `dark:bg-zinc-900/85` |
+| Card (IssueCard, panel) | `bg-white` | `dark:bg-zinc-900` |
+| Viền card/island | `border-[#E5E7EB]` | `dark:border-zinc-800` |
+| Viền mờ / divider | `border-zinc-100` | `dark:border-zinc-800` |
+| Chữ chính | `text-gray-900` / `text-[#111827]` | `dark:text-zinc-100` |
+| Chữ phụ | `text-gray-500` / `text-[#4B5563]` | `dark:text-zinc-400` |
+| Chữ placeholder | `text-gray-400` | `dark:text-zinc-500` |
+| Input nền | `bg-[#FAFAFA]` | `dark:bg-zinc-800` |
+| Input viền | `border-[#D7D7D7]` | `dark:border-zinc-700` |
+| Hover bg nhẹ | `hover:bg-gray-50` | `dark:hover:bg-zinc-800` |
+| Modal overlay | `bg-[rgba(27,27,27,0.6)]` | (unchanged — works on both) |
+| **Accent (invariant)** | `#EE0033` | `#EE0033` (giữ nguyên cả 2 mode) |
+
+> [!IMPORTANT]
+> Mọi component mới **bắt buộc** có cả light + dark token. Không được thiếu `dark:` class.
+
+---
+
+### 5.5. Sidebar Auto-Collapse Behavior
+
+- **Mặc định**: `w-16` (64px) — collapsed, chỉ icon.
+- **Hover**: `w-60` (240px) — expand, hiện label đầy đủ, `transition-all duration-300 ease-in-out`.
+- **Pin**: Nút ghim cố định `w-60` nếu user muốn, lưu vào `localStorage`.
+- **Không hiển thị**: Sprint info, role badge, breadcrumb dự án dạng text dài.
+- **Hiển thị**: Icon phân hệ + label (khi expand), Avatar dự án, Theme toggle, Pin button.
+
+---
+
+### 5.6. Modal & Drawer Tiêu Chuẩn
+
+Mọi Modal và Drawer **bắt buộc** có:
+1. ✅ Backdrop click để đóng: outer div `onClick={onClose}` + inner div `onClick={e => e.stopPropagation()}`.
+2. ✅ Phím `Escape` để đóng: `useEffect` gắn `keydown` listener.
+3. ✅ Nút đóng `×` hình tròn `rounded-full` góc trên phải.
+4. ✅ Footer có nút `Hủy` (secondary pill) + nút hành động chính (primary red pill).
+
+| Thành phần | Class chuẩn |
+| :--- | :--- |
+| Overlay | `fixed inset-0 z-[80] bg-[rgba(27,27,27,0.6)] backdrop-blur-xs flex items-center justify-center` |
+| Modal frame | `bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl border border-white/80 dark:border-zinc-800 w-full max-w-2xl` |
+| Drawer container | `fixed inset-y-0 right-0 z-[70] w-full md:max-w-4xl bg-white dark:bg-zinc-900 shadow-2xl` |
+| Right panel island | `bg-white/90 dark:bg-zinc-900/90 backdrop-blur-xl rounded-2xl p-4 border border-white/80 dark:border-zinc-800 shadow-sm` |
+
+---
+
+### 5.7. Z-Index Hierarchy (Không Thay Đổi)
+
+```
+z-0          → Canvas (Kanban, Backlog, Timeline, Dashboard)
+z-10 – z-20  → Sticky column headers, inner fixed bars
+z-30         → Navbar (top header)
+z-40 – z-50  → Navbar local dropdowns (project picker, notifications, profile)
+z-[70]       → Slide-over Drawers (IssueDetailDrawer)
+z-[80]       → Modals / Dialogs (CreateIssueModal, ProjectMembersModal, etc.)
+z-[9990]     → CommandPalette (global search)
+z-[9999]     → Toast notifications
+```
+
+---
+
+### 5.8. Quy Tắc Kiểm Tra Trước Khi Merge (Pre-merge Checklist)
+
+Trước khi merge bất kỳ component mới hoặc feature mới, kiểm tra:
+
+- [ ] TypeScript: `npx tsc --noEmit` → 0 errors
+- [ ] Spacing: Không có `p-2`, `p-3`, `gap-2`, `gap-3` ở container chính
+- [ ] Radius: Đúng cấp (`rounded-2xl` / `rounded-xl` / `rounded-full`)
+- [ ] Dark mode: Mọi element có `dark:` token tương ứng
+- [ ] Modal: Có backdrop dismiss + Escape + X button + footer pills
+- [ ] Z-index: Đúng thứ tự phân cấp
+- [ ] Glass: Island headers dùng `backdrop-blur-md bg-white/85 dark:bg-zinc-900/85`
+
+
+---
+
+### 5.9. Quy Tắc Chi Tiết Bổ Sung & Chống Tái Lập (v2.1 — 2026-11-15)
+
+1. **Tuyệt Đối Không Tự Sinh Mã Dự Án (No Arbitrary Project Code)**:
+   - Sidebar chỉ hiển thị tên dự án và avatar TT gradient, **tuyệt đối không hiển thị dòng `Mã dự án: HCC/JIRA`** làm rối bố cục.
+
+2. **Sidebar Icon Đồ Họa Đặc (Solid Fill Icons)**:
+   - Toàn bộ icon phân hệ Sidebar dùng icon đặc hoặc có fill (`fill-current`) để tạo cảm giác đậm đà, chắc chắn và cao cấp tương tự Tammi OA / iOS modern.
+
+3. **Thanh Tìm Kiếm Auto-Layout Cân Đối Giữa & Stroke Viền Mảnh**:
+   - Thanh search ở Header phải căn giữa tuyệt đối (`flex-1 min-w-0 flex justify-center`), viền mảnh `border border-[#D7D7D7]/80 dark:border-zinc-700/80` để người dùng nhận diện rõ ràng vùng nhập liệu.
+
+4. **Kanban Card Hover & Chống Lẹm Header (Anti-Clipping Hover)**:
+   - Header cột Kanban luôn sticky `rounded-t-2xl` với đường viền phân cách `border-b border-[#E5E7EB] dark:border-zinc-800`.
+   - Danh sách thẻ có padding trên `pt-4` (16px) và khoảng cách giữa các thẻ `space-y-4` (16px).
+   - Thẻ `IssueCard` khi hover **tuyệt đối không dùng `hover:-translate-y`** gây lẹm vào header; thay vào đó sử dụng `hover:shadow-md hover:ring-1 hover:ring-[#EE0033]/30` để giữ trọn vẹn vị trí.
+
+5. **Đảo Nổi Bảng Lộ Trình (Timeline) & Các Bảng Khác**:
+   - Toàn bộ khung bảng Lộ trình (Timeline Gantt) và Bảng Quản trị (Admin) **phải được bọc trong container Đảo nổi bo góc `rounded-2xl` có viền `border-[#E5E7EB] dark:border-zinc-800` và cách lề `m-4 mt-0`**, tuyệt đối không để bảng tràn mép tạo góc vuông sắc nhọn.
+
+6. **Đảo Nổi Thuộc Tính Trong Task Detail Drawer**:
+   - Khung thuộc tính bên phải `IssueDetailDrawer` là thanh phẳng tích hợp `p-5 bg-slate-50/70 dark:bg-zinc-900/60 md:border-l border-slate-200 dark:border-zinc-800 space-y-4`, không lồng card đảo đôi gây teo tóp layout.
+   - Hộp "Gợi Ý Phân Phối" có kích thước thoáng, nút bấm viên thuốc không bị chèn ép hay tràn viền.
+
+7. **Xóa Bỏ Triệt Để Thuật Ngữ "Jira" Khỏi Giao Diện Người Dùng**:
+   - Toàn bộ nhãn, thông báo, tiêu đề, modal phím tắt, command palette chỉ được dùng thương hiệu cá nhân **TamTask**, thuật ngữ tiếng Việt ("Hệ thống", "Công việc", "Chu kỳ"). Nghiêm cấm hiển thị "Jira Shortcuts", "Jira Rich-Text", "Jira Board".
+
+---
+
+### 5.10. Quy Chuẩn Đăng Nhập & Biểu Đồ & Cuộn Bảng (v2.2 — 2026-11-15)
+
+1. **Màn Hình Đăng Nhập Tammi OA Aesthetic (`LoginModal.tsx`)**:
+   - Overlay backdrop: `bg-slate-900/60 dark:bg-black/75 backdrop-blur-md`.
+   - Khung modal: `rounded-3xl bg-white/95 dark:bg-zinc-900/95 backdrop-blur-2xl border border-white/60 dark:border-white/10 shadow-[0_24px_64px_rgba(0,0,0,0.18)] max-w-sm p-7`.
+   - Input dạng viên nang bo cong `rounded-2xl pl-10 pr-4 py-2.5 bg-slate-100/80 dark:bg-zinc-800/80 border border-slate-200 dark:border-zinc-700`.
+   - Nút CTA chính: màu đỏ Viettel `#EE0033` bo tròn `rounded-full py-3 shadow-md shadow-[#EE0033]/20`.
+
+2. **Cơ Chế Cuộn Bảng Kanban Toàn Trang (Natural Flow & Sticky Column Headers)**:
+   - Tuyệt đối **không đặt thanh cuộn nội bộ** trong từng cột Kanban (`no overflow-y-auto per column`).
+   - Các cột Kanban co giãn theo chiều dọc tự nhiên theo số lượng task, cho phép cuộn toàn bộ bảng mượt mà.
+   - Header của cột Kanban luôn được ghim cố định `sticky top-0 z-10 rounded-t-2xl bg-white dark:bg-zinc-900 border-b border-[#E5E7EB] dark:border-zinc-800` khi người dùng cuộn xem các task bên dưới.
+
+3. **Biểu Đồ Dashboard Chuẩn Dark Mode & Bo Góc `rounded-2xl`**:
+   - Tất cả 5 khối biểu đồ (CFD, Burndown, Burnup, Velocity, Workload) đều đặt trong container `bg-white dark:bg-zinc-900 p-5 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-xs`.
+   - Toàn bộ `<Tooltip />` của Recharts phải có prop `contentStyle` nền tối `rgba(24,24,27,0.95)`, viền `rgba(63,63,70,0.8)`, bo góc `1rem` và chữ sáng.
+   - Khoảng cách giữa các khối biểu đồ đồng bộ chuẩn `gap-4` (16px).
+
+4. **Tự Động Chuyển Giao Diện Theo Thời Gian Thực Thiết Bị**:
+   - Nếu người dùng chưa từng chọn thủ công theme, hệ thống tự động kích hoạt Dark Mode khi thiết bị ở chế độ tối (`prefers-color-scheme: dark`) HOẶC theo khung giờ ban đêm (từ 18h tối đến 6h sáng).
+
+---
+
+### 5.11. Quy Chuẩn Đồ Họa Nền Isometric Đăng Nhập & Lựa Chọn Tài Khoản Google (v2.3 — 2026-11-15)
+
+1. **Đồ Họa Minh Họa Nền Isometric (`AuthBackgroundIllustration.tsx`)**:
+   - Lấy cảm hứng từ bố cục minh họa 2 bên của Atlassian Jira nhưng chuyển toàn bộ sang hệ nhận diện **TamTask - Tone Hồng Đỏ chuẩn Viettel** (`#EE0033`, `#C7002B`, `#FDA4AF`, `#FFF1F2`).
+   - **Góc trái dưới**: Đảo kỹ thuật công nghệ isometric (nền tảng 3 tầng xếp chồng, màn hình bảng Kanban đa sắc, tháp máy chủ rack LED chỉ thị xanh/đỏ, kỹ sư TamTask với trang phục đỏ Viettel/san hô).
+   - **Góc phải dưới**: Đảo tài liệu & phân tích chất lượng isometric (Checklist tài liệu có dấu tích xanh nghiệm thu, kính lúp 3D phản chiếu ánh đỏ `#EE0033`, thẻ thống kê hiệu suất Velocity 98.5%, bút vẽ dự án, nhân viên QA kiểm thử).
+   - **Hiệu ứng nền**: Radial glow ánh hồng đỏ dịu mắt (`#EE0033`/15, rose-500/10) và ma trận hạt chấm mờ (dot matrix) tạo cảm giác không gian công nghệ hiện đại.
+   - **Phạm vi áp dụng**: Áp dụng đồng bộ cho cả **Màn hình Đăng nhập Chính** (`AuthLandingScreen.tsx`) và **Màn hình Đang Chờ Phê Duyệt Phân Quyền** (`PendingApprovalScreen.tsx`).
+
+2. **Quy Chuẩn Chọn Tài Khoản Google OAuth (`prompt: "select_account"`)**:
+   - Khi người dùng bấm nút *"Tiếp tục với Google"*, NextAuth **bắt buộc** phải kích hoạt màn hình chọn tài khoản của Google thay vì tự động đăng nhập tài khoản Google đang lưu phiên.
+   - Triển khai kép:
+     - Trong `src/lib/auth.ts`: Khai báo `authorization: { params: { prompt: "select_account", access_type: "offline", response_type: "code" } }` trong `GoogleProvider`.
+     - Trong các components gọi `signIn("google", ...)`: Luôn kèm tham số thứ ba `{ prompt: "select_account" }`.
+
+3. **Bảo Tồn Toàn Bộ Tính Năng Xác Thực Hiện Có**:
+   - Mọi cải tiến về mặt hình ảnh và background tuyệt đối không làm ảnh hưởng hay mất đi các tính năng: Đăng nhập mật khẩu, luồng 2FA OTP qua email 6 chữ số, đồng hồ đếm ngược 5 phút, gửi lại mã, màn hình chờ xét duyệt và cơ chế tự động làm mới trạng thái.
+
+---
+
+### 5.12. Quy Chuẩn Đồng Bộ Tuyệt Đối Dark Mode, Motion Graphics & Căn Gióng Khung Nhìn (v2.4 — 2026-11-15)
+
+1. **Bắt Buộc Hỗ Trợ 100% Cặp Màu Dark Mode & Light Mode**:
+   - Mọi thành phần giao diện khi được thêm mới hoặc chỉnh sửa (bao gồm các view chính, slide-over drawer, modals, floating action bar, dropdowns, inputs, rich-text editor) đều phải khai báo song song lớp `dark:` tương ứng.
+   - Trình soạn thảo mô tả công việc (`TiptapEditor.tsx`): Nền editor, thanh công cụ, các nút định dạng, vùng văn bản soạn thảo, tiêu đề H1-H3, trích dẫn, khối mã, placeholder bắt buộc phải hỗ trợ đầy đủ `dark:text-zinc-100`, `dark:bg-zinc-900`, `dark:border-zinc-700`. Tuyệt đối không để xảy ra hiện tượng chữ đen trên nền tối.
+   - Thẻ và huy hiệu công việc (Epic, Priority, Status): Text trong Dark Mode bắt buộc phải qua xử lý nâng luminance (sử dụng hàm `getLightenedColor` hoặc CSS variables `[color:var(--epic-c-dark)]`) để chữ hiển thị sáng rực, rõ ràng và có độ tương phản cao, không bị chìm chữ.
+   - Bảng Quản trị Người Dùng (`AdminView.tsx`): Dropdown phân quyền vai trò, huy hiệu trạng thái tài khoản, số lượng task phụ trách, nút thao tác khóa/mở khóa tài khoản phải đồng bộ hoàn toàn với Dark Mode.
+   - Toàn bộ các hộp thoại chu kỳ Sprint (`CreateSprintModal.tsx`, `EditSprintModal.tsx`, `ClosedSprintsModal.tsx`, `CompleteSprintModal.tsx`): Cấu trúc khung `dark:bg-zinc-900 dark:border-zinc-800`, text `dark:text-zinc-100`, inputs `dark:bg-zinc-800 dark:border-zinc-700`.
+
+2. **Căn Gióng Hoàn Hảo & Đồng Bộ Khoảng Cách (16px Grid Alignment)**:
+   - **Khoảng cách Sidebar và Views**: Khoảng cách từ thanh Sidebar đến nội dung bên trong các mục được quy chuẩn cố định đúng **16px** (`gap-4` / `pl-4`).
+   - **Thẳng hàng cạnh trên (Top Alignment)**: Cạnh trên của thanh Sidebar và cạnh trên của thanh Island Header của các View (Bảng Công Việc, Kế Hoạch Chu Kỳ, Lộ Trình Tiến Độ, Báo Cáo & Thống Kê, Quy Tắc Tự Động, Quản Trị Hệ Thống) phải thẳng hàng tuyệt đối với nhau (cùng cách mép dưới của Navbar đúng 16px - `pt-4`).
+   - **Thẳng hàng trục đứng Logo TamTask (Vertical Axis Alignment)**: Logo TamTask và nhãn hiệu trên Navbar được căn gióng lề trái (`md:pl-4`) sao cho tâm và mép trái của Icon TT trên Navbar thẳng hàng tuyệt đối theo trục dọc với Icon TT của thanh Sidebar khi thanh Sidebar ở trạng thái thu gọn (`isCollapsed = true`, `w-16`).
+
+3. **Motion Graphics Nền Màn Hình Đăng Nhập & Chuyển Đổi Giao Diện (Theme Switcher)**:
+   - Màn hình đăng nhập (`AuthLandingScreen.tsx`) và Màn hình chờ duyệt (`PendingApprovalScreen.tsx`) được trang bị nút chuyển đổi Dark / Light mode (icon Sun/Moon) ở góc trên bên phải, cho phép người dùng chủ động chọn giao diện ưa thích ngay từ màn hình xác thực.
+   - Background Isometric (`AuthBackgroundIllustration.tsx`) được tích hợp các chuyển động Motion Graphics tinh tế (khối hình 3D lơ lửng `anim-float-1`, `anim-float-2`, nhịp thở `anim-float-3`, đèn LED chỉ thị trạng thái) tạo cảm giác hiện đại, cao cấp.
+   - **Quy chuẩn bảo vệ thị giác Dark Mode**: Ở chế độ Dark Mode, toàn bộ các luồng ánh sáng radial glow và hiệu ứng nền được hạ thấp cường độ (`dark:opacity-30`, `dark:from-rose-950/20`), đảm bảo không gian trầm ấm, sang trọng và không gây chói mắt người dùng.
+

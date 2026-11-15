@@ -19,11 +19,13 @@ import {
   KeyRound,
   Eye,
   EyeOff,
+  Trash2,
 } from "lucide-react";
 
 interface AdminViewProps {
   users: User[];
   projects?: Project[];
+  currentUserId?: string;
   onUpdateUserRole: (userId: string, newRole: User["role"]) => Promise<void>;
   onToggleUserStatus?: (userId: string, newStatus: "ACTIVE" | "SUSPENDED" | "PENDING_APPROVAL") => Promise<void>;
   onInviteUser: (
@@ -33,15 +35,18 @@ interface AdminViewProps {
     password?: string,
     isTwoFactorEnabled?: boolean
   ) => Promise<void>;
+  onDeleteUser?: (userId: string) => Promise<void>;
   onApproveUser?: (userId: string, role: User["role"], projectId?: string) => Promise<void>;
 }
 
 export const AdminView: React.FC<AdminViewProps> = ({
   users,
   projects = [],
+  currentUserId,
   onUpdateUserRole,
   onToggleUserStatus,
   onInviteUser,
+  onDeleteUser,
   onApproveUser,
 }) => {
   const [showInviteModal, setShowInviteModal] = useState(false);
@@ -52,6 +57,10 @@ export const AdminView: React.FC<AdminViewProps> = ({
   const [enable2FA, setEnable2FA] = useState(true);
   const [requirePasswordChange, setRequirePasswordChange] = useState(true);
   const [inviteRole, setInviteRole] = useState<User["role"]>("DEVELOPER");
+  const [inviteError, setInviteError] = useState<string | null>(null);
+  const [isSubmittingInvite, setIsSubmittingInvite] = useState(false);
+  const [deletingUser, setDeletingUser] = useState<User | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [filterRole, setFilterRole] = useState<string>("ALL");
   const [feedback, setFeedback] = useState<string | null>(null);
   const [isUpdating, setIsUpdating] = useState<string | null>(null);
@@ -107,7 +116,12 @@ export const AdminView: React.FC<AdminViewProps> = ({
 
   const handleInviteSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!inviteEmail.trim() || !inviteName.trim()) return;
+    if (!inviteEmail.trim() || !inviteName.trim()) {
+      setInviteError("Vui lòng điền đầy đủ họ tên và địa chỉ email.");
+      return;
+    }
+    setInviteError(null);
+    setIsSubmittingInvite(true);
     try {
       await onInviteUser(
         inviteEmail.trim(),
@@ -122,11 +136,28 @@ export const AdminView: React.FC<AdminViewProps> = ({
       setInvitePassword("TamTask@2026!");
       setShowInviteModal(false);
       setFeedback(
-        `Đã tạo tài khoản cho ${inviteName.trim()}. Mật khẩu khởi tạo: ${createdPassword} (Đã bật 2FA Email OTP).`
+        `Đã tạo tài khoản cho ${inviteName.trim()} thành công. Mật khẩu: ${createdPassword} (Bật 2FA Email OTP).`
       );
       setTimeout(() => setFeedback(null), 6000);
     } catch (err: any) {
-      setFeedback(`Lỗi: ${err.message}`);
+      setInviteError(err.message || "Không thể tạo tài khoản nhân sự. Vui lòng thử lại!");
+    } finally {
+      setIsSubmittingInvite(false);
+    }
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!deletingUser || !onDeleteUser) return;
+    setIsDeleting(true);
+    try {
+      await onDeleteUser(deletingUser.id);
+      setFeedback(`Đã xóa tài khoản nhân sự [${deletingUser.name}] khỏi hệ thống.`);
+      setTimeout(() => setFeedback(null), 5000);
+      setDeletingUser(null);
+    } catch (err: any) {
+      setFeedback(`Lỗi xóa nhân sự: ${err.message || "Không thể xóa người dùng này."}`);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -170,15 +201,15 @@ export const AdminView: React.FC<AdminViewProps> = ({
   });
 
   return (
-    <div className="flex-1 overflow-y-auto p-3 sm:p-6 bg-[#F5F6F8] space-y-4">
+    <div className="flex-1 overflow-y-auto p-4 bg-[#F5F6F8] dark:bg-[#09090B] space-y-4 transition-colors duration-200">
       {/* Unified Glass Island Header */}
-      <div className="p-3.5 sm:p-4 rounded-2xl bg-white/85 backdrop-blur-md border border-white/60 shadow-[0_4px_20px_rgba(0,0,0,0.03)] flex flex-wrap items-center justify-between gap-3 shrink-0">
+      <div className="p-4 rounded-2xl bg-white/75 dark:bg-zinc-900/75 backdrop-blur-xl border border-white/80 dark:border-white/10 shadow-[0_8px_32px_0_rgba(31,38,135,0.05)] flex flex-wrap items-center justify-between gap-4 shrink-0">
         <div className="flex items-center space-x-2.5">
-          <h1 className="text-base sm:text-lg font-extrabold text-[#111827] tracking-tight flex items-center gap-2">
+          <h1 className="text-base sm:text-lg font-extrabold text-[#111827] dark:text-zinc-100 tracking-tight flex items-center gap-2">
             <Users className="w-4 h-4 text-[#EE0033]" />
             <span>Quản Trị Người Dùng & Phân Quyền</span>
           </h1>
-          <span className="text-[11px] font-semibold text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded-full border border-slate-200">
+          <span className="text-[11px] font-semibold text-slate-500 dark:text-zinc-400 bg-slate-100 dark:bg-zinc-800 px-2.5 py-0.5 rounded-full border border-slate-200 dark:border-zinc-700">
             {users.length} thành viên • {pendingUsers.length} chờ duyệt
           </span>
         </div>
@@ -193,7 +224,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
 
       {/* Success / Alert Feedback */}
       {feedback && (
-        <div className="p-3 bg-rose-50 border border-rose-200 text-[#EE0033] text-xs font-medium rounded-md flex items-center gap-2 shadow-xs animate-in fade-in">
+        <div className="p-3 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-[#EE0033] text-xs font-medium rounded-xl flex items-center gap-2 shadow-xs animate-in fade-in">
           <CheckCircle2 className="w-4 h-4 text-[#EE0033] shrink-0" />
           <span>{feedback}</span>
         </div>
@@ -201,21 +232,21 @@ export const AdminView: React.FC<AdminViewProps> = ({
 
       {/* Pending Approval Alert Banner */}
       {pendingUsers.length > 0 && (
-        <div className="p-4 bg-amber-50 border border-amber-200/80 rounded-lg flex items-center justify-between gap-3 animate-in fade-in">
+        <div className="p-4 bg-amber-50 dark:bg-amber-950/40 border border-amber-200/80 dark:border-amber-800/80 rounded-2xl flex items-center justify-between gap-3 animate-in fade-in">
           <div className="flex items-center gap-2.5">
-            <Clock className="w-5 h-5 text-amber-600 animate-pulse shrink-0" />
+            <Clock className="w-5 h-5 text-amber-600 dark:text-amber-400 animate-pulse shrink-0" />
             <div>
-              <div className="text-xs font-semibold text-amber-900">
+              <div className="text-xs font-semibold text-amber-900 dark:text-amber-200">
                 Có {pendingUsers.length} tài khoản mới đang chờ phê duyệt
               </div>
-              <div className="text-[11px] text-amber-700">
+              <div className="text-[11px] text-amber-700 dark:text-amber-400">
                 Các tài khoản này chưa thể truy cập vào dự án cho đến khi được Admin phê duyệt phân quyền.
               </div>
             </div>
           </div>
           <button
             onClick={() => setFilterRole("PENDING_APPROVAL")}
-            className="px-3 py-1.5 text-xs font-medium bg-amber-600 hover:bg-amber-700 text-white rounded-md transition shadow-xs"
+            className="px-3.5 py-1.5 text-xs font-semibold bg-amber-600 hover:bg-amber-700 text-white rounded-full transition shadow-xs"
           >
             Xem danh sách chờ duyệt
           </button>
@@ -223,8 +254,8 @@ export const AdminView: React.FC<AdminViewProps> = ({
       )}
 
       {/* Filter Tabs by Role */}
-      <div className="flex items-center space-x-2 border-b border-slate-200 pb-2 overflow-x-auto">
-        <span className="text-xs text-slate-400 font-medium uppercase tracking-wider flex items-center gap-1 mr-2">
+      <div className="flex items-center space-x-2 border-b border-slate-200 dark:border-zinc-800 pb-2 overflow-x-auto">
+        <span className="text-xs text-slate-400 dark:text-zinc-500 font-medium uppercase tracking-wider flex items-center gap-1 mr-2">
           <Filter className="w-3.5 h-3.5" />
           <span>Lọc:</span>
         </span>
@@ -240,11 +271,10 @@ export const AdminView: React.FC<AdminViewProps> = ({
           <button
             key={tab.id}
             onClick={() => setFilterRole(tab.id)}
-            className={`text-xs px-2.5 py-1 rounded-md font-medium transition whitespace-nowrap ${
-              filterRole === tab.id
+            className={`text-xs px-3 py-1 rounded-full font-medium transition whitespace-nowrap ${filterRole === tab.id
                 ? "bg-[#EE0033] text-white shadow-xs"
-                : "bg-white text-slate-600 hover:bg-slate-100 border border-slate-200"
-            }`}
+                : "bg-white dark:bg-zinc-800 text-slate-600 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-zinc-700 border border-slate-200 dark:border-zinc-700"
+              }`}
           >
             {tab.label}
           </button>
@@ -252,10 +282,10 @@ export const AdminView: React.FC<AdminViewProps> = ({
       </div>
 
       {/* Users Table */}
-      <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+      <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-gray-200 dark:border-zinc-800 shadow-xs overflow-hidden">
         <table className="w-full text-left border-collapse text-xs">
           <thead>
-            <tr className="bg-[#FAFBFC] border-b border-gray-200 text-gray-500 font-bold uppercase tracking-wider text-[11px]">
+            <tr className="bg-slate-50 dark:bg-zinc-800/60 border-b border-gray-200 dark:border-zinc-800 text-gray-500 dark:text-zinc-400 font-bold uppercase tracking-wider text-[11px]">
               <th className="py-3 px-4">Thành Viên (Member)</th>
               <th className="py-3 px-4">Tài Khoản / Email</th>
               <th className="py-3 px-4">Vai Trò Hệ Thống (Role)</th>
@@ -264,28 +294,27 @@ export const AdminView: React.FC<AdminViewProps> = ({
               <th className="py-3 px-4 text-right">Thao Tác</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
+          <tbody className="divide-y divide-gray-100 dark:divide-zinc-800">
             {filteredUsers.map((user) => {
               const isSuspended = user.status === "SUSPENDED";
               const isPending = user.status === "PENDING_APPROVAL";
 
               return (
-                <tr key={user.id} className={`hover:bg-gray-50/80 transition ${isPending ? "bg-amber-50/40" : ""}`}>
+                <tr key={user.id} className={`hover:bg-gray-50/80 dark:hover:bg-zinc-800/50 transition ${isPending ? "bg-amber-50/40 dark:bg-amber-950/20" : ""}`}>
                   <td className="py-3 px-4">
                     <div className="flex items-center space-x-3">
                       <img
                         src={user.avatar}
                         alt={user.name}
-                        className={`w-8 h-8 rounded-full object-cover ring-1 ${
-                          isSuspended
+                        className={`w-8 h-8 rounded-full object-cover ring-1 ${isSuspended
                             ? "grayscale opacity-50 ring-red-300"
                             : isPending
-                            ? "ring-amber-400"
-                            : "ring-gray-200"
-                        }`}
+                              ? "ring-amber-400"
+                              : "ring-gray-200 dark:ring-zinc-700"
+                          }`}
                       />
                       <div>
-                        <div className="font-semibold text-gray-900 flex items-center gap-1.5">
+                        <div className="font-semibold text-gray-900 dark:text-zinc-100 flex items-center gap-1.5">
                           <span>{user.name}</span>
                           {isSuspended && (
                             <span className="text-[10px] bg-red-100 text-red-700 font-bold px-1.5 py-0.2 rounded">
@@ -302,7 +331,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
                     </div>
                   </td>
 
-                  <td className="py-3 px-4 font-mono text-gray-600 text-[11px]">
+                  <td className="py-3 px-4 font-mono text-gray-600 dark:text-zinc-400 text-[11px]">
                     <div className="flex items-center gap-1.5">
                       <Mail className="w-3.5 h-3.5 text-gray-400 shrink-0" />
                       <span>{user.email}</span>
@@ -311,7 +340,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
 
                   <td className="py-3 px-4">
                     {isPending ? (
-                      <span className="text-[11px] font-medium text-amber-700 italic">
+                      <span className="text-[11px] font-medium text-amber-700 dark:text-amber-400 italic">
                         Chưa phân quyền
                       </span>
                     ) : (
@@ -319,80 +348,91 @@ export const AdminView: React.FC<AdminViewProps> = ({
                         value={user.role}
                         disabled={isUpdating === user.id}
                         onChange={(e) => handleRoleChange(user.id, e.target.value as User["role"])}
-                        className="bg-white border border-slate-300 rounded px-2.5 py-1 text-xs font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#EE0033] hover:border-slate-400 transition cursor-pointer"
+                        className="bg-white dark:bg-zinc-800 border border-slate-300 dark:border-zinc-700 rounded-lg px-2.5 py-1 text-xs font-medium text-slate-800 dark:text-zinc-100 focus:outline-none focus:ring-1 focus:ring-[#EE0033] hover:border-slate-400 dark:hover:border-zinc-600 transition cursor-pointer shadow-2xs"
                         title="Chọn để phân lại quyền đăng nhập"
                       >
-                        <option value="ADMIN">Quản trị viên (Admin)</option>
-                        <option value="PROJECT_LEAD">Trưởng dự án (Lead)</option>
-                        <option value="DEVELOPER">Kỹ sư phần mềm (Dev)</option>
-                        <option value="QA">Kiểm thử QA (Tester)</option>
-                        <option value="VIEWER">Người theo dõi (Viewer)</option>
+                        <option value="ADMIN" className="dark:bg-zinc-800">Quản trị viên (Admin)</option>
+                        <option value="PROJECT_LEAD" className="dark:bg-zinc-800">Trưởng dự án (Lead)</option>
+                        <option value="DEVELOPER" className="dark:bg-zinc-800">Kỹ sư phần mềm (Dev)</option>
+                        <option value="QA" className="dark:bg-zinc-800">Kiểm thử QA (Tester)</option>
+                        <option value="VIEWER" className="dark:bg-zinc-800">Người theo dõi (Viewer)</option>
                       </select>
                     )}
                   </td>
 
                   <td className="py-3 px-4">
                     <span
-                      className={`text-[10px] font-medium px-2 py-0.5 rounded-full border ${
-                        isSuspended
-                          ? "bg-rose-50 text-rose-700 border-rose-200"
+                      className={`text-[10px] font-medium px-2.5 py-0.5 rounded-full border ${isSuspended
+                          ? "bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-900/60"
                           : isPending
-                          ? "bg-amber-50 text-amber-800 border-amber-300"
-                          : "bg-emerald-50 text-emerald-700 border-emerald-200"
-                      }`}
+                            ? "bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border-amber-300 dark:border-amber-800/60"
+                            : "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/60"
+                        }`}
                     >
                       {user.status || "ACTIVE"}
                     </span>
                   </td>
 
                   <td className="py-3 px-4">
-                    <span className="bg-slate-100 text-slate-700 font-mono font-medium px-2 py-0.5 rounded text-[11px] border border-slate-200/80">
+                    <span className="bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 font-mono font-medium px-2 py-0.5 rounded text-[11px] border border-slate-200/80 dark:border-zinc-700/80">
                       {user.activeTasksCount || 0} issues
                     </span>
                   </td>
 
                   <td className="py-3 px-4 text-right">
-                    {isPending ? (
-                      <button
-                        onClick={() => {
-                          setApprovingUser(user);
-                          setApproveRole("DEVELOPER");
-                        }}
-                        className="text-xs px-3 py-1.5 rounded-md font-medium bg-[#EE0033] hover:bg-[#D6002E] text-white transition inline-flex items-center gap-1 shadow-xs"
-                      >
-                        <Check className="w-3.5 h-3.5" />
-                        <span>Phê Duyệt & Cấp Quyền</span>
-                      </button>
-                    ) : (
-                      onToggleUserStatus && (
+                    <div className="flex items-center justify-end space-x-2">
+                      {isPending ? (
                         <button
-                          onClick={() => handleStatusToggle(user.id, user.status)}
-                          disabled={isUpdating === user.id}
-                          className={`text-xs px-2.5 py-1 rounded font-semibold transition inline-flex items-center gap-1 ${
-                            isSuspended
-                              ? "bg-emerald-100 hover:bg-emerald-200 text-emerald-800"
-                              : "bg-red-50 hover:bg-red-100 text-red-700 border border-red-200"
-                          }`}
-                          title={
-                            isSuspended
-                              ? "Mở khóa cho phép người dùng đăng nhập"
-                              : "Khóa quyền đăng nhập của người dùng"
-                          }
+                          onClick={() => {
+                            setApprovingUser(user);
+                            setApproveRole("DEVELOPER");
+                          }}
+                          className="text-xs px-3.5 py-1.5 rounded-full font-medium bg-[#EE0033] hover:bg-[#D6002E] text-white transition inline-flex items-center gap-1 shadow-xs"
                         >
-                          {isSuspended ? (
-                            <>
-                              <UserCheck className="w-3.5 h-3.5" />
-                              <span>Mở Khóa</span>
-                            </>
-                          ) : (
-                            <>
-                              <UserX className="w-3.5 h-3.5" />
-                              <span>Khóa</span>
-                            </>
-                          )}
+                          <Check className="w-3.5 h-3.5" />
+                          <span>Phê Duyệt & Cấp Quyền</span>
                         </button>
-                      )
-                    )}
+                      ) : (
+                        onToggleUserStatus && (
+                          <button
+                            onClick={() => handleStatusToggle(user.id, user.status)}
+                            disabled={isUpdating === user.id}
+                            className={`text-xs px-3 py-1 rounded-full font-semibold transition inline-flex items-center gap-1 shadow-2xs ${isSuspended
+                                ? "bg-emerald-100 dark:bg-emerald-950/50 hover:bg-emerald-200 dark:hover:bg-emerald-900/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800"
+                                : "bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/60 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-900/60"
+                              }`}
+                            title={
+                              isSuspended
+                                ? "Mở khóa cho phép người dùng đăng nhập"
+                                : "Khóa quyền đăng nhập của người dùng"
+                            }
+                          >
+                            {isSuspended ? (
+                              <>
+                                <UserCheck className="w-3.5 h-3.5" />
+                                <span>Mở Khóa</span>
+                              </>
+                            ) : (
+                              <>
+                                <UserX className="w-3.5 h-3.5" />
+                                <span>Khóa</span>
+                              </>
+                            )}
+                          </button>
+                        )
+                      )}
+
+                      {/* Delete User Button (Only if not self) */}
+                      {onDeleteUser && user.id !== currentUserId && (
+                        <button
+                          onClick={() => setDeletingUser(user)}
+                          className="p-1.5 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-full transition"
+                          title="Xóa tài khoản nhân sự này khỏi hệ thống"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               );
@@ -410,75 +450,75 @@ export const AdminView: React.FC<AdminViewProps> = ({
       {/* Approve User Modal */}
       {approvingUser && (
         <div
-          className="fixed inset-0 z-[80] flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 animate-in fade-in"
+          className="fixed inset-0 z-[80] flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-in fade-in"
           onClick={() => setApprovingUser(null)}
         >
           <div
-            className="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 space-y-4 border border-gray-200 animate-in zoom-in-95"
+            className="bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl w-full max-w-md p-6 space-y-4 border border-slate-200 dark:border-zinc-800 animate-in zoom-in-95"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center space-x-2 border-b border-slate-200 pb-3">
+            <div className="flex items-center space-x-2 border-b border-slate-200 dark:border-zinc-800 pb-3">
               <Check className="w-5 h-5 text-[#EE0033]" />
-              <h3 className="font-semibold text-sm text-slate-900">
+              <h3 className="font-semibold text-sm text-slate-900 dark:text-zinc-100">
                 Phê Duyệt Tài Khoản & Gán Dự Án
               </h3>
             </div>
 
-            <div className="p-3 bg-slate-50 rounded-lg flex items-center space-x-3 text-xs border border-slate-200/80">
-              <img src={approvingUser.avatar} alt={approvingUser.name} className="w-10 h-10 rounded-full object-cover" />
+            <div className="p-3 bg-slate-50 dark:bg-zinc-800/60 rounded-xl flex items-center space-x-3 text-xs border border-slate-200/80 dark:border-zinc-700/80">
+              <img src={approvingUser.avatar} alt={approvingUser.name} className="w-10 h-10 rounded-full object-cover ring-1 ring-slate-200 dark:ring-zinc-700" />
               <div>
-                <div className="font-semibold text-slate-900">{approvingUser.name}</div>
-                <div className="text-slate-500 font-mono text-[11px]">{approvingUser.email}</div>
+                <div className="font-semibold text-slate-900 dark:text-zinc-100">{approvingUser.name}</div>
+                <div className="text-slate-500 dark:text-zinc-400 font-mono text-[11px]">{approvingUser.email}</div>
               </div>
             </div>
 
             <form onSubmit={handleConfirmApproval} className="space-y-3 text-xs">
               <div>
-                <label className="block font-medium text-slate-700 mb-1">
+                <label className="block font-medium text-slate-700 dark:text-zinc-300 mb-1">
                   Chọn vai trò hệ thống (Role) *
                 </label>
                 <select
                   value={approveRole}
                   onChange={(e) => setApproveRole(e.target.value as User["role"])}
-                  className="w-full bg-white border border-slate-300 rounded-md px-3 py-2 font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#EE0033]/20 focus:border-[#EE0033]"
+                  className="w-full bg-white dark:bg-zinc-800 border border-slate-300 dark:border-zinc-700 rounded-xl px-3.5 py-2 font-medium text-slate-800 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#EE0033]/20 focus:border-[#EE0033]"
                 >
-                  <option value="PROJECT_LEAD">Trưởng dự án (Project Lead)</option>
-                  <option value="DEVELOPER">Kỹ sư phần mềm (Developer)</option>
-                  <option value="QA">Kiểm thử viên (QA Tester)</option>
-                  <option value="VIEWER">Chỉ xem (Viewer)</option>
+                  <option value="PROJECT_LEAD" className="dark:bg-zinc-800">Trưởng dự án (Project Lead)</option>
+                  <option value="DEVELOPER" className="dark:bg-zinc-800">Kỹ sư phần mềm (Developer)</option>
+                  <option value="QA" className="dark:bg-zinc-800">Kiểm thử viên (QA Tester)</option>
+                  <option value="VIEWER" className="dark:bg-zinc-800">Chỉ xem (Viewer)</option>
                 </select>
               </div>
 
               <div>
-                <label className="block font-medium text-slate-700 mb-1">
+                <label className="block font-medium text-slate-700 dark:text-zinc-300 mb-1">
                   Gán vào dự án ban đầu (Project)
                 </label>
                 <select
                   value={approveProjectId}
                   onChange={(e) => setApproveProjectId(e.target.value)}
-                  className="w-full bg-white border border-slate-300 rounded-md px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#EE0033]/20 focus:border-[#EE0033]"
+                  className="w-full bg-white dark:bg-zinc-800 border border-slate-300 dark:border-zinc-700 rounded-xl px-3.5 py-2 text-slate-800 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#EE0033]/20 focus:border-[#EE0033]"
                 >
-                  <option value="">-- Chưa gán vào dự án nào --</option>
+                  <option value="" className="dark:bg-zinc-800">-- Chưa gán vào dự án nào --</option>
                   {projects.map((p) => (
-                    <option key={p.id} value={p.id}>
+                    <option key={p.id} value={p.id} className="dark:bg-zinc-800">
                       {p.name} ({p.key})
                     </option>
                   ))}
                 </select>
               </div>
 
-              <div className="pt-3 flex justify-end gap-2 border-t border-slate-200">
+              <div className="pt-3 flex justify-end gap-2.5 border-t border-slate-200 dark:border-zinc-800">
                 <button
                   type="button"
                   onClick={() => setApprovingUser(null)}
-                  className="px-3 py-1.5 text-slate-600 hover:bg-slate-100 rounded-md transition font-medium"
+                  className="px-4 py-1.5 text-slate-600 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-zinc-800 rounded-full transition font-semibold"
                 >
                   Hủy
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmittingApproval}
-                  className="px-4 py-1.5 font-medium bg-[#EE0033] hover:bg-[#D6002E] text-white rounded-md shadow-xs disabled:opacity-50 transition"
+                  className="px-5 py-1.5 font-semibold bg-[#EE0033] hover:bg-[#D6002E] text-white rounded-full shadow-xs disabled:opacity-50 transition focus:ring-2 focus:ring-[#EE0033]/20"
                 >
                   {isSubmittingApproval ? "Đang xử lý..." : "Xác Nhận Phê Duyệt"}
                 </button>
@@ -491,50 +531,57 @@ export const AdminView: React.FC<AdminViewProps> = ({
       {/* Invite Member Modal */}
       {showInviteModal && (
         <div
-          className="fixed inset-0 z-[80] flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 animate-in fade-in"
+          className="fixed inset-0 z-[80] flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-in fade-in"
           onClick={() => setShowInviteModal(false)}
         >
           <div
-            className="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 space-y-4 border border-slate-200 animate-in zoom-in-95"
+            className="bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl w-full max-w-md p-6 space-y-4 border border-slate-200 dark:border-zinc-800 animate-in zoom-in-95"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center space-x-2 border-b border-slate-200 pb-3">
+            <div className="flex items-center space-x-2 border-b border-slate-200 dark:border-zinc-800 pb-3">
               <UserPlus className="w-5 h-5 text-[#EE0033]" />
-              <h3 className="font-semibold text-sm text-slate-900">
+              <h3 className="font-semibold text-sm text-slate-900 dark:text-zinc-100">
                 Mời Thành Viên Mới
               </h3>
             </div>
 
+            {inviteError && (
+              <div className="p-3 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 rounded-xl text-xs text-rose-700 dark:text-rose-300 font-medium flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 text-[#EE0033] shrink-0" />
+                <span>{inviteError}</span>
+              </div>
+            )}
+
             <form onSubmit={handleInviteSubmit} className="space-y-3 text-xs">
               <div>
-                <label className="block font-medium text-slate-700 mb-1">Họ và tên *</label>
+                <label className="block font-medium text-slate-700 dark:text-zinc-300 mb-1">Họ và tên *</label>
                 <input
                   type="text"
                   required
                   value={inviteName}
                   onChange={(e) => setInviteName(e.target.value)}
                   placeholder="Ví dụ: Hoàng Văn An"
-                  className="w-full bg-white border border-slate-300 rounded-md px-3 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#EE0033]/20 focus:border-[#EE0033]"
+                  className="w-full bg-white dark:bg-zinc-800 border border-slate-300 dark:border-zinc-700 rounded-xl px-3.5 py-2 text-slate-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#EE0033]/20 focus:border-[#EE0033]"
                 />
               </div>
 
               <div>
-                <label className="block font-medium text-slate-700 mb-1">Email *</label>
+                <label className="block font-medium text-slate-700 dark:text-zinc-300 mb-1">Email *</label>
                 <input
                   type="email"
                   required
                   value={inviteEmail}
                   onChange={(e) => setInviteEmail(e.target.value)}
                   placeholder="an.hoang@company.com"
-                  className="w-full bg-white border border-slate-300 rounded-md px-3 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#EE0033]/20 focus:border-[#EE0033]"
+                  className="w-full bg-white dark:bg-zinc-800 border border-slate-300 dark:border-zinc-700 rounded-xl px-3.5 py-2 text-slate-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#EE0033]/20 focus:border-[#EE0033]"
                 />
               </div>
 
               {/* Password Configuration */}
-              <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg space-y-2">
+              <div className="p-3.5 bg-slate-50 dark:bg-zinc-800/60 border border-slate-200 dark:border-zinc-700 rounded-xl space-y-2">
                 <div className="flex items-center justify-between">
-                  <label className="font-semibold text-slate-800 flex items-center gap-1.5">
-                    <Lock className="w-3.5 h-3.5 text-slate-600" />
+                  <label className="font-semibold text-slate-800 dark:text-zinc-200 flex items-center gap-1.5">
+                    <Lock className="w-3.5 h-3.5 text-slate-600 dark:text-zinc-400" />
                     <span>Mật khẩu khởi tạo *</span>
                   </label>
                   <button
@@ -553,19 +600,19 @@ export const AdminView: React.FC<AdminViewProps> = ({
                     required
                     value={invitePassword}
                     onChange={(e) => setInvitePassword(e.target.value)}
-                    className="w-full bg-white border border-slate-300 rounded-md px-3 py-1.5 pr-8 text-slate-900 font-mono text-xs focus:outline-none focus:ring-2 focus:ring-[#EE0033]/20 focus:border-[#EE0033]"
+                    className="w-full bg-white dark:bg-zinc-900 border border-slate-300 dark:border-zinc-700 rounded-xl px-3.5 py-2 pr-9 text-slate-900 dark:text-zinc-100 font-mono text-xs focus:outline-none focus:ring-2 focus:ring-[#EE0033]/20 focus:border-[#EE0033]"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-zinc-300"
                   >
                     {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                   </button>
                 </div>
 
                 {/* 2FA Option */}
-                <div className="pt-1.5 border-t border-slate-200/80 space-y-1.5">
+                <div className="pt-2 border-t border-slate-200/80 dark:border-zinc-700/80 space-y-1.5">
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input
                       type="checkbox"
@@ -573,7 +620,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
                       onChange={(e) => setEnable2FA(e.target.checked)}
                       className="rounded text-[#EE0033] focus:ring-[#EE0033]"
                     />
-                    <span className="font-medium text-slate-700 text-[11px]">
+                    <span className="font-medium text-slate-700 dark:text-zinc-300 text-[11px]">
                       Kích hoạt xác thực 2 lớp qua Email OTP (2FA Security)
                     </span>
                   </label>
@@ -584,7 +631,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
                       onChange={(e) => setRequirePasswordChange(e.target.checked)}
                       className="rounded text-[#EE0033] focus:ring-[#EE0033]"
                     />
-                    <span className="font-medium text-slate-700 text-[11px]">
+                    <span className="font-medium text-slate-700 dark:text-zinc-300 text-[11px]">
                       Bắt buộc đổi mật khẩu ở lần đăng nhập đầu tiên
                     </span>
                   </label>
@@ -592,35 +639,80 @@ export const AdminView: React.FC<AdminViewProps> = ({
               </div>
 
               <div>
-                <label className="block font-medium text-slate-700 mb-1">Vai trò mặc định *</label>
+                <label className="block font-medium text-slate-700 dark:text-zinc-300 mb-1">Vai trò mặc định *</label>
                 <select
                   value={inviteRole}
                   onChange={(e) => setInviteRole(e.target.value as User["role"])}
-                  className="w-full bg-white border border-slate-300 rounded-md px-3 py-2 font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#EE0033]/20 focus:border-[#EE0033]"
+                  className="w-full bg-white dark:bg-zinc-800 border border-slate-300 dark:border-zinc-700 rounded-xl px-3.5 py-2 font-medium text-slate-800 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#EE0033]/20 focus:border-[#EE0033]"
                 >
-                  <option value="PROJECT_LEAD">Trưởng dự án (Project Lead)</option>
-                  <option value="DEVELOPER">Kỹ sư phần mềm (Developer)</option>
-                  <option value="QA">Kiểm thử viên (QA Tester)</option>
-                  <option value="VIEWER">Chỉ xem (Viewer)</option>
+                  <option value="PROJECT_LEAD" className="dark:bg-zinc-800">Trưởng dự án (Project Lead)</option>
+                  <option value="DEVELOPER" className="dark:bg-zinc-800">Kỹ sư phần mềm (Developer)</option>
+                  <option value="QA" className="dark:bg-zinc-800">Kiểm thử viên (QA Tester)</option>
+                  <option value="VIEWER" className="dark:bg-zinc-800">Chỉ xem (Viewer)</option>
                 </select>
               </div>
 
-              <div className="pt-3 flex justify-end gap-2 border-t border-slate-200">
+              <div className="pt-3 flex justify-end gap-2.5 border-t border-slate-200 dark:border-zinc-800">
                 <button
                   type="button"
                   onClick={() => setShowInviteModal(false)}
-                  className="px-3 py-1.5 text-slate-600 hover:bg-slate-100 rounded-md transition font-medium"
+                  className="px-4 py-1.5 text-slate-600 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-zinc-800 rounded-full transition font-semibold"
                 >
                   Hủy
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-1.5 font-medium bg-[#EE0033] hover:bg-[#D6002E] text-white rounded-md shadow-xs transition"
+                  className="px-5 py-1.5 font-semibold bg-[#EE0033] hover:bg-[#D6002E] text-white rounded-full shadow-xs transition focus:ring-2 focus:ring-[#EE0033]/20"
                 >
                   Gửi Lời Mời
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+      {/* Delete User Confirmation Modal */}
+      {deletingUser && (
+        <div
+          className="fixed inset-0 z-[80] flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-in fade-in"
+          onClick={() => setDeletingUser(null)}
+        >
+          <div
+            className="bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl w-full max-w-md p-6 space-y-4 border border-slate-200 dark:border-zinc-800 animate-in zoom-in-95"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center space-x-2 border-b border-slate-200 dark:border-zinc-800 pb-3 text-rose-600 dark:text-rose-400">
+              <AlertTriangle className="w-5 h-5" />
+              <h3 className="font-semibold text-sm text-slate-900 dark:text-zinc-100">
+                Xác Nhận Xóa Nhân Sự
+              </h3>
+            </div>
+
+            <p className="text-xs text-slate-600 dark:text-zinc-300 leading-relaxed">
+              Bạn có chắc chắn muốn xóa tài khoản của nhân sự{" "}
+              <strong className="text-slate-900 dark:text-zinc-100">{deletingUser.name}</strong> ({deletingUser.email}) khỏi hệ thống?
+            </p>
+            <p className="text-[11px] text-slate-500 dark:text-zinc-400 bg-slate-50 dark:bg-zinc-800/60 p-3 rounded-xl border border-slate-200 dark:border-zinc-700">
+              Toàn bộ phân công và quyền dự án của nhân sự này sẽ được giải phóng an toàn.
+            </p>
+
+            <div className="flex items-center justify-end space-x-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setDeletingUser(null)}
+                className="px-4 py-1.5 text-xs text-slate-600 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-zinc-800 rounded-full font-medium transition"
+              >
+                Hủy
+              </button>
+              <button
+                type="button"
+                disabled={isDeleting}
+                onClick={handleDeleteConfirm}
+                className="px-4 py-1.5 text-xs font-semibold bg-rose-600 hover:bg-rose-700 text-white rounded-full shadow-xs transition disabled:opacity-50"
+              >
+                {isDeleting ? "Đang xóa..." : "Xác Nhận Xóa"}
+              </button>
+            </div>
           </div>
         </div>
       )}

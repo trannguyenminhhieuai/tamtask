@@ -31,39 +31,56 @@ export const getPriorityBadge = (priority?: string) => {
     case "HIGHEST":
       return {
         label: "Cao nhất",
-        colorClass: "bg-red-50 text-[#EE0033] border-red-200 font-bold",
-        icon: <ArrowUp className="w-3 h-3 text-[#EE0033] stroke-[3]" />,
+        colorClass: "bg-red-50 dark:bg-rose-950/40 text-[#EE0033] dark:text-rose-400 border-red-200 dark:border-rose-900/60 font-bold",
+        icon: <ArrowUp className="w-3 h-3 text-[#EE0033] dark:text-rose-400 stroke-[3]" />,
       };
     case "HIGH":
       return {
         label: "Cao",
-        colorClass: "bg-orange-50 text-orange-700 border-orange-200 font-semibold",
-        icon: <ArrowUp className="w-3 h-3 text-orange-600 stroke-[2.5]" />,
+        colorClass: "bg-orange-50 dark:bg-orange-950/40 text-orange-700 dark:text-orange-400 border-orange-200 dark:border-orange-900/60 font-semibold",
+        icon: <ArrowUp className="w-3 h-3 text-orange-600 dark:text-orange-400 stroke-[2.5]" />,
       };
     case "MEDIUM":
       return {
         label: "Trung bình",
-        colorClass: "bg-amber-50 text-amber-700 border-amber-200 font-semibold",
-        icon: <Minus className="w-3 h-3 text-amber-600 stroke-[2.5]" />,
+        colorClass: "bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-900/60 font-semibold",
+        icon: <Minus className="w-3 h-3 text-amber-600 dark:text-amber-400 stroke-[2.5]" />,
       };
     case "LOW":
       return {
         label: "Thấp",
-        colorClass: "bg-sky-50 text-sky-700 border-sky-200 font-semibold",
-        icon: <ArrowDown className="w-3 h-3 text-sky-600 stroke-[2]" />,
+        colorClass: "bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-400 border-sky-200 dark:border-sky-900/60 font-semibold",
+        icon: <ArrowDown className="w-3 h-3 text-sky-600 dark:text-sky-400 stroke-[2]" />,
       };
     case "LOWEST":
       return {
         label: "Rất thấp",
-        colorClass: "bg-slate-100 text-slate-600 border-slate-200 font-medium",
-        icon: <ArrowDown className="w-3 h-3 text-slate-400 stroke-[1.5]" />,
+        colorClass: "bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-zinc-400 border-slate-200 dark:border-zinc-700 font-medium",
+        icon: <ArrowDown className="w-3 h-3 text-slate-400 dark:text-zinc-500 stroke-[1.5]" />,
       };
     default:
       return {
         label: "Trung bình",
-        colorClass: "bg-amber-50 text-amber-700 border-amber-200 font-medium",
-        icon: <Minus className="w-3 h-3 text-amber-600 stroke-[2.5]" />,
+        colorClass: "bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-900/60 font-medium",
+        icon: <Minus className="w-3 h-3 text-amber-600 dark:text-amber-400 stroke-[2.5]" />,
       };
+  }
+};
+
+// Helper to make dark epic colors bright & readable in dark mode
+const getLightenedColor = (hex: string, amount: number = 45) => {
+  try {
+    const cleanHex = hex.replace("#", "");
+    const num = parseInt(cleanHex.length === 3 ? cleanHex.split("").map((c) => c + c).join("") : cleanHex, 16);
+    let r = (num >> 16) + Math.round(255 * (amount / 100));
+    let g = ((num >> 8) & 0x00ff) + Math.round(255 * (amount / 100));
+    let b = (num & 0x0000ff) + Math.round(255 * (amount / 100));
+    r = Math.min(255, Math.max(0, r));
+    g = Math.min(255, Math.max(0, g));
+    b = Math.min(255, Math.max(0, b));
+    return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
+  } catch {
+    return hex;
   }
 };
 
@@ -276,14 +293,14 @@ export const BacklogView: React.FC<BacklogViewProps> = ({
   };
 
   return (
-    <div className="flex-1 overflow-y-auto p-3 sm:p-6 bg-[#F5F6F8] space-y-4">
+    <div className="flex-1 overflow-y-auto p-4 bg-[#F5F6F8] dark:bg-[#09090B] space-y-4 transition-colors duration-200">
       {/* Unified Glass Island Header */}
-      <div className="p-3.5 sm:p-4 rounded-2xl bg-white/85 backdrop-blur-md border border-white/60 shadow-[0_4px_20px_rgba(0,0,0,0.03)] flex flex-wrap items-center justify-between gap-3 shrink-0">
+      <div className="p-4 rounded-2xl bg-white/75 dark:bg-zinc-900/75 backdrop-blur-xl border border-white/80 dark:border-white/10 shadow-[0_8px_32px_0_rgba(31,38,135,0.05)] flex flex-wrap items-center justify-between gap-4 shrink-0">
         <div className="flex items-center space-x-2.5">
-          <h1 className="text-base sm:text-lg font-extrabold text-[#111827] tracking-tight">
+          <h1 className="text-base sm:text-lg font-extrabold text-[#111827] dark:text-zinc-100 tracking-tight">
             Kế Hoạch Chu Kỳ (Backlog)
           </h1>
-          <span className="text-[11px] font-semibold text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded-full border border-slate-200">
+          <span className="text-[11px] font-semibold text-slate-500 dark:text-zinc-400 bg-slate-100 dark:bg-zinc-800 px-2.5 py-0.5 rounded-full border border-slate-200 dark:border-zinc-700">
             {activeAndPlannedSprints.length} chu kỳ • {backlogIssues.length} backlog tasks
           </span>
         </div>
@@ -291,9 +308,9 @@ export const BacklogView: React.FC<BacklogViewProps> = ({
           {completedSprints.length > 0 && (
             <button
               onClick={() => setShowClosedModal(true)}
-              className="bg-white border border-[#D7D7D7] hover:bg-slate-50 text-slate-700 text-xs font-semibold px-3 py-1.5 rounded-full flex items-center gap-1.5 transition shadow-2xs"
+              className="bg-white dark:bg-zinc-800 border border-[#D7D7D7] dark:border-zinc-700 hover:bg-slate-50 dark:hover:bg-zinc-700 text-slate-700 dark:text-zinc-200 text-xs font-semibold px-3 py-1.5 rounded-full flex items-center gap-1.5 transition shadow-2xs"
             >
-              <History className="w-3.5 h-3.5 text-slate-500" />
+              <History className="w-3.5 h-3.5 text-slate-500 dark:text-zinc-400" />
               <span>Đã đóng ({completedSprints.length})</span>
             </button>
           )}
@@ -301,7 +318,7 @@ export const BacklogView: React.FC<BacklogViewProps> = ({
           {canManageSprints && (
             <button
               onClick={() => setIsCreateSprintOpen(true)}
-              className="bg-white border border-[#D7D7D7] hover:bg-slate-50 text-[#111827] text-xs font-semibold px-3.5 py-1.5 rounded-full flex items-center gap-1.5 transition shadow-2xs"
+              className="bg-white dark:bg-zinc-800 border border-[#D7D7D7] dark:border-zinc-700 hover:bg-slate-50 dark:hover:bg-zinc-700 text-[#111827] dark:text-zinc-200 text-xs font-semibold px-3.5 py-1.5 rounded-full flex items-center gap-1.5 transition shadow-2xs"
             >
               <Plus className="w-3.5 h-3.5 text-[#EE0033]" />
               <span>Tạo Sprint</span>
@@ -371,19 +388,19 @@ export const BacklogView: React.FC<BacklogViewProps> = ({
             onDragOver={(e) => handleDragOver(e, sprint.id)}
             onDragLeave={() => setDragOverContainerId(null)}
             onDrop={(e) => handleDrop(e, sprint.id)}
-            className={`bg-white rounded-lg border shadow-xs overflow-hidden transition-all ${
+            className={`bg-white dark:bg-zinc-900 rounded-2xl border shadow-xs overflow-hidden transition-all ${
               isOver
-                ? "border-[#EE0033]/60 ring-2 ring-rose-200 ring-dashed bg-rose-50/20"
-                : "border-slate-200"
+                ? "border-[#EE0033]/60 ring-2 ring-rose-200 dark:ring-rose-900/40 ring-dashed bg-rose-50/20 dark:bg-rose-950/20"
+                : "border-slate-200 dark:border-zinc-800"
             }`}
           >
             {/* Sprint Header */}
-            <div className="px-5 py-3.5 bg-slate-50/80 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3">
+            <div className="px-5 py-3.5 bg-slate-50/80 dark:bg-zinc-800/60 border-b border-slate-200 dark:border-zinc-800 flex flex-wrap items-center justify-between gap-3">
               <div className="flex items-center space-x-3">
                 {!isViewer && sprintIssues.length > 0 && (
                   <button
                     onClick={() => handleSelectAllInSprint(sprintIssues)}
-                    className="p-1 text-slate-400 hover:text-slate-700 transition"
+                    className="p-1 text-slate-400 hover:text-slate-700 dark:hover:text-zinc-200 transition"
                     title="Chọn tất cả trong Sprint"
                   >
                     {sprintIssues.length > 0 && sprintIssues.every((i) => selectedIssueIds.includes(i.id)) ? (
@@ -393,18 +410,18 @@ export const BacklogView: React.FC<BacklogViewProps> = ({
                     )}
                   </button>
                 )}
-                <span className="font-semibold text-sm text-slate-800">{sprint.name}</span>
+                <span className="font-semibold text-sm text-slate-800 dark:text-zinc-100">{sprint.name}</span>
                 <span
-                  className={`text-[10px] font-semibold px-2 py-0.5 rounded border ${
+                  className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${
                     sprint.status === "ACTIVE"
-                      ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                      : "bg-slate-100 text-slate-600 border-slate-200"
+                      ? "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800"
+                      : "bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-zinc-400 border-slate-200 dark:border-zinc-700"
                   }`}
                 >
                   {sprint.status === "ACTIVE" ? "Đang diễn ra" : "Kế hoạch"}
                 </span>
-                <span className="text-xs text-slate-500 flex items-center gap-1">
-                  <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                <span className="text-xs text-slate-500 dark:text-zinc-400 flex items-center gap-1">
+                  <Calendar className="w-3.5 h-3.5 text-slate-400 dark:text-zinc-500" />
                   <span>
                     {sprint.startDate || "Chưa đặt"} ~ {sprint.endDate || "Chưa đặt"}
                   </span>
@@ -412,22 +429,22 @@ export const BacklogView: React.FC<BacklogViewProps> = ({
               </div>
 
               <div className="flex items-center space-x-2.5">
-                <span className="text-xs font-medium text-slate-600 bg-slate-100 px-2.5 py-1 rounded border border-slate-200/80 font-mono">
+                <span className="text-xs font-medium text-slate-600 dark:text-zinc-300 bg-slate-100 dark:bg-zinc-800 px-2.5 py-1 rounded-full border border-slate-200/80 dark:border-zinc-700/80 font-mono">
                   {sprintIssues.length} issues · {totalPoints} pts
                 </span>
                 {canManageSprints && (
                   sprint.status === "ACTIVE" ? (
                     <button
                       onClick={() => setCompletingSprint(sprint)}
-                      className="text-xs font-medium bg-slate-100 hover:bg-slate-200/80 text-slate-700 px-3 py-1.5 rounded-md transition flex items-center gap-1 border border-slate-200"
+                      className="text-xs font-semibold bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200/80 dark:hover:bg-zinc-700 text-slate-700 dark:text-zinc-200 px-3 py-1.5 rounded-full transition flex items-center gap-1 border border-slate-200 dark:border-zinc-700 shadow-2xs"
                     >
-                      <Check className="w-3.5 h-3.5 text-emerald-600" />
+                      <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
                       <span>Hoàn thành Sprint</span>
                     </button>
                   ) : (
                     <button
                       onClick={() => onStartSprint(sprint.id)}
-                      className="text-xs font-medium bg-[#EE0033] hover:bg-[#D6002E] text-white px-3 py-1.5 rounded-md transition flex items-center gap-1 shadow-xs"
+                      className="text-xs font-semibold bg-[#EE0033] hover:bg-[#D6002E] text-white px-3.5 py-1.5 rounded-full transition flex items-center gap-1 shadow-xs"
                     >
                       <Play className="w-3.5 h-3.5" />
                       <span>Bắt đầu Sprint</span>
@@ -439,7 +456,7 @@ export const BacklogView: React.FC<BacklogViewProps> = ({
                 {canManageSprints && (
                   <button
                     onClick={() => setEditingSprint(sprint)}
-                    className="p-1.5 text-slate-400 hover:text-slate-800 hover:bg-slate-100 rounded transition"
+                    className="p-1.5 text-slate-400 hover:text-slate-800 dark:hover:text-zinc-200 hover:bg-slate-100 dark:hover:bg-zinc-800 rounded-lg transition"
                     title="Chỉnh sửa thông tin chu kỳ"
                   >
                     <Pencil className="w-3.5 h-3.5" />
@@ -458,10 +475,10 @@ export const BacklogView: React.FC<BacklogViewProps> = ({
                         onDeleteSprint(sprint.id);
                       }
                     }}
-                    className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition"
-                    title="Xóa Sprint rác (chuyển task về Backlog)"
+                    className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg transition"
+                    title="Xóa Sprint (chuyển task về Backlog)"
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <Trash2 className="w-3.5 h-3.5" />
                   </button>
                 )}
               </div>
@@ -483,14 +500,14 @@ export const BacklogView: React.FC<BacklogViewProps> = ({
                   onDragLeave={(e) => handleIssueDragLeave(e, issue.id)}
                   onDrop={(e) => handleIssueDrop(e, issue.id, sprint.id)}
                   onClick={() => onIssueClick(issue)}
-                  className={`flex flex-col sm:flex-row sm:items-center justify-between p-2.5 sm:p-3 bg-white hover:bg-gray-50 border rounded-md transition shadow-xs group gap-2 relative ${
-                    isViewer ? "cursor-pointer" : "cursor-grab active:cursor-grabbing hover:border-red-300"
+                  className={`flex flex-col sm:flex-row sm:items-center justify-between p-2.5 sm:p-3 bg-white dark:bg-zinc-800/90 hover:bg-slate-50 dark:hover:bg-zinc-800 border rounded-xl transition shadow-xs group gap-2 relative ${
+                    isViewer ? "cursor-pointer" : "cursor-grab active:cursor-grabbing hover:border-red-300 dark:hover:border-red-800"
                   } ${draggedIssueId === issue.id ? "opacity-40" : ""} ${
                     dragOverIssueId === issue.id && dragPosition === "before"
-                      ? "border-t-2 border-t-[#EE0033] bg-rose-50/20"
+                      ? "border-t-2 border-t-[#EE0033] bg-rose-50/20 dark:bg-rose-950/20"
                       : dragOverIssueId === issue.id && dragPosition === "after"
-                      ? "border-b-2 border-b-[#EE0033] bg-rose-50/20"
-                      : "border-gray-200/80"
+                      ? "border-b-2 border-b-[#EE0033] bg-rose-50/20 dark:bg-rose-950/20"
+                      : "border-slate-200 dark:border-zinc-700/80"
                   }`}
                 >
                   <div className="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1">
@@ -498,7 +515,7 @@ export const BacklogView: React.FC<BacklogViewProps> = ({
                       <button
                         type="button"
                         onClick={(e) => toggleSelectIssue(issue.id, e)}
-                        className="text-slate-400 hover:text-slate-700 transition shrink-0"
+                        className="text-slate-400 hover:text-slate-700 dark:hover:text-zinc-200 transition shrink-0"
                       >
                         {selectedIssueIds.includes(issue.id) ? (
                           <CheckSquare className="w-4 h-4 text-[#EE0033]" />
@@ -508,12 +525,12 @@ export const BacklogView: React.FC<BacklogViewProps> = ({
                       </button>
                     )}
                     {!isViewer && (
-                      <span className="text-gray-300 group-hover:text-gray-500 cursor-grab shrink-0">
+                      <span className="text-gray-300 dark:text-zinc-600 group-hover:text-gray-500 dark:group-hover:text-zinc-400 cursor-grab shrink-0">
                         <GripVertical className="w-4 h-4" />
                       </span>
                     )}
-                    <span className="text-xs font-semibold text-slate-700 font-mono group-hover:text-[#EE0033] transition shrink-0">{issue.key}</span>
-                    <span className="text-xs text-gray-900 font-medium truncate">{issue.title}</span>
+                    <span className="text-xs font-semibold text-slate-700 dark:text-zinc-300 font-mono group-hover:text-[#EE0033] transition shrink-0">{issue.key}</span>
+                    <span className="text-xs text-gray-900 dark:text-zinc-100 font-medium truncate">{issue.title}</span>
                   </div>
 
                   <div className="flex items-center flex-wrap gap-1.5 sm:gap-2.5 shrink-0 pl-7 sm:pl-0">
@@ -523,11 +540,11 @@ export const BacklogView: React.FC<BacklogViewProps> = ({
                         value={issue.sprintId || ""}
                         onClick={(e) => e.stopPropagation()}
                         onChange={(e) => onMoveIssueToSprint(issue.id, e.target.value || null)}
-                        className="text-[11px] bg-gray-50 border border-gray-200 rounded px-2 py-0.5 text-gray-700 opacity-0 group-hover:opacity-100 transition focus:opacity-100"
+                        className="text-[11px] bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-lg px-2 py-0.5 text-slate-700 dark:text-zinc-200 opacity-0 group-hover:opacity-100 transition focus:opacity-100"
                       >
-                        <option value="">Chuyển về Backlog</option>
+                        <option value="" className="dark:bg-zinc-800">Chuyển về Backlog</option>
                         {activeAndPlannedSprints.map((s) => (
-                          <option key={s.id} value={s.id}>
+                          <option key={s.id} value={s.id} className="dark:bg-zinc-800">
                             {s.name}
                           </option>
                         ))}
@@ -536,10 +553,14 @@ export const BacklogView: React.FC<BacklogViewProps> = ({
 
                     {issue.epic && (
                       <span
-                        className="text-[10px] font-bold px-2 py-0.5 rounded"
+                        className="text-[10px] font-bold px-2 py-0.5 rounded border transition-colors [color:var(--epic-c)] [background-color:var(--epic-bg)] [border-color:var(--epic-border)] dark:[color:var(--epic-c-dark)] dark:[background-color:var(--epic-bg-dark)] dark:[border-color:var(--epic-border-dark)]"
                         style={{
-                          backgroundColor: `${issue.epic.color}15`,
-                          color: issue.epic.color,
+                          ["--epic-c" as any]: issue.epic.color,
+                          ["--epic-bg" as any]: `${issue.epic.color}15`,
+                          ["--epic-border" as any]: `${issue.epic.color}40`,
+                          ["--epic-c-dark" as any]: getLightenedColor(issue.epic.color, 50),
+                          ["--epic-bg-dark" as any]: `${issue.epic.color}30`,
+                          ["--epic-border-dark" as any]: `${issue.epic.color}70`,
                         }}
                       >
                         {issue.epic.name}
@@ -560,12 +581,12 @@ export const BacklogView: React.FC<BacklogViewProps> = ({
                       );
                     })()}
 
-                    <span className="text-[10px] font-semibold bg-gray-100 text-gray-600 px-2 py-0.5 rounded">
+                    <span className="text-[10px] font-semibold bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-zinc-300 border border-slate-200 dark:border-zinc-700 px-2 py-0.5 rounded">
                       {issue.status}
                     </span>
 
                     {issue.storyPoints !== undefined && (
-                      <span className="text-xs font-semibold bg-gray-100 text-gray-700 px-2 py-0.5 rounded">
+                      <span className="text-xs font-semibold bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 border border-slate-200 dark:border-zinc-700 px-2 py-0.5 rounded">
                         {issue.storyPoints}
                       </span>
                     )}
@@ -601,18 +622,18 @@ export const BacklogView: React.FC<BacklogViewProps> = ({
         onDragOver={(e) => handleDragOver(e, "backlog")}
         onDragLeave={() => setDragOverContainerId(null)}
         onDrop={(e) => handleDrop(e, null)}
-        className={`bg-white rounded-lg border shadow-xs overflow-hidden transition-all ${
+        className={`bg-white dark:bg-zinc-900 rounded-2xl border shadow-xs overflow-hidden transition-all ${
           dragOverContainerId === "backlog"
-            ? "border-[#EE0033]/60 ring-2 ring-rose-200 ring-dashed bg-rose-50/20"
-            : "border-slate-200"
+            ? "border-[#EE0033]/60 ring-2 ring-rose-200 dark:ring-rose-900/40 ring-dashed bg-rose-50/20 dark:bg-rose-950/20"
+            : "border-slate-200 dark:border-zinc-800"
         }`}
       >
-        <div className="px-5 py-3.5 bg-slate-50/80 border-b border-slate-200 flex items-center justify-between">
+        <div className="px-5 py-3.5 bg-slate-50/80 dark:bg-zinc-800/60 border-b border-slate-200 dark:border-zinc-800 flex items-center justify-between">
           <div className="flex items-center space-x-3">
             {!isViewer && backlogIssues.length > 0 && (
               <button
                 onClick={handleSelectAllInBacklog}
-                className="p-1 text-slate-400 hover:text-slate-700 transition"
+                className="p-1 text-slate-400 hover:text-slate-700 dark:hover:text-zinc-200 transition"
                 title="Chọn tất cả trong Backlog"
               >
                 {backlogIssues.length > 0 && backlogIssues.every((i) => selectedIssueIds.includes(i.id)) ? (
@@ -622,15 +643,15 @@ export const BacklogView: React.FC<BacklogViewProps> = ({
                 )}
               </button>
             )}
-            <span className="font-semibold text-sm text-slate-800">Backlog</span>
-            <span className="text-xs text-slate-500 font-mono">
+            <span className="font-semibold text-sm text-slate-800 dark:text-zinc-100">Backlog</span>
+            <span className="text-xs text-slate-500 dark:text-zinc-400 font-mono">
               {backlogIssues.length} issues · {backlogTotalPoints} story points
             </span>
           </div>
           {!isViewer && (
             <button
               onClick={onCreateIssueClick}
-              className="text-xs font-medium text-[#EE0033] hover:text-[#D6002E] flex items-center gap-1 transition"
+              className="text-xs font-semibold text-[#EE0033] hover:text-[#D6002E] flex items-center gap-1 transition"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>Tạo công việc</span>
@@ -653,14 +674,14 @@ export const BacklogView: React.FC<BacklogViewProps> = ({
               onDragLeave={(e) => handleIssueDragLeave(e, issue.id)}
               onDrop={(e) => handleIssueDrop(e, issue.id, null)}
               onClick={() => onIssueClick(issue)}
-              className={`flex flex-col sm:flex-row sm:items-center justify-between p-2.5 sm:p-3 bg-white hover:bg-gray-50 border rounded-md transition shadow-xs group gap-2 relative ${
-                isViewer ? "cursor-pointer" : "cursor-grab active:cursor-grabbing hover:border-red-300"
+              className={`flex flex-col sm:flex-row sm:items-center justify-between p-2.5 sm:p-3 bg-white dark:bg-zinc-800/90 hover:bg-slate-50 dark:hover:bg-zinc-800 border rounded-xl transition shadow-xs group gap-2 relative ${
+                isViewer ? "cursor-pointer" : "cursor-grab active:cursor-grabbing hover:border-red-300 dark:hover:border-red-800"
               } ${draggedIssueId === issue.id ? "opacity-40" : ""} ${
                 dragOverIssueId === issue.id && dragPosition === "before"
-                  ? "border-t-2 border-t-[#EE0033] bg-rose-50/20"
+                  ? "border-t-2 border-t-[#EE0033] bg-rose-50/20 dark:bg-rose-950/20"
                   : dragOverIssueId === issue.id && dragPosition === "after"
-                  ? "border-b-2 border-b-[#EE0033] bg-rose-50/20"
-                  : "border-gray-200/80"
+                  ? "border-b-2 border-b-[#EE0033] bg-rose-50/20 dark:bg-rose-950/20"
+                  : "border-slate-200 dark:border-zinc-700/80"
               }`}
             >
               <div className="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1">
@@ -668,7 +689,7 @@ export const BacklogView: React.FC<BacklogViewProps> = ({
                   <button
                     type="button"
                     onClick={(e) => toggleSelectIssue(issue.id, e)}
-                    className="text-slate-400 hover:text-slate-700 transition shrink-0"
+                    className="text-slate-400 hover:text-slate-700 dark:hover:text-zinc-200 transition shrink-0"
                   >
                     {selectedIssueIds.includes(issue.id) ? (
                       <CheckSquare className="w-4 h-4 text-[#EE0033]" />
@@ -678,12 +699,12 @@ export const BacklogView: React.FC<BacklogViewProps> = ({
                   </button>
                 )}
                 {!isViewer && (
-                  <span className="text-gray-300 group-hover:text-gray-500 cursor-grab shrink-0">
+                  <span className="text-gray-300 dark:text-zinc-600 group-hover:text-gray-500 dark:group-hover:text-zinc-400 cursor-grab shrink-0">
                     <GripVertical className="w-4 h-4" />
                   </span>
                 )}
-                <span className="text-xs font-semibold text-slate-700 font-mono group-hover:text-[#EE0033] transition shrink-0">{issue.key}</span>
-                <span className="text-xs text-gray-900 font-medium truncate">{issue.title}</span>
+                <span className="text-xs font-semibold text-slate-700 dark:text-zinc-300 font-mono group-hover:text-[#EE0033] transition shrink-0">{issue.key}</span>
+                <span className="text-xs text-gray-900 dark:text-zinc-100 font-medium truncate">{issue.title}</span>
               </div>
 
               <div className="flex items-center flex-wrap gap-1.5 sm:gap-2.5 shrink-0 pl-7 sm:pl-0">
@@ -693,13 +714,13 @@ export const BacklogView: React.FC<BacklogViewProps> = ({
                     value=""
                     onClick={(e) => e.stopPropagation()}
                     onChange={(e) => onMoveIssueToSprint(issue.id, e.target.value)}
-                    className="text-[11px] bg-gray-50 border border-gray-200 rounded px-2 py-0.5 text-gray-700 opacity-0 group-hover:opacity-100 transition focus:opacity-100"
+                    className="text-[11px] bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-lg px-2 py-0.5 text-slate-700 dark:text-zinc-200 opacity-0 group-hover:opacity-100 transition focus:opacity-100"
                   >
-                    <option value="" disabled>
+                    <option value="" disabled className="dark:bg-zinc-800">
                       Gán vào Sprint...
                     </option>
                     {activeAndPlannedSprints.map((s) => (
-                      <option key={s.id} value={s.id}>
+                      <option key={s.id} value={s.id} className="dark:bg-zinc-800">
                         {s.name}
                       </option>
                     ))}
@@ -708,10 +729,14 @@ export const BacklogView: React.FC<BacklogViewProps> = ({
 
                 {issue.epic && (
                   <span
-                    className="text-[10px] font-bold px-2 py-0.5 rounded"
+                    className="text-[10px] font-bold px-2 py-0.5 rounded border transition-colors [color:var(--epic-c)] [background-color:var(--epic-bg)] [border-color:var(--epic-border)] dark:[color:var(--epic-c-dark)] dark:[background-color:var(--epic-bg-dark)] dark:[border-color:var(--epic-border-dark)]"
                     style={{
-                      backgroundColor: `${issue.epic.color}15`,
-                      color: issue.epic.color,
+                      ["--epic-c" as any]: issue.epic.color,
+                      ["--epic-bg" as any]: `${issue.epic.color}15`,
+                      ["--epic-border" as any]: `${issue.epic.color}40`,
+                      ["--epic-c-dark" as any]: getLightenedColor(issue.epic.color, 50),
+                      ["--epic-bg-dark" as any]: `${issue.epic.color}30`,
+                      ["--epic-border-dark" as any]: `${issue.epic.color}70`,
                     }}
                   >
                     {issue.epic.name}
@@ -732,12 +757,12 @@ export const BacklogView: React.FC<BacklogViewProps> = ({
                   );
                 })()}
 
-                <span className="text-[10px] font-semibold bg-gray-100 text-gray-600 px-2 py-0.5 rounded">
+                <span className="text-[10px] font-semibold bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-zinc-300 border border-slate-200 dark:border-zinc-700 px-2 py-0.5 rounded">
                   {issue.status}
                 </span>
 
                 {issue.storyPoints !== undefined && (
-                  <span className="text-xs font-semibold bg-gray-100 text-gray-700 px-2 py-0.5 rounded">
+                  <span className="text-xs font-semibold bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 border border-slate-200 dark:border-zinc-700 px-2 py-0.5 rounded">
                     {issue.storyPoints}
                   </span>
                 )}

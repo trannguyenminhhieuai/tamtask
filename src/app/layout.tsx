@@ -13,8 +13,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="vi">
-      <body className="antialiased overflow-hidden h-screen bg-[#F4F5F7]">
+    <html lang="vi" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `try{var t=localStorage.getItem('theme');var h=new Date().getHours();var isNight=h>=18||h<6;var prefersDark=window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches;if(t==='dark'||(!t&&(prefersDark||isNight))){document.documentElement.classList.add('dark')}else{document.documentElement.classList.remove('dark')}}catch(e){}`,
+          }}
+        />
+      </head>
+      <body className="antialiased overflow-hidden h-screen bg-[#F5F6F8] dark:bg-[#09090B] text-[#111827] dark:text-zinc-100 transition-colors duration-200">
         <SessionWrapper>{children}</SessionWrapper>
       </body>
     </html>

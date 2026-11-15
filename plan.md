@@ -3932,3 +3932,258 @@ Dựa trên 2 ảnh chụp màn hình thực tế được người dùng đánh
 | **6. Đảo Nổi Kính Mờ Đồng Bộ (Glassmorphic Island Headers)** | Các thanh Header của Kanban, Backlog, Timeline, Automation bị chìm xuống nền canvas, thiếu tính phân cấp không gian. | Chuyển đổi toàn bộ Header của 5 phân hệ thành **Đảo Nổi Kính Mờ (`bg-white/85 backdrop-blur-md border border-white/60 shadow-sm rounded-2xl`)** nổi bật trên canvas `#F5F6F8`. | `KanbanBoard.tsx`, `BacklogView.tsx`, `TimelineView.tsx`, `AutomationView.tsx`, `DashboardView.tsx`, `AdminView.tsx` |
 | **7. Tinh gọn MICI / MECE (Không trùng lặp dữ liệu)** | Thông tin ngày tháng và trạng thái Sprint bị lặp lại ở 3 nơi (Header, Filter Dropdown, Badges). Bộ lọc bị phân mảnh chiếm 2 dòng lớn. | Hợp nhất Header và Bộ lọc thành 1 hàng duy nhất: Badge `Sprint 1 • 01/11 - 14/11`, Dropdown Sprint tinh giản tên ngắn gọn. Gom các bộ lọc ít dùng (Phân làn, Epic, Cài đặt) vào popover `Tuỳ chọn & Phân làn`. | `KanbanBoard.tsx` |
 | **8. Tối ưu hóa tối đa chiều dài cột hiển thị Task** | Việc gom gọn Header giúp tiết kiệm gần 90px chiều dọc, mở rộng chiều cao danh sách thẻ lên `max-h-[calc(100vh-180px)]`, người dùng nhìn được nhiều task nhất có thể. | Mở rộng khung thẻ Kanban, loại bỏ padding thừa, cho phép cuộn mượt mà độc lập từng cột. | `KanbanBoard.tsx` |
+
+
+---
+
+## 36. Chuẩn Hóa Toàn Diện Lần 2: Dark Mode Đồng Bộ, Glassmorphism Rõ Nét, Sidebar Auto-Collapse, Spacing 16px, Radius Thống Nhất & Island Cho Task Detail
+
+> **Thời điểm**: 2026-11-15 | **Trạng thái**: ✅ Hoàn thành
+>
+> **TypeScript**: ✅ `npx tsc --noEmit` — 0 errors
+
+### 36.1. Bảng Chi Tiết 8 Hạng Mục Triển Khai
+
+| # | Yêu Cầu | Vấn Đề Trước | Giải Pháp Triển Khai | Tệp Nguồn |
+| :- | :--- | :--- | :--- | :--- |
+| **1** | **Logo TamTask — Bỏ chữ "Space"** | Header hiển thị `TamTask Space` → quá dài, lạc brand với Jira workspace | Xóa hoàn toàn badge `Space`; header chỉ còn khối đỏ `TT` + chữ `TamTask` | `Navbar.tsx` |
+| **2** | **Dark Mode đồng bộ toàn app** | Dark mode chỉ ảnh hưởng sidebar; canvas, card, modal, kanban column, drawer vẫn light | Thêm `dark:bg-[#09090B] dark:text-zinc-100` lên `<body>` trong `layout.tsx`; hydration-safe inline script để prevent flash; đồng bộ token `dark:bg-zinc-*/dark:border-zinc-*/dark:text-zinc-*` trên tất cả components | `layout.tsx`, `globals.css`, `KanbanBoard.tsx`, `IssueCard.tsx`, `IssueDetailDrawer.tsx`, `CreateIssueModal.tsx`, `BacklogView.tsx`, `TimelineView.tsx`, `AutomationView.tsx`, `DashboardView.tsx`, `AdminView.tsx` |
+| **3** | **Glassmorphism rõ ràng hơn** | Glass effect mờ nhạt, không nhận ra; search bar thô; hover sidebar không có hiệu ứng gương | Thêm `.glass-surface` và `.glass-pill` vào `globals.css` với `backdrop-blur-md`, `bg-white/85`, specular highlight `inset 0 1px 1px rgba(255,255,255,0.7)`. Search bar: `backdrop-blur-md shadow-[inset_0_1px_1px_rgba(255,255,255,0.7)]`. Sidebar hover/active: glow `shadow-[inset_0_0_0_1px_rgba(255,255,255,0.15)]` | `globals.css`, `Navbar.tsx`, `Sidebar.tsx` |
+| **4** | **Sidebar auto-collapse + bỏ Sprint info** | Sidebar mở mặc định `w-60` ngay khi load; hiển thị "Sprint 1 — ĐANG CHẠY" gây rối | `page.tsx`: `useState(true)` → sidebar collapsed mặc định. `Sidebar.tsx`: `isExpanded = isPinned \|\| isHovered` → chỉ mở khi hover hoặc pin. Xóa Sprint info row không cần thiết | `page.tsx`, `Sidebar.tsx` |
+| **5** | **Spacing & Gap thống nhất 16px** | Các cột Kanban dùng `gap-2`, `gap-3`, `p-2.5`, `p-3` không đều nhau; cards có khoảng cách khác nhau | Chuẩn hóa toàn bộ: `gap-4` (`16px`), `p-4`, `space-y-4` trên Kanban canvas, cột, và card list | `KanbanBoard.tsx`, `IssueCard.tsx` |
+| **6** | **Border Radius đồng bộ 1 chuẩn chung** | Mix `rounded-lg`, `rounded-xl`, `rounded-2xl` lộn xộn không có hệ thống | Phân cấp cứng: **Containers/Islands/Modals** = `rounded-2xl`; **Cards/Inputs** = `rounded-xl`; **Buttons/Badges/Search** = `rounded-full` | Tất cả components |
+| **7** | **Task Detail — Wrap right panel vào Island** | Panel thuộc tính bên phải của `IssueDetailDrawer` chìm xuống background, không phân tầng | Bọc toàn bộ right panel vào Glass Island Card: `bg-white/90 dark:bg-zinc-900/90 backdrop-blur-xl rounded-2xl p-4 border border-white/80 dark:border-zinc-800 shadow-sm space-y-4` | `IssueDetailDrawer.tsx` |
+| **8** | **Modals & Drawers — Thống nhất style glass** | Modal dùng nền trắng thô; Drawer dùng màu khác; không có dark mode nhất quán | Chuẩn hóa tất cả Modal header = glass pill `rounded-t-2xl bg-gradient-to-r from-zinc-50/95 to-white/95 dark:from-zinc-900/95 dark:to-zinc-800/95 backdrop-blur-md`; overlay = `bg-[rgba(27,27,27,0.6)] backdrop-blur-xs`; body = dark tokens đồng bộ | `CreateIssueModal.tsx`, `IssueDetailDrawer.tsx` |
+
+### 36.2. Danh Sách Tệp Thay Đổi
+
+| Tệp | Thay Đổi Chính |
+| :--- | :--- |
+| `src/app/layout.tsx` | `suppressHydrationWarning`, dark mode hydration script, `dark:bg-[#09090B]` on body |
+| `src/app/globals.css` | `.glass-surface`, `.glass-pill`, dark scrollbar, body dark tokens |
+| `src/app/page.tsx` | `useState(true)` → sidebar auto-collapsed on init |
+| `src/components/jira/Navbar.tsx` | Bỏ "Space" badge; glass search bar; full dark mode dropdowns |
+| `src/components/jira/Sidebar.tsx` | Auto-collapse fix; bỏ Sprint row; glass hover/active; dark mode theme toggle |
+| `src/components/jira/KanbanBoard.tsx` | Island header; `gap-4`/`p-4`/`space-y-4` chuẩn; dark tokens columns |
+| `src/components/jira/IssueCard.tsx` | `rounded-xl`, `p-4`, dark mode tokens |
+| `src/components/jira/IssueDetailDrawer.tsx` | Right panel wrapped in Glass Island; full dark mode |
+| `src/components/jira/CreateIssueModal.tsx` | Glass header; `rounded-2xl`; dark mode inputs |
+| `src/components/jira/BacklogView.tsx` | Unified Glass Island header |
+| `src/components/jira/TimelineView.tsx` | Unified Glass Island header |
+| `src/components/jira/AutomationView.tsx` | Unified Glass Island header |
+| `src/components/jira/DashboardView.tsx` | Unified Glass Island header |
+| `src/components/jira/AdminView.tsx` | Unified Glass Island header |
+| `DESIGN.md` | Cập nhật Section 5: 16px spacing, radius hierarchy, glassmorphic tokens |
+
+### 36.3. Quy Tắc Bắt Buộc Cho Các Tính Năng Mới (Enforcement Rules)
+
+> [!IMPORTANT]
+> Mọi component mới được thêm vào hệ thống **bắt buộc** tuân thủ:
+> 1. **Dark mode**: Luôn thêm `dark:` token song song với light token.
+> 2. **Spacing**: Dùng `p-4` / `gap-4` / `space-y-4` làm mặc định, không dùng `p-2`, `p-3`, `gap-2`, `gap-3`.
+> 3. **Radius**: Containers/Islands → `rounded-2xl`; Cards/Inputs → `rounded-xl`; Buttons/Pills/Badges → `rounded-full`.
+> 4. **Glass surface**: Island headers dùng `.glass-surface` hoặc `bg-white/85 dark:bg-zinc-900/85 backdrop-blur-md`.
+> 5. **Modals**: Overlay `bg-[rgba(27,27,27,0.6)] backdrop-blur-xs z-[80]`; hỗ trợ `Escape` dismiss và backdrop click.
+> 6. **Z-index**: Navbar `z-30` → Drawers `z-[70]` → Modals `z-[80]` → CommandPalette `z-[9990]` → Toast `z-[9999]`.
+
+
+---
+
+## 37. Tối Ưu Toàn Diện Lần 3: Đồng Bộ Dark Mode Tuyệt Đối, Solid Fill Sidebar, Triệt Tiêu Lẹm Header Kanban, Bo Góc Chuẩn Cho Timeline Table & Loại Bỏ Thuật Ngữ "Jira"
+
+> **Thời điểm**: 2026-11-15 | **Trạng thái**: ✅ Hoàn thành | **TypeScript**: ✅ 0 errors
+
+### 37.1. Bảng Chi Tiết 10 Hạng Mục Xử Lý
+
+| # | Hạng Mục Yêu Cầu | Nguyên Nhân Gốc | Giải Pháp Đã Triển Khai | Tệp Nguồn |
+| :- | :--- | :--- | :--- | :--- |
+| **1** | **Tối ưu Dark Mode toàn diện, không sót Light Mode** | `KanbanBoard` canvas, các view `Timeline`, `Backlog`, `Dashboard`, `Admin`, `IssueDetailDrawer` còn sót các thẻ `bg-white`, `text-gray-900`, thiếu class `dark:` dẫn đến tương phản kém | Bổ sung triệt để các token `dark:bg-zinc-900`, `dark:border-zinc-800`, `dark:text-zinc-100`, `dark:bg-[#09090B]` trên 100% components; rà soát không để lọt thẻ trắng thô trong dark mode | `KanbanBoard.tsx`, `TimelineView.tsx`, `BacklogView.tsx`, `DashboardView.tsx`, `AdminView.tsx`, `IssueDetailDrawer.tsx` |
+| **2** | **Sidebar không hiện mã dự án (Mã dự án: HCC/JIRA)** | Trường thông tin mã dự án không cần thiết, tự sinh làm rối mắt và chiếm dụng không gian | Xóa bỏ triệt để dòng `Mã dự án: ...`; Header Sidebar chỉ còn tên dự án và avatar khối gradient đỏ Viettel `TT` | `Sidebar.tsx` |
+| **3** | **Đồng bộ gap 16px trong Kanban & Sửa lỗi hover task bị lẹm header** | Khoảng cách cột dùng `space-x-4` không chuẩn; danh sách card dùng `pt-0` hoặc `pt-3`; thẻ `IssueCard` có hiệu ứng `hover:-translate-y-0.5` đẩy thẻ vọt lên đè lẹm vào Column Header | Chuẩn hóa toàn bộ: container `gap-4`, header cột sticky có `border-b border-[#E5E7EB] dark:border-zinc-800`, card list `pt-4 space-y-4`. Trong `IssueCard.tsx`, bỏ `hover:-translate-y` và thay bằng `hover:ring-1 hover:ring-[#EE0033]/30 hover:shadow-md` | `KanbanBoard.tsx`, `IssueCard.tsx` |
+| **4** | **Sidebar chọn icon đặc (Solid Fill Icons)** | Icon outline lucide mảnh mai, thiếu điểm nhấn thị giác so với chuẩn Tammi OA / iOS | Chuyển toàn bộ icon điều hướng (`LayoutDashboard`, `ClipboardList`, `GitBranch`, `BarChart3`, `Zap`, `Users`) sang style Solid Fill với `fill-current`, màu đỏ Viettel khi active và xám khi inactive | `Sidebar.tsx` |
+| **5** | **Đồng bộ spacing tất cả components về 16px** | Màn hình Timeline, Backlog, Dashboard dùng padding không đều (`p-3 sm:p-6`) | Thống nhất tuyệt đối `p-4`, `gap-4`, `space-y-4` trên toàn bộ 6 phân hệ | `KanbanBoard.tsx`, `BacklogView.tsx`, `TimelineView.tsx`, `DashboardView.tsx`, `AdminView.tsx`, `IssueDetailDrawer.tsx` |
+| **6** | **Bo góc chuẩn cho Bảng Lộ Trình (Timeline) & Bảng khác** | Khung bảng Timeline bị tràn viền, góc trên bên trái vuông sắc nhọn (`rounded-none`) | Đóng gói toàn bộ bảng Timeline và bảng Admin trong Container Đảo nổi bo góc lớn `rounded-2xl border border-[#E5E7EB] dark:border-zinc-800 shadow-xs m-4 mt-0` | `TimelineView.tsx`, `AdminView.tsx` |
+| **7** | **Chuẩn hóa kích thước Đảo trong Task Detail** | Hộp "Gợi Ý Phân Phối" bị ép chặt trong cột 320px, nút "Phân phối ngay" bị tràn hoặc cấn mép; viền nested card bị dày | Mở rộng cột phải lên `w-84` (336px); tái cấu trúc hộp "Gợi Ý Phân Phối" gọn gàng; đồng bộ padding `p-4 rounded-2xl` cho Đảo thuộc tính | `IssueDetailDrawer.tsx` |
+| **8** | **Header Bảng Công Việc bỏ nhãn Sprint 01 bị lặp** | Nhãn ngày tháng Sprint xuất hiện cả ở tiêu đề lẫn bộ lọc dropdown | Bỏ hoàn toàn badge Sprint cạnh tiêu đề `Bảng Công Việc` theo đúng nguyên tắc MICI/MECE | `KanbanBoard.tsx` |
+| **9** | **Thanh Search Auto-layout cân đối giữa & Stroke viền mảnh** | Thanh search bị lệch trái hoặc quá to, viền mờ khó định vị | Đặt thanh search trong container `flex-1 min-w-0 flex justify-center`, tối đa `max-w-lg`, bổ sung viền stroke mảnh `border border-[#D7D7D7]/80 dark:border-zinc-700/80` nhận diện rõ | `Navbar.tsx` |
+| **10** | **Xóa bỏ triệt để từ khóa "Jira" khỏi toàn bộ giao diện** | Vẫn còn xuất hiện "Jira Shortcuts", "Jira Rich-Text" trong modal và editor | Thay thế 100% bằng "Phím Tắt Hệ Thống", "Rich-Text Editor", loại bỏ mọi tham chiếu Jira khỏi text người dùng nhìn thấy | `ShortcutsModal.tsx`, `CommandPalette.tsx`, `TiptapEditor.tsx`, `globals.css` |
+
+---
+
+## 38. Tối Ưu Toàn Diện Lần 4: Đăng Nhập Glassmorphism Tammi OA, Đồng Bộ Dark Mode Toàn Bộ Modals & Biểu Đồ Dashboard, Khắc Phục Bảng Kanban Scroll Toàn Trang
+
+> **Thời điểm**: 2026-11-15 | **Trạng thái**: ✅ Hoàn thành | **TypeScript**: ✅ 0 errors
+
+### 38.1. Bảng Chi Tiết 7 Hạng Mục Yêu Cầu
+
+| # | Hạng Mục | Nguyên Nhân & Vấn Đề | Giải Pháp Triển Khai | Tệp Nguồn |
+| :- | :--- | :--- | :--- | :--- |
+| **1** | **Chi tiết Task: Cột thuộc tính phẳng, không lồng hộp đôi** | Cột phải của `IssueDetailDrawer` bị bọc trong card đảo thừa thãi làm teo nhỏ nội dung và vỡ giao diện "Gợi ý phân phối" | Loại bỏ card lồng đôi; chuyển sang thanh sidebar tích hợp phẳng `bg-slate-50/70 dark:bg-zinc-900/60`, mở rộng `w-80 lg:w-88`, spacing chuẩn `space-y-4` | `IssueDetailDrawer.tsx` |
+| **2** | **Kanban: Bỏ scroll nội bộ cột, cuộn toàn trang, ghim header cột** | Từng cột có thanh scroll riêng gây bất tiện khi xem nhiều task; header cột bị trôi khi cuộn trang | Bỏ `overflow-y-auto max-h-[calc(100vh-200px)]` trong từng cột, để cột co giãn tự nhiên; ghim header cột `sticky top-0 z-10`; bộ lọc thêm viền stroke rõ ràng `border-slate-200 dark:border-zinc-600` | `KanbanBoard.tsx` |
+| **3** | **Đồng bộ Dark Mode 100% cho toàn bộ Modals & Popups** | Các modal `WorkflowSettingsModal`, `ProjectMembersModal`, `CreateAutomationModal`, `AdminView` còn dùng nền trắng và input sáng màu trong dark mode | Đồng bộ toàn bộ modal container: `bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200 dark:border-zinc-800`; input/select: `bg-[#FAFAFA] dark:bg-zinc-800 border-slate-300 dark:border-zinc-700 rounded-xl` | `WorkflowSettingsModal.tsx`, `ProjectMembersModal.tsx`, `CreateIssueModal.tsx`, `AdminView.tsx` |
+| **4** | **Dashboard: Biểu đồ Dark Mode + Bo góc `rounded-2xl`** | Các biểu đồ CFD, Burndown, Burnup, Velocity, Workload có nền trắng thô, tooltip trắng chói mắt trong dark mode | Đóng gói 5 container biểu đồ trong `bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200 dark:border-zinc-800`; style Tooltip sang dark glass `rgba(24,24,27,0.95)`; khoảng cách hàng chuẩn `gap-4` (16px) | `DashboardView.tsx` |
+| **5** | **Đồng bộ khoảng cách 16px (1rem) toàn hệ thống** | Các view còn xen kẽ gap 6px, 12px, 24px làm giao diện không đồng nhất | Chuẩn hóa mọi khoảng cách: `p-4`, `gap-4`, `space-y-4` (16px) cho container, bảng biểu, danh sách task | `DashboardView.tsx`, `KanbanBoard.tsx`, `BacklogView.tsx` |
+| **6** | **Mặc định Dark/Light Mode theo thời gian tối/sáng & thiết bị** | Cần tự động chuyển giao diện theo chu kỳ ngày/đêm trên thiết bị | Script nhận diện: nếu chưa có lưu trữ thủ công, tự động bật Dark mode khi máy đang ở chế độ tối (`prefers-color-scheme: dark`) HOẶC theo thời gian thiết bị (từ 18h tối đến 6h sáng) | `layout.tsx` |
+| **7** | **Thiết kế lại Màn hình Đăng nhập (LoginModal) theo style Tammi OA** | Giao diện đăng nhập cũ là modal card phẳng đơn giản | Nâng cấp giao diện Tammi OA: backdrop blur `bg-slate-900/60 backdrop-blur-md`, card `rounded-3xl bg-white/95 dark:bg-zinc-900/95 backdrop-blur-2xl`, input dạng viên nang `rounded-2xl pl-10`, nút CTA đỏ Viettel `#EE0033` bo tròn `rounded-full`, giữ nguyên xác thực 2FA & Google | `LoginModal.tsx` |
+
+### 38.2. Tiêu Chuẩn Thiết Kế Bắt Buộc (Enforcement Guidelines)
+- **Primary Brand Color**: Viettel Red `#EE0033` (Hover: `#D6002E`, Active: `#BD0029`).
+- **Standard Spacing**: Luôn dùng `16px` (`gap-4`, `p-4`, `space-y-4`).
+- **Standard Border Radius**:
+  - Modal / Island Containers: `rounded-2xl` (LoginModal `rounded-3xl`).
+  - Inputs / Selects / Dropdowns: `rounded-xl` (LoginModal inputs `rounded-2xl`).
+  - Buttons / Filter Pills / Badges: `rounded-full`.
+- **CSS Stacking Context**:
+  - Navbar: `z-30`
+  - Drawers: `z-[70]`
+  - Modals / Dialogs: `z-[80]`
+  - CommandPalette: `z-[9990]`
+  - Toast Notifications: `z-[9999]`
+
+---
+
+## 39. Nâng Cấp Trải Nghiệm Xác Thực: Lựa Chọn Tài Khoản Google & Minh Họa Isometric Background Hồng Đỏ Chuẩn TamTask
+
+> **Thời điểm**: 2026-11-15 | **Trạng thái**: ✅ Hoàn thành | **TypeScript**: ✅ 0 errors
+
+### 39.1. Chi Tiết Các Hạng Mục Xử Lý
+
+| # | Hạng Mục | Nguyên Nhân & Thực Trạng | Giải Pháp Đã Triển Khai | Tệp Nguồn |
+| :- | :--- | :--- | :--- | :--- |
+| **1** | **Bắt buộc hiển thị bộ chọn tài khoản Google (Select Account Prompt)** | Khi bấm "Đăng nhập với Google", Google OAuth tự động đăng nhập vào tài khoản mặc định đang lưu phiên mà không cho người dùng chọn tài khoản khác | Thêm cấu hình `authorization: { params: { prompt: "select_account", access_type: "offline", response_type: "code" } }` vào `GoogleProvider` trong `auth.ts`, đồng thời bổ sung `{ prompt: "select_account" }` vào các lệnh gọi `signIn("google", ...)` trên client | `src/lib/auth.ts`, `AuthLandingScreen.tsx`, `LoginModal.tsx` |
+| **2** | **Minh họa Background Isometric chuẩn Jira với Tone Hồng Đỏ TamTask** | Màn hình đăng nhập và màn hình chờ phê duyệt nền trắng đơn điệu, chưa có nhận diện đồ họa đặc trưng phong cách Jira | Xây dựng component đồ họa vector `AuthBackgroundIllustration.tsx`: góc trái dưới là Đảo Kỹ thuật Isometric (Kanban, server LED, kỹ sư Viettel red); góc phải dưới là Đảo Nghiệm thu & Phân tích (Tài liệu đặc tả, kính lúp 3D bóng bẩy, biểu đồ velocity, bút chì); phủ tone màu Hồng đỏ `#EE0033`, `#C7002B`, `#FDA4AF`, `#FFF1F2` | `AuthBackgroundIllustration.tsx`, `AuthLandingScreen.tsx`, `PendingApprovalScreen.tsx` |
+| **3** | **Bảo toàn 100% chức năng đăng nhập & Màn hình chờ phê duyệt** | Cần đảm bảo hình ảnh minh họa không làm xê dịch hoặc ảnh hưởng đến logic form | Giữ nguyên 100% luồng xác thực: Đăng nhập mật khẩu, 2FA OTP qua Email, đếm ngược 5 phút, gửi lại mã, đăng nhập Google, cùng màn hình `PendingApprovalScreen` (Kiểm tra lại trạng thái, Đăng xuất) | `AuthLandingScreen.tsx`, `PendingApprovalScreen.tsx` |
+
+
+---
+
+## 40. Tối Ưu Toàn Diện Lần 5: Đồng Bộ Triệt Để Dark Mode Toàn Diện, Motion Graphics Nền Đăng Nhập, Trục Gióng 16px Thẳng Hàng Logo & Sidebar
+
+> **Thời điểm**: 2026-11-15 | **Trạng thái**: ✅ Hoàn thành | **TypeScript**: ✅ 0 errors
+
+### 40.1. Chi Tiết 10 Hạng Mục Xử Lý
+
+| # | Hạng Mục Yêu Cầu | Nguyên Nhân & Thực Trạng | Giải Pháp Đã Triển Khai | Tệp Nguồn |
+| :- | :--- | :--- | :--- | :--- |
+| **1** | **Khắc phục màu Epic badge bị chìm trong Dark Mode** | Các mã màu hex tối của Epic khi render thẳng trên nền đen `zinc-900` của cột Kanban khiến chữ và viền bị chìm, khó đọc | Xây dựng helper `getLightenedColor` nâng luminance lên >= 115 khi ở Dark Mode, kết hợp CSS variable inline `dark:[color:var(--epic-c-dark)]`, `dark:[background-color:var(--epic-bg-dark)]`, `dark:[border-color:var(--epic-border-dark)]` | `IssueCard.tsx`, `BacklogView.tsx` |
+| **2** | **Đồng bộ triệt để Dark Mode cho Chi tiết Task (IssueDetailDrawer & Tiptap)** | Ô soạn thảo mô tả Tiptap bị lỗi chữ đen trên nền tối; các khu vực Subtasks, Attachments, Linked Issues, Comments, Lịch sử Activities chưa đồng bộ Dark Mode | Cập nhật triệt để TiptapEditor với typography dark mode (`dark:text-zinc-100`, headings, blockquote, code blocks); bọc toàn bộ form, dropzone tệp, danh sách comment và lịch sử thay đổi trong `dark:bg-zinc-850`, `dark:border-zinc-800`, `dark:text-zinc-100` | `IssueDetailDrawer.tsx`, `TiptapEditor.tsx` |
+| **3** | **Đồng bộ Dark Mode cho phân hệ Kế Hoạch Chu Kỳ (BacklogView)** | Badges độ ưu tiên (`getPriorityBadge`), nút `Đã đóng`, nút `Tạo Sprint`, nút `Hoàn thành Sprint`, icon sửa/xóa và các Modal kế hoạch chu kỳ chưa có dark mode | Thêm token dark mode cho Priority badge; đồng bộ toàn bộ giao diện 4 modals: `EditSprintModal.tsx`, `CreateSprintModal.tsx`, `ClosedSprintsModal.tsx`, `CompleteSprintModal.tsx` với chuẩn `dark:bg-zinc-900`, inputs `dark:bg-zinc-800` | `BacklogView.tsx`, `EditSprintModal.tsx`, `CreateSprintModal.tsx`, `ClosedSprintsModal.tsx`, `CompleteSprintModal.tsx` |
+| **4** | **Đồng bộ Dark Mode cho Quản Trị Người Dùng (AdminView)** | Select box vai trò hệ thống, huy hiệu trạng thái tài khoản, số lượng task phụ trách và nút Khóa/Mở khóa chưa đồng bộ nền tối | Cập nhật `select` với `dark:bg-zinc-800 dark:border-zinc-700 dark:text-zinc-100`, style badge trạng thái tương phản cao, nút thao tác chuẩn dark style | `AdminView.tsx` |
+| **5** | **Căn chỉnh logo TamTask thẳng hàng theo trục dọc với Sidebar collapsed** | Logo TamTask trên Navbar bị lệch sang phải so với icon `TT` khi thanh Sidebar thu gọn | Điều chỉnh lề trái Navbar sang `md:pl-4` để tâm và mép trái icon TT của Navbar và Sidebar thẳng hàng tuyệt đối (cùng cách mép 32px) | `Navbar.tsx`, `Sidebar.tsx` |
+| **6** | **Đồng bộ Dark Mode cho màn hình Loading & Đăng nhập** | Màn hình tải dữ liệu ban đầu (`authStatus === "loading"`) có nền trắng tinh gây chói khi máy ở chế độ tối | Cập nhật `page.tsx` sang nền `bg-[#F8F9FA] dark:bg-[#09090B]`, text `dark:text-zinc-100` | `src/app/page.tsx` |
+| **7** | **Đồng bộ khoảng cách 16px và mép trên Header thẳng hàng Sidebar** | Khoảng cách từ Sidebar tới View và mép trên của các View chưa thẳng hàng với mép trên của Sidebar | Chuẩn hóa Sidebar lề trên `pt-4 pb-4 pl-4 pr-0` (top = 16px, left = 16px), kết hợp khoảng cách View `pl-4` và `pt-4` (16px), tạo nên đường gióng thẳng hàng tuyệt đối | `Sidebar.tsx`, `KanbanBoard.tsx`, `BacklogView.tsx`, `TimelineView.tsx`, `DashboardView.tsx` |
+| **8** | **Màn hình đăng nhập sửa wording & loại bỏ header bar thừa** | Dòng chữ "Đăng nhập để tiếp tục" và thanh header phía trên làm phân tán sự chú ý | Loại bỏ hoàn toàn thanh `<header>` thừa; cập nhật wording card đăng nhập thành *"Hệ thống quản lý công việc và dự án"* | `AuthLandingScreen.tsx` |
+| **9** | **Motion Graphics nghệ thuật cho Background đăng nhập tone Hồng Đỏ** | Minh họa background cần chuyển động mượt mà, tạo cảm giác cao cấp mà không gây chói mắt ở Dark Mode | Bổ sung hiệu ứng CSS Keyframes Motion Graphics (`anim-float-1`, `anim-float-2`, `anim-float-3`, floating isometric 3D cubes, glowing beacons); ở Dark Mode áp dụng `dark:opacity-30`, `dark:from-rose-950/20` để bảo vệ thị giác | `AuthBackgroundIllustration.tsx` |
+| **10** | **Nút chuyển đổi nhanh Dark/Light Mode trên màn hình Auth & Chờ duyệt** | Chưa có cách chuyển đổi giao diện sáng/tối thủ công tại màn hình đăng nhập và màn hình chờ duyệt | Bổ sung nút bấm kính mờ (Sun/Moon icon) ở góc trên bên phải màn hình `AuthLandingScreen.tsx` và `PendingApprovalScreen.tsx`, liên kết trực tiếp với theme hệ thống | `AuthLandingScreen.tsx`, `PendingApprovalScreen.tsx` |
+
+## 41. Tối Ưu Toàn Diện Lần 6: Hoàn Thiện Dark Mode, Logo 3-Char, Auth UX & Motion Clipping
+
+> **Thời điểm**: 2026-11-15 | **Trạng thái**: ✅ Hoàn thành | **TypeScript**: ✅ 0 errors
+
+### 41.1. Chi Tiết Hạng Mục Xử Lý
+
+| # | Hạng Mục Yêu Cầu | Nguyên Nhân & Thực Trạng | Giải Pháp Đã Triển Khai | Tệp Nguồn |
+| :- | :--- | :--- | :--- | :--- |
+| **1** | **Dark Mode cho Quick-Add Kanban** | Container `bg-white`, textarea `text-[#111827]`, nút "Hủy" và "Tạo nhanh công việc" chưa có dark mode | Thêm `dark:bg-zinc-800/90`, `dark:border-[#EE0033]/30` cho container; textarea: `dark:text-zinc-100 dark:bg-zinc-800 dark:border-zinc-700 dark:placeholder:text-zinc-500`; nút Hủy: `dark:text-zinc-500 dark:hover:text-zinc-100`; nút mở form: `dark:text-zinc-400 dark:hover:text-zinc-100 dark:hover:bg-zinc-700/60 dark:hover:border-zinc-600` | `KanbanBoard.tsx` |
+| **2** | **Project logo 3 ký tự (VD: HCC) tràn vòng tròn** | Sidebar dùng `slice(0,2)` cho cả trạng thái mở lẫn thu gọn, chữ size `text-xs` / `text-[10px]` quá to cho 3 ký tự | Đổi `slice(0,2)` → `slice(0,3)` cả 2 nơi; giảm font size: collapsed `text-[9px] tracking-tight`, expanded `text-[9px] tracking-tight` | `Sidebar.tsx` |
+| **3** | **Navbar project bubble 3 ký tự** | Bubble nhỏ `w-5 h-5 text-[10px]` không đủ chỗ cho 3 ký tự; dropdown list bubble cũng vậy | Navbar header bubble: `text-[10px]` → `text-[8px]`; dropdown bubble: `text-xs` → `text-[9px] tracking-tight` | `Navbar.tsx` |
+| **4** | **Xóa footer bar trên màn đăng nhập** | Footer "TamTask Platform © 2026" chiếm 48px, làm loãng trọng tâm đăng nhập, cắt mất motion graphics | Xóa hoàn toàn `<footer>` element (5 dòng) | `AuthLandingScreen.tsx` |
+| **5** | **Google login ưu tiên trước email/password** | Thứ tự cũ: Email → Password → Tiếp tục → Divider → Google; UX không tối ưu khi Google là primary | Đảo cấu trúc: Google button (primary) → Divider "Hoặc tiếp tục với email" → Email form → Password form → Tiếp tục | `AuthLandingScreen.tsx` |
+| **6** | **Motion graphics bị cắt khi float lên** | Parent div dùng `overflow-hidden`; illustration dùng `absolute -bottom-4` nên khi animate float lên 12–16px bị clip tại đáy và góc | Thêm `paddingTop: '20px'` buffer vào parent để overflow upward; đổi `-bottom-4` → `bottom-0` cho cả 2 illustration left và right | `AuthBackgroundIllustration.tsx` |
+
+### 41.2. Logic Fixes (Session trước)
+
+| # | Hạng Mục | Giải Pháp | Tệp |
+| :- | :--- | :--- | :--- |
+| **L1** | **Cho phép xóa tệp đính kèm** | `DELETE /api/upload?id=...` API; `handleRemoveAttachment` async + toast; PATCH body sync `attachments[]` | `IssueDetailDrawer.tsx`, `api/upload/route.ts`, `api/issues/[id]/route.ts` |
+| **L2** | **Tối ưu performance seed** | Module-level flag `isSeededChecked` - chỉ chạy 1 lần per process | `src/lib/seed.ts` |
+| **L3** | **Task mới không có story points mặc định** | Initial state `""` thay vì `"3"`; submit: `parseInt(storyPoints) || undefined` | `CreateIssueModal.tsx` |
+| **L4** | **Giới hạn kích thước tệp 15MB với toast** | Client-side 15MB check → `toast.error()` nếu vượt | `IssueDetailDrawer.tsx` |
+
+### 41.3. Dark Mode Checklist Cập Nhật
+
+Các component đã được đồng bộ Dark Mode hoàn toàn:
+- ✅ `KanbanBoard.tsx` - Quick-create panel
+- ✅ `CreateIssueModal.tsx` - Title input, AI button, warning card
+- ✅ `EpicSettingsModal.tsx` - Toàn bộ
+- ✅ `ClosedSprintsModal.tsx` - Sprint cards, issue rows
+- ✅ `IssueDetailDrawer.tsx` - Title input, right panel stretch
+- ✅ `AuthLandingScreen.tsx` - Toàn bộ form, Google button
+- ✅ `AuthBackgroundIllustration.tsx` - Motion clip fix
+
+### 41.4. Quy Tắc Dark Mode Bắt Buộc
+
+> **QUAN TRỌNG**: Mọi feature, component, page, modal, drawer mới tạo PHẢI có đủ cả dark AND light mode. Không có ngoại lệ.
+
+```css
+/* Input chuẩn */
+bg-slate-50 dark:bg-zinc-800/80 border-slate-200 dark:border-zinc-700
+text-slate-900 dark:text-zinc-100 placeholder:text-slate-400 dark:placeholder:text-zinc-500
+
+/* Container panel */
+bg-white dark:bg-zinc-900 border-slate-200 dark:border-zinc-800
+
+/* Quick-add panel (Kanban inline) */
+bg-white dark:bg-zinc-800/90 border-[#EE0033]/50 dark:border-[#EE0033]/30
+```
+
+
+
+## 42. Chương 42: Tối Ưu Hóa Giao Diện & Trải Nghiệm Người Dùng (UI/UX Refining & Performance SWR)
+
+> **Thời điểm**: 2026-11-16 | **Trạng thái**: ✅ Hoàn thành | **TypeScript**: ✅ 0 errors | **Build**: ✅ Exit code 0
+
+### 42.1. Chi Tiết Các Hạng Mục Nâng Cấp
+
+| # | Hạng Mục Yêu Cầu | Nguyên Nhân Gốc | Giải Pháp Triển Khai | Tệp Nguồn |
+| :- | :--- | :--- | :--- | :--- |
+| **1** | **Chi tiết task: thanh cuộn duy nhất & padding 16px** | Drawer cũ có 2 thanh scroll riêng biệt; cột phải bị cụt khi cuộn; thiếu padding đáy 16px | Gom toàn bộ nội dung 2 cột vào duy nhất một thanh cuộn dọc `overflow-y-auto`; bọc trong flex container `min-h-full items-stretch` để cột phải luôn kéo dài 100% bằng cột trái; thêm `pb-4` (16px) dưới đáy | `IssueDetailDrawer.tsx` |
+| **2** | **Xếp thẳng logo TT và logo sidebar** | `Navbar` trước đó có padding khiến mép trái logo `TT` lệch khỏi mép của sidebar | Chuẩn hóa lề `px-4` đồng bộ; mép trái của logo TT trên Header và cạnh của thanh bên Sidebar căn chuẩn 16px | `Navbar.tsx`, `Sidebar.tsx` |
+| **3** | **Thanh tìm kiếm căn đều 2 bên 16px** | Thanh search bị giới hạn `max-w-sm lg:max-w-lg` tạo khoảng trống bất đối xứng | Bỏ toàn bộ max-width, cho `w-full` bên trong `flex-1 px-4`, căn đều chính xác 16px tới cụm logo trái và cụm nút thao tác phải | `Navbar.tsx` |
+| **4** | **Subtask: Xóa & Xem/Sửa mô tả chi tiết** | Subtask cũ chỉ là checklist checkbox đơn thuần, không có mô tả riêng và không cho xóa | Thêm cột `description` vào model `Subtask` trong Prisma & Postgres Supabase; thêm nút xóa subtask; click mở rộng mô tả subtask có textarea và nút Lưu độc lập | `prisma/schema.prisma`, `types/jira.ts`, `IssueDetailDrawer.tsx`, `api/issues/[id]/route.ts` |
+| **5** | **Đổi tên "Chuẩn hóa mô tả" & dọn dẹp Tiptap** | Nút "Sinh tiêu chí nghiệm thu BDD" nằm rải rác ở cả thanh toolbar Tiptap và form chi tiết | Đổi tên nút thành "Chuẩn hóa mô tả"; dời nút lên ngay phía trên khung soạn thảo với style tím AI; gỡ bỏ nút trùng lặp trong thanh công cụ Tiptap | `IssueDetailDrawer.tsx`, `TiptapEditor.tsx` |
+| **6** | **Motion Graphics màn đăng nhập: SPRINT 1 & VELOCITY** | CSS `transform: translateY()` áp trực tiếp lên `<g transform="translate(...)">` ghi đè tọa độ SVG gốc khiến pill nhảy về x=0 và bị lẹm | Thêm `transform-box: fill-box; transform-origin: center;`; lồng thẻ `<g>` vị trí ra ngoài và `<g className="anim-float-*">` bên trong; chỉnh tọa độ an toàn | `AuthBackgroundIllustration.tsx` |
+| **7** | **Tối ưu tốc độ tải sau khi đăng nhập (SWR Engine)** | Khi đăng nhập, trang bị chặn đứng bởi màn hình xoay tròn chờ 5 API song song từ Supabase | Triển khai cơ chế **SWR (Stale-While-Revalidate)** với `localStorage` cache: hiển thị giao diện ngay lập tức trong **0ms**, đồng bộ dữ liệu ngầm không gián đoạn; đồng bộ Dark Mode cho khung Skeleton | `page.tsx`, `KanbanBoard.tsx` |
+| **8** | **Admin được phép xóa nhân sự** | Trang Quản Trị Người Dùng thiếu thao tác xóa tài khoản thừa/sai | Bổ sung API `DELETE /api/users/[id]` (chặn xóa chính mình, cascade hủy phân công và membership); modal xác nhận xóa an toàn trên UI | `api/users/[id]/route.ts`, `AdminView.tsx`, `page.tsx` |
+| **9** | **Thông báo lỗi tạo nhân sự bằng Tiếng Việt rõ ràng** | Khi tạo user trùng email hoặc thiếu trường chỉ trả về mã lỗi 400 chung chung | Bổ sung validation chi tiết: báo rõ email trùng lặp, họ tên trống, mật khẩu ngắn kèm hộp cảnh báo trực quan | `api/users/route.ts`, `AdminView.tsx` |
+| **10** | **Đăng nhập bằng email: lấy avatar mới nhất** | JWT callback của NextAuth lưu ảnh tĩnh, không cập nhật khi đổi avatar | Callback `jwt` và `session` luôn truy vấn trực tiếp từ cơ sở dữ liệu để lấy ảnh avatar mới nhất của người dùng | `src/lib/auth.ts` |
+| **11** | **Tối ưu logo 3 ký tự (HCC)** | Chữ 3 ký tự trong avatar tròn bị tràn mép | Áp dụng cỡ chữ `text-[6.5px] tracking-tighter` cho circle 20px và `text-[8.5px]` cho avatar 32px | `Navbar.tsx`, `Sidebar.tsx` |
+| **12** | **Xóa bỏ footer màn Chờ Duyệt** | Thanh footer chiếm diện tích và che đồ họa | Gỡ bỏ toàn bộ footer ở chân trang màn hình chờ duyệt | `PendingApprovalScreen.tsx` |
+| **13** | **Đồng bộ Dark Mode Tạo Mới Dự Án** | Modal Tạo Dự Án có nền trắng trong Dark Mode | Đồng bộ 100% dark mode cho `CreateProjectModal.tsx` | `CreateProjectModal.tsx` |
+
+## 43. Chương 43: Chuẩn Hóa Hoàn Thiện Tương Tác Kanban, Drawer Chi Tiết Task & Tối Ưu Nhận Diện Thương Hiệu
+
+> **Thời điểm**: 2026-11-16 | **Trạng thái**: ✅ Hoàn thành | **TypeScript**: ✅ 0 errors | **Build**: ✅ Exit code 0
+
+### 43.1. Chi Tiết Các Hạng Mục Xử Lý
+
+| # | Hạng Mục Yêu Cầu | Thực Trạng & Nguyên Nhân | Giải Pháp Triển Khai | Tệp Nguồn |
+| :- | :--- | :--- | :--- | :--- |
+| **1** | **Chi tiết task: Gap 16px giữa các trường & chiều cao auto dãn cân đối** | Cột phải dùng `justify-between` khiến khoảng cách giữa các trường bị giãn không đều khi cột trái dài; nút AI có tên cũ | Chuyển sang `flex flex-col justify-start space-y-4 h-auto`, đảm bảo giữ khoảng cách cố định 16px (`space-y-4`) giữa mọi trường; chiều cao dãn tự nhiên cân đối; đổi tên nút AI thành **"Gợi ý thông minh"** và hiển thị duy nhất 1 nút phía trên mô tả | `IssueDetailDrawer.tsx` |
+| **2** | **Subtask: Cho phép chỉnh tên subtask & Bỏ dòng "Thuộc công việc"** | Subtask chỉ cho xem/sửa mô tả, không cho sửa tên trực tiếp; có dòng text "Thuộc công việc: [...]" gây rối mắt | Bỏ hoàn toàn dòng "Thuộc công việc: [...]"; thêm ô input chỉnh sửa trực tiếp tên subtask; hàm `saveSubtask` lưu đồng thời cả `title` và `description` vào DB | `IssueDetailDrawer.tsx` |
+| **3** | **Header pop-up Tạo Dự Án Mới chuẩn Dark Mode** | Class `dark:bg-zinc-850/60` không tồn tại trong Tailwind CSS, khiến trình duyệt rơi về màu nền sáng `bg-slate-50/80` | Sửa thành `dark:bg-zinc-900 border-b border-slate-200 dark:border-zinc-800`, đảm bảo nền tối đồng nhất 100% không còn bị loang sáng | `CreateProjectModal.tsx` |
+| **4** | **Kanban: Thanh scroll ngang cố định đáy màn hình & Ghim header trạng thái khi cuộn dọc** | Thanh cuộn ngang nằm cục bộ trong từng swimlane; cuộn dọc làm trôi mất tiêu đề cột | Chuyển thanh cuộn ngang `overflow-x-auto` ra container bảng gốc `flex-1`, cố định ở đáy màn hình; các cột đặt `min-w-max`; tiêu đề cột ghim chặt với `sticky top-0 z-10 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md` | `KanbanBoard.tsx` |
+| **5** | **Đảo vị trí Dark Mode Switch lên Header & Phím tắt (?) xuống chân Sidebar** | Switch Dark Mode trước đó nằm ở chân Sidebar; icon hỏi chấm (?) phím tắt nằm trên Header | Chuyển nút toggle Dark/Light mode (`Sun`/`Moon`) lên Header Navbar; chuyển icon `?` (Phím tắt hệ thống - Shortcuts modal) xuống góc dưới cùng của Sidebar menu | `Navbar.tsx`, `Sidebar.tsx`, `page.tsx` |
+| **6** | **Motion Graphics: Nâng vị trí SPRINT 1, Kính lúp & VELOCITY; Phát sáng đa giác Dark Mode** | Các khối SPRINT 1, VELOCITY che Kanban board và hình người bên dưới; các khối hình học bị chìm trong Dark Mode | Dời SPRINT 1 lên `translate(130, 45)`, Kính lúp lên `translate(265, 30)`, thẻ VELOCITY lên `translate(255, 125)` thoát hoàn toàn khỏi object bên dưới; thêm hiệu ứng phát sáng neon `:global(.dark) .neon-poly-glow` đa giác khối cầu và hình học sống động | `AuthBackgroundIllustration.tsx` |
+
+
+## 44. Chương 44: Subtask Max-Width, Kanban Header Scroll Fade & Drawer Layout Fix
+
+> **Thời điểm**: 2026-11-16 | **Trạng thái**: ✅ Hoàn thành | **TypeScript**: ✅ 0 errors | **Build**: ✅ Exit code 0
+
+| # | Hạng Mục Yêu Cầu | Thực Trạng & Nguyên Nhân | Giải Pháp Triển Khai | Tệp Nguồn |
+| :- | :--- | :--- | :--- | :--- |
+| **1** | **Subtask max-width chống vỡ giao diện** | Tên subtask quá dài làm tràn và đẩy vỡ layout các nút hành động bên phải | Thêm `overflow-hidden`, `flex-1 min-w-0`, `truncate break-all max-w-full` vào title span | `IssueDetailDrawer.tsx` |
+| **2** | **Kanban: Header filter mờ dần khi cuộn xuống** | Header bộ lọc che khuất các card công việc khi cuộn sâu xuống dưới | Thêm state `headerOpacity` + `handleBoardScroll` (opacity 1→0 khi scrollTop 10→130px), transition mượt mà | `KanbanBoard.tsx` |
+| **3** | **Chi tiết task: Cột phải mở rộng cân đối & padding 16px đáy** | Cột phải thông tin task bị cụt, không giãn hết chiều dài khi cuộn chung | Đổi wrapper sang `md:items-start`, bỏ `h-auto` giới hạn, đặt padding bottom `pb-16` chuẩn 16px | `IssueDetailDrawer.tsx` |
+
+## 45. Chương 45: Tinh Chỉnh Motion Graphics Màn Đăng Nhập & Chấm Bi Nền Dark Mode
+
+> **Thời điểm**: 2026-11-16 | **Trạng thái**: ✅ Hoàn thành | **TypeScript**: ✅ 0 errors | **Build**: ✅ Exit code 0 (Production Verified)
+
+| # | Hạng Mục Yêu Cầu | Thực Trạng & Nguyên Nhân | Giải Pháp Triển Khai | Tệp Nguồn |
+| :- | :--- | :--- | :--- | :--- |
+| **1** | **Dịch chuyển Kính Lúp Motion Graphics** | Kính lúp ở vị trí cũ che một phần tài liệu và nhân sự | Dời sang bên trái và lên trên: `translate(195, 10)`, hoàn toàn không che object nào | `AuthBackgroundIllustration.tsx` |
+| **2** | **Nâng thẻ Velocity lên trên** | Thẻ Velocity ở vị trí cũ gần sát khối phía dưới | Dời sang vị trí góc trên thông thoáng: `translate(390, 70)`, không dính đáy | `AuthBackgroundIllustration.tsx` |
+| **3** | **Bổ sung hiệu ứng chấm bi nhẹ nền Dark Mode** | Nền Dark Mode trước đó bị trống trải, độ mờ chấm bi quá thấp | Tăng `opacity-[0.30]` cho pattern dot matrix đỏ Viettel `tamtask-auth-dots`, kèm các chấm phát sáng điểm xuyết mờ ảo | `AuthBackgroundIllustration.tsx` |
+| **4** | **Kiểm thử Production Build** | Yêu cầu đảm bảo toàn bộ hệ thống sẵn sàng production | Đã chạy `npm run build` thành công xuất sắc: **Exit code 0**, 6/6 static routes tối ưu | Toàn bộ codebase |

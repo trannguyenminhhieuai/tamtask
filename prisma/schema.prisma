@@ -161,6 +161,7 @@ model IssueActivity {
 model Subtask {
   id          String   @id @default(uuid())
   title       String
+  description String?
   isCompleted Boolean  @default(false)
   issueId     String
   issue       Issue    @relation(fields: [issueId], references: [id], onDelete: Cascade)

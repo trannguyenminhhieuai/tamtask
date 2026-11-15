@@ -1,7 +1,17 @@
 import { prisma } from "./prisma";
 import bcrypt from "bcryptjs";
 
+let isSeededChecked = false;
+
 export async function ensureDefaultPasswords() {
+  // Chỉ kiểm tra và hash nếu thực sự có tài khoản chưa có password
+  const userWithoutPass = await prisma.user.findFirst({
+    where: { password: null },
+    select: { id: true },
+  });
+
+  if (!userWithoutPass) return;
+
   const defaultPasswordHash = await bcrypt.hash("TamTask@2026!", 10);
   await prisma.user.updateMany({
     where: { password: null },
@@ -14,12 +24,16 @@ export async function ensureDefaultPasswords() {
 }
 
 export async function seedDatabaseIfEmpty() {
+  if (isSeededChecked) return;
+
   const userCount = await prisma.user.count();
   if (userCount > 0) {
     await ensureDefaultPasswords();
+    isSeededChecked = true;
     return; // Already seeded
   }
 
+  isSeededChecked = true;
   console.log("Seeding initial Jira database...");
 
   const defaultPasswordHash = await bcrypt.hash("TamTask@2026!", 10);

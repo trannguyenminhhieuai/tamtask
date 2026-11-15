@@ -93,6 +93,23 @@ export const IssueCard: React.FC<IssueCardProps> = ({
 
   const totalLinks = (issue.sourceLinks?.length || 0) + (issue.targetLinks?.length || 0);
 
+  // Helper to make dark epic colors bright & readable in dark mode
+  const getLightenedColor = (hex: string, amount: number = 45) => {
+    try {
+      const cleanHex = hex.replace("#", "");
+      const num = parseInt(cleanHex.length === 3 ? cleanHex.split("").map((c) => c + c).join("") : cleanHex, 16);
+      let r = (num >> 16) + Math.round(255 * (amount / 100));
+      let g = ((num >> 8) & 0x00ff) + Math.round(255 * (amount / 100));
+      let b = (num & 0x0000ff) + Math.round(255 * (amount / 100));
+      r = Math.min(255, Math.max(0, r));
+      g = Math.min(255, Math.max(0, g));
+      b = Math.min(255, Math.max(0, b));
+      return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
+    } catch {
+      return hex;
+    }
+  };
+
   return (
     <div
       draggable={isDraggable}
@@ -100,21 +117,24 @@ export const IssueCard: React.FC<IssueCardProps> = ({
         if (isDraggable && onDragStart) onDragStart(e);
       }}
       onClick={onClick}
-      className={`bg-white p-3 rounded-lg border border-[#D7D7D7] shadow-xs transition-all duration-150 select-none group ${
+      className={`bg-white dark:bg-zinc-900 p-4 rounded-xl border border-[#D7D7D7] dark:border-zinc-800 shadow-xs transition-all duration-200 select-none group relative ${
         isDraggable
-          ? "cursor-grab active:cursor-grabbing hover:shadow-md hover:-translate-y-0.5 hover:border-[#EE0033]/40 active:scale-[0.98]"
-          : "cursor-pointer hover:border-[#EE0033]/40 hover:shadow-xs"
+          ? "cursor-grab active:cursor-grabbing hover:shadow-md hover:border-[#EE0033]/60 dark:hover:border-[#EE0033]/60 hover:ring-1 hover:ring-[#EE0033]/30 active:scale-[0.99]"
+          : "cursor-pointer hover:border-[#EE0033]/60 hover:shadow-xs"
       }`}
     >
       {/* Badges / Epic */}
-      <div className="mb-1.5 flex items-center flex-wrap gap-1.5">
+      <div className="mb-2 flex items-center flex-wrap gap-1.5">
         {issue.epic && (
           <span
-            className="text-[10px] font-semibold uppercase tracking-wider px-2.5 py-0.5 rounded-full"
+            className="text-[10px] font-semibold uppercase tracking-wider px-2.5 py-0.5 rounded-full border transition-colors [color:var(--epic-c)] [background-color:var(--epic-bg)] [border-color:var(--epic-border)] dark:[color:var(--epic-c-dark)] dark:[background-color:var(--epic-bg-dark)] dark:[border-color:var(--epic-border-dark)]"
             style={{
-              backgroundColor: `${issue.epic.color}15`,
-              color: issue.epic.color,
-              border: `1px solid ${issue.epic.color}40`,
+              ["--epic-c" as any]: issue.epic.color,
+              ["--epic-bg" as any]: `${issue.epic.color}15`,
+              ["--epic-border" as any]: `${issue.epic.color}40`,
+              ["--epic-c-dark" as any]: getLightenedColor(issue.epic.color, 50),
+              ["--epic-bg-dark" as any]: `${issue.epic.color}30`,
+              ["--epic-border-dark" as any]: `${issue.epic.color}70`,
             }}
           >
             {issue.epic.name}
@@ -123,17 +143,17 @@ export const IssueCard: React.FC<IssueCardProps> = ({
 
         {isBlocked && (
           <span
-            className="inline-flex items-center gap-1 text-[10px] font-medium text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200"
+            className="inline-flex items-center gap-1 text-[10px] font-medium text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 px-2.5 py-0.5 rounded-full border border-amber-200 dark:border-amber-800/60"
             title="Đang bị chặn bởi công việc chưa hoàn thành"
           >
-            <Lock className="w-2.5 h-2.5 text-amber-600" />
+            <Lock className="w-2.5 h-2.5 text-amber-600 dark:text-amber-400" />
             Bị chặn
           </span>
         )}
 
         {totalLinks > 0 && !isBlocked && (
           <span
-            className="inline-flex items-center gap-0.5 text-[10px] font-medium text-slate-500 bg-[#F8F8F8] px-2 py-0.5 rounded-full border border-[#D7D7D7]"
+            className="inline-flex items-center gap-0.5 text-[10px] font-medium text-slate-500 dark:text-zinc-400 bg-slate-50 dark:bg-zinc-800 px-2.5 py-0.5 rounded-full border border-slate-200 dark:border-zinc-700"
             title={`${totalLinks} liên kết`}
           >
             <Link2 className="w-2.5 h-2.5 text-slate-400" />
@@ -143,18 +163,18 @@ export const IssueCard: React.FC<IssueCardProps> = ({
       </div>
 
       {/* Title */}
-      <h4 className="text-xs font-medium text-[#111827] group-hover:text-[#EE0033] transition line-clamp-2 leading-relaxed">
+      <h4 className="text-xs font-semibold text-[#111827] dark:text-zinc-100 group-hover:text-[#EE0033] dark:group-hover:text-rose-400 transition line-clamp-2 leading-relaxed">
         {issue.title}
       </h4>
 
       {/* Subtasks Progress if any */}
       {totalSubtasks > 0 && (
-        <div className="mt-2 flex items-center space-x-1.5 text-[11px] text-slate-500">
-          <CheckCircle2 className={`w-3.5 h-3.5 ${completedSubtasks === totalSubtasks ? "text-emerald-600" : "text-slate-400"}`} />
+        <div className="mt-2.5 flex items-center space-x-2 text-[11px] text-slate-500 dark:text-zinc-400">
+          <CheckCircle2 className={`w-3.5 h-3.5 ${completedSubtasks === totalSubtasks ? "text-emerald-600 dark:text-emerald-400" : "text-slate-400"}`} />
           <span>
             {completedSubtasks}/{totalSubtasks} subtasks
           </span>
-          <div className="flex-1 bg-slate-100 rounded-full h-1 ml-1 overflow-hidden">
+          <div className="flex-1 bg-slate-100 dark:bg-zinc-800 rounded-full h-1.5 ml-1 overflow-hidden">
             <div
               className={`h-full rounded-full ${completedSubtasks === totalSubtasks ? "bg-emerald-500" : "bg-slate-400"}`}
               style={{ width: `${(completedSubtasks / totalSubtasks) * 100}%` }}
@@ -164,17 +184,17 @@ export const IssueCard: React.FC<IssueCardProps> = ({
       )}
 
       {/* Footer Info */}
-      <div className="mt-3 pt-2 border-t border-slate-100 flex items-center justify-between">
+      <div className="mt-3 pt-2.5 border-t border-slate-100 dark:border-zinc-800/80 flex items-center justify-between">
         <div className="flex items-center space-x-1.5">
           {renderTypeIcon(issue.type)}
-          <span className="text-[11px] font-semibold font-mono text-slate-500 group-hover:text-slate-800">
+          <span className="text-[11px] font-semibold font-mono text-slate-500 dark:text-zinc-400 group-hover:text-slate-800 dark:group-hover:text-zinc-200">
             {issue.key}
           </span>
         </div>
 
         <div className="flex items-center space-x-2">
           {issue.storyPoints !== undefined && (
-            <span className="w-5 h-5 rounded-full bg-gray-100 text-gray-700 text-[10px] font-bold flex items-center justify-center">
+            <span className="w-5 h-5 rounded-full bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 text-[10px] font-bold flex items-center justify-center border border-slate-200 dark:border-zinc-700">
               {issue.storyPoints}
             </span>
           )}
@@ -186,11 +206,11 @@ export const IssueCard: React.FC<IssueCardProps> = ({
               src={issue.assignee.avatar}
               alt={issue.assignee.name}
               title={`Assigned to ${issue.assignee.name}`}
-              className="w-5 h-5 rounded-full object-cover ring-1 ring-white"
+              className="w-5 h-5 rounded-full object-cover ring-1 ring-white dark:ring-zinc-800"
             />
           ) : (
             <div
-              className="w-5 h-5 rounded-full bg-gray-200 border border-dashed border-gray-400 flex items-center justify-center text-[9px] text-gray-500"
+              className="w-5 h-5 rounded-full bg-gray-100 dark:bg-zinc-800 border border-dashed border-gray-400 dark:border-zinc-700 flex items-center justify-center text-[9px] text-gray-500 dark:text-zinc-400"
               title="Unassigned"
             >
               ?

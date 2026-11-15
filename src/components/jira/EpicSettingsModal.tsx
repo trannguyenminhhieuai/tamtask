@@ -140,29 +140,29 @@ export const EpicSettingsModal: React.FC<EpicSettingsModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-[80] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs animate-in fade-in duration-150"
+      className="fixed inset-0 z-[80] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150"
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-xl w-full overflow-hidden animate-in zoom-in-95 duration-150 flex flex-col max-h-[85vh]"
+        className="bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-zinc-800 max-w-xl w-full overflow-hidden animate-in zoom-in-95 duration-150 flex flex-col max-h-[85vh]"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 bg-slate-50/70">
-          <div className="flex items-center space-x-2">
-            <div className="p-1.5 rounded-lg bg-slate-900 text-white">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 dark:border-zinc-800 bg-slate-50/70 dark:bg-zinc-800/60">
+          <div className="flex items-center space-x-2.5">
+            <div className="p-2 rounded-xl bg-[#EE0033] text-white shadow-xs">
               <FolderGit2 className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="font-bold text-slate-900 text-sm">Quản Lý & Cấu Hình Epic</h3>
-              <p className="text-[11px] text-slate-500">
+              <h3 className="font-bold text-slate-900 dark:text-zinc-100 text-sm">Quản Lý & Cấu Hình Epic</h3>
+              <p className="text-[11px] text-slate-500 dark:text-zinc-400">
                 Phân nhóm module lớn cho dự án {currentProject?.name ? `"${currentProject.name}"` : ""}
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-600 p-1 rounded-md transition-colors"
+            className="text-slate-400 hover:text-slate-600 dark:hover:text-zinc-200 p-1 rounded-md transition-colors"
           >
             <X className="w-4 h-4" />
           </button>
@@ -171,10 +171,10 @@ export const EpicSettingsModal: React.FC<EpicSettingsModalProps> = ({
         {/* Content Body */}
         <div className="flex-1 overflow-y-auto p-5 space-y-5">
           {/* Create New Epic Form */}
-          <form onSubmit={handleCreateEpic} className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
+          <form onSubmit={handleCreateEpic} className="p-4 bg-slate-50 dark:bg-zinc-800/50 border border-slate-200 dark:border-zinc-700/80 rounded-2xl space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                <Plus className="w-4 h-4 text-slate-900" />
+              <span className="text-xs font-bold text-slate-800 dark:text-zinc-200 flex items-center gap-1.5">
+                <Plus className="w-4 h-4 text-[#EE0033]" />
                 Tạo Epic Mới
               </span>
               <div className="flex items-center gap-1">
@@ -184,7 +184,7 @@ export const EpicSettingsModal: React.FC<EpicSettingsModalProps> = ({
                     type="button"
                     onClick={() => setNewColor(c)}
                     className={`w-4 h-4 rounded-full transition-transform ${
-                      newColor === c ? "scale-125 ring-2 ring-slate-800 ring-offset-1" : "hover:scale-110"
+                      newColor === c ? "scale-125 ring-2 ring-[#EE0033] dark:ring-rose-400 ring-offset-1 dark:ring-offset-zinc-900" : "hover:scale-110"
                     }`}
                     style={{ backgroundColor: c }}
                   />
@@ -192,7 +192,7 @@ export const EpicSettingsModal: React.FC<EpicSettingsModalProps> = ({
               </div>
             </div>
 
-            {error && <div className="text-xs text-rose-600 font-medium">{error}</div>}
+            {error && <div className="text-xs text-rose-600 dark:text-rose-400 font-medium">{error}</div>}
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               <input
@@ -200,14 +200,14 @@ export const EpicSettingsModal: React.FC<EpicSettingsModalProps> = ({
                 placeholder="Tên Epic (VD: Module Thanh Toán)..."
                 value={newName}
                 onChange={(e) => setNewName(e.target.value)}
-                className="text-xs px-3 py-2 border border-slate-200 rounded-lg outline-none focus:border-slate-800 bg-white"
+                className="text-xs px-3 py-2 border border-slate-200 dark:border-zinc-700 rounded-xl outline-none focus:border-[#EE0033] dark:focus:border-[#EE0033] bg-white dark:bg-zinc-800 text-slate-900 dark:text-zinc-100 placeholder:text-slate-400 dark:placeholder:text-zinc-500"
               />
               <input
                 type="text"
                 placeholder="Mô tả tóm tắt mục tiêu module..."
                 value={newSummary}
                 onChange={(e) => setNewSummary(e.target.value)}
-                className="text-xs px-3 py-2 border border-slate-200 rounded-lg outline-none focus:border-slate-800 bg-white"
+                className="text-xs px-3 py-2 border border-slate-200 dark:border-zinc-700 rounded-xl outline-none focus:border-[#EE0033] dark:focus:border-[#EE0033] bg-white dark:bg-zinc-800 text-slate-900 dark:text-zinc-100 placeholder:text-slate-400 dark:placeholder:text-zinc-500"
               />
             </div>
 
@@ -215,7 +215,7 @@ export const EpicSettingsModal: React.FC<EpicSettingsModalProps> = ({
               <button
                 type="submit"
                 disabled={isSubmitting || !newName.trim()}
-                className="px-3.5 py-1.5 text-xs font-semibold bg-slate-900 hover:bg-slate-800 disabled:opacity-50 text-white rounded-lg shadow-2xs transition"
+                className="px-4 py-2 text-xs font-semibold bg-[#EE0033] hover:bg-[#D6002E] disabled:opacity-50 text-white rounded-full shadow-xs transition"
               >
                 + Thêm Epic
               </button>
@@ -224,12 +224,12 @@ export const EpicSettingsModal: React.FC<EpicSettingsModalProps> = ({
 
           {/* Epic List */}
           <div className="space-y-2">
-            <div className="text-xs font-bold text-slate-700 uppercase tracking-wider px-1">
+            <div className="text-xs font-bold text-slate-700 dark:text-zinc-300 uppercase tracking-wider px-1">
               Danh Sách Epic Hiện Có ({epics.length})
             </div>
 
             {epics.length === 0 ? (
-              <div className="p-8 text-center text-xs text-slate-400 border border-dashed border-slate-200 rounded-xl">
+              <div className="p-8 text-center text-xs text-slate-400 dark:text-zinc-500 border border-dashed border-slate-200 dark:border-zinc-700 rounded-2xl bg-slate-50/50 dark:bg-zinc-800/30">
                 Chưa có Epic nào. Hãy tạo Epic đầu tiên để phân nhóm công việc.
               </div>
             ) : (
@@ -238,7 +238,7 @@ export const EpicSettingsModal: React.FC<EpicSettingsModalProps> = ({
                 return (
                   <div
                     key={epic.id}
-                    className="p-3 bg-white border border-slate-200 rounded-xl hover:border-slate-300 transition flex items-center justify-between gap-3 shadow-2xs"
+                    className="p-3 bg-white dark:bg-zinc-800/70 border border-slate-200 dark:border-zinc-700/80 rounded-xl hover:border-slate-300 dark:hover:border-zinc-600 transition flex items-center justify-between gap-3 shadow-2xs"
                   >
                     {isEditing ? (
                       <div className="flex-1 space-y-2">
@@ -247,7 +247,7 @@ export const EpicSettingsModal: React.FC<EpicSettingsModalProps> = ({
                             type="text"
                             value={editName}
                             onChange={(e) => setEditName(e.target.value)}
-                            className="flex-1 text-xs px-2.5 py-1.5 border border-slate-300 rounded-lg outline-none font-semibold"
+                            className="flex-1 text-xs px-2.5 py-1.5 border border-slate-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 text-slate-900 dark:text-zinc-100 rounded-lg outline-none font-semibold"
                           />
                           <div className="flex items-center gap-1">
                             {PRESET_COLORS.map((c) => (
@@ -256,7 +256,7 @@ export const EpicSettingsModal: React.FC<EpicSettingsModalProps> = ({
                                 type="button"
                                 onClick={() => setEditColor(c)}
                                 className={`w-3.5 h-3.5 rounded-full ${
-                                  editColor === c ? "scale-125 ring-2 ring-slate-800 ring-offset-1" : ""
+                                  editColor === c ? "scale-125 ring-2 ring-[#EE0033] ring-offset-1 dark:ring-offset-zinc-900" : ""
                                 }`}
                                 style={{ backgroundColor: c }}
                               />
@@ -268,20 +268,20 @@ export const EpicSettingsModal: React.FC<EpicSettingsModalProps> = ({
                           value={editSummary}
                           onChange={(e) => setEditSummary(e.target.value)}
                           placeholder="Mô tả tóm tắt..."
-                          className="w-full text-xs px-2.5 py-1 border border-slate-200 rounded-lg outline-none text-slate-600"
+                          className="w-full text-xs px-2.5 py-1 border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-slate-900 dark:text-zinc-100 rounded-lg outline-none"
                         />
                         <div className="flex items-center justify-end gap-1.5 pt-1">
                           <button
                             type="button"
                             onClick={() => setEditingEpicId(null)}
-                            className="px-2.5 py-1 text-xs text-slate-500 hover:text-slate-800"
+                            className="px-2.5 py-1 text-xs text-slate-500 dark:text-zinc-400 hover:text-slate-800 dark:hover:text-zinc-200"
                           >
                             Hủy
                           </button>
                           <button
                             type="button"
                             onClick={handleSaveEdit}
-                            className="px-3 py-1 text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white rounded-md flex items-center gap-1"
+                            className="px-3 py-1 text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white rounded-full flex items-center gap-1 shadow-xs"
                           >
                             <Check className="w-3 h-3" /> Lưu
                           </button>
@@ -291,15 +291,15 @@ export const EpicSettingsModal: React.FC<EpicSettingsModalProps> = ({
                       <>
                         <div className="flex items-center space-x-3 overflow-hidden">
                           <span
-                            className="w-3.5 h-3.5 rounded-full shrink-0"
+                            className="w-3.5 h-3.5 rounded-full shrink-0 shadow-2xs"
                             style={{ backgroundColor: epic.color || "#0052CC" }}
                           />
                           <div className="truncate">
-                            <div className="text-xs font-bold text-slate-800 truncate">
+                            <div className="text-xs font-bold text-slate-900 dark:text-zinc-100 truncate">
                               {epic.name}
                             </div>
                             {epic.summary && (
-                              <div className="text-[11px] text-slate-500 truncate">
+                              <div className="text-[11px] text-slate-500 dark:text-zinc-400 truncate">
                                 {epic.summary}
                               </div>
                             )}
@@ -310,7 +310,7 @@ export const EpicSettingsModal: React.FC<EpicSettingsModalProps> = ({
                           <button
                             type="button"
                             onClick={() => handleStartEdit(epic)}
-                            className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition"
+                            className="p-1.5 text-slate-400 hover:text-slate-700 dark:hover:text-zinc-200 hover:bg-slate-100 dark:hover:bg-zinc-700 rounded-lg transition"
                             title="Sửa Epic"
                           >
                             <Edit2 className="w-3.5 h-3.5" />
@@ -318,7 +318,7 @@ export const EpicSettingsModal: React.FC<EpicSettingsModalProps> = ({
                           <button
                             type="button"
                             onClick={() => handleDeleteEpic(epic.id, epic.name)}
-                            className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition"
+                            className="p-1.5 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg transition"
                             title="Xóa Epic"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -334,11 +334,11 @@ export const EpicSettingsModal: React.FC<EpicSettingsModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="px-5 py-3 border-t border-slate-100 bg-slate-50 flex items-center justify-end">
+        <div className="px-5 py-3 border-t border-slate-100 dark:border-zinc-800 bg-slate-50/70 dark:bg-zinc-800/60 flex items-center justify-end">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-1.5 text-xs font-semibold bg-slate-900 hover:bg-slate-800 text-white rounded-lg transition"
+            className="px-4 py-1.5 text-xs font-semibold bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 dark:hover:bg-zinc-700 text-slate-700 dark:text-zinc-200 border border-slate-200 dark:border-zinc-700 rounded-full transition shadow-2xs"
           >
             Đóng
           </button>

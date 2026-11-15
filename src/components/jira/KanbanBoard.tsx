@@ -65,7 +65,18 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   const [quickAddTitle, setQuickAddTitle] = useState("");
   const [showAssigneeOverflow, setShowAssigneeOverflow] = useState(false);
   const [showMoreFilters, setShowMoreFilters] = useState(false);
+  const [headerOpacity, setHeaderOpacity] = useState(1);
   const moreFiltersRef = React.useRef<HTMLDivElement>(null);
+
+  const handleBoardScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const top = e.currentTarget.scrollTop;
+    if (top <= 10) {
+      if (headerOpacity !== 1) setHeaderOpacity(1);
+    } else {
+      const nextOpacity = Math.max(0, Math.min(1, 1 - (top - 10) / 120));
+      setHeaderOpacity(nextOpacity);
+    }
+  };
 
   // Close more filters on click outside
   React.useEffect(() => {
@@ -272,34 +283,32 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   };
 
   return (
-    <div className="flex-1 flex flex-col h-full overflow-hidden bg-[#F5F6F8]">
-      {/* Unified Glass Island Header */}
-      <div className="mx-3 sm:mx-6 mt-3 mb-1 px-3 sm:px-4 py-2.5 rounded-2xl bg-white/85 backdrop-blur-md border border-white/60 shadow-[0_4px_20px_rgba(0,0,0,0.03)] flex flex-wrap items-center justify-between gap-2.5 z-20 shrink-0">
-        {/* Left: Compact Title & Sprint Date Pill (MICI Principle) */}
-        <div className="flex items-center space-x-2.5 shrink-0">
-          <h1 className="text-base sm:text-lg font-extrabold text-[#111827] tracking-tight">
+    <div className="flex-1 flex flex-col overflow-hidden bg-[#F5F6F8] dark:bg-[#09090B] transition-colors duration-200">
+      {/* Unified Glass Island Header - Sticky at top with smooth scroll fade-out */}
+      <div
+        style={{
+          opacity: headerOpacity,
+          transform: `translateY(-${(1 - headerOpacity) * 16}px)`,
+          pointerEvents: headerOpacity < 0.2 ? "none" : "auto",
+        }}
+        className="m-4 mb-0 p-4 rounded-2xl bg-white/75 dark:bg-zinc-900/75 backdrop-blur-xl border border-white/80 dark:border-white/10 shadow-[0_8px_32px_0_rgba(31,38,135,0.05)] flex flex-wrap items-center justify-between gap-4 z-20 shrink-0 sticky top-4 transition-[opacity,transform] duration-200 ease-out"
+      >
+        {/* Left: Compact Title only (MICI: no duplicate sprint badge here) */}
+        <div className="flex items-center space-x-3 shrink-0">
+          <h1 className="text-base sm:text-lg font-extrabold text-[#111827] dark:text-zinc-100 tracking-tight">
             Bảng Công Việc
           </h1>
-          {activeSprint && (
-            <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-0.5 rounded-full bg-[#E0F2FE] text-[#0284C7] border border-[#BAE6FD]">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#0284C7] animate-pulse" />
-              <span>{activeSprint.name}</span>
-              <span className="text-sky-600 font-mono text-[10px]">
-                ({activeSprint.startDate ? new Date(activeSprint.startDate).toLocaleDateString("vi-VN", { day: '2-digit', month: '2-digit' }) : "01/11"} - {activeSprint.endDate ? new Date(activeSprint.endDate).toLocaleDateString("vi-VN", { day: '2-digit', month: '2-digit' }) : "14/11"})
-              </span>
-            </span>
-          )}
         </div>
 
         {/* Center / Right: Streamlined Filters & Actions */}
-        <div className="flex items-center flex-wrap gap-1.5 sm:gap-2">
+        <div className="flex items-center flex-wrap gap-2">
           {/* My Issues Toggle */}
           <button
             onClick={() => onFilterChange({ ...filterState, onlyMyIssues: !filterState.onlyMyIssues })}
-            className={`text-xs px-3 py-1.5 rounded-full font-semibold transition flex items-center gap-1 ${
+            className={`text-xs px-3.5 py-1.5 rounded-full font-semibold transition flex items-center gap-1.5 shadow-2xs ${
               filterState.onlyMyIssues
                 ? "bg-[#EE0033] text-white shadow-xs"
-                : "bg-white text-[#111827] border border-[#D7D7D7] hover:bg-slate-50"
+                : "bg-white/80 dark:bg-zinc-800/80 text-[#111827] dark:text-zinc-200 border border-slate-200 dark:border-zinc-600 hover:bg-white dark:hover:bg-zinc-700 backdrop-blur-md"
             }`}
           >
             {filterState.onlyMyIssues && <Check className="w-3.5 h-3.5" />}
@@ -309,40 +318,40 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
           {/* Quick Filter Pills */}
           <button
             onClick={() => setQuickFilter((prev) => (prev === "BUGS" ? "ALL" : "BUGS"))}
-            className={`text-xs px-2.5 py-1.5 rounded-full font-medium transition flex items-center gap-1 ${
+            className={`text-xs px-3 py-1.5 rounded-full font-medium transition flex items-center gap-1.5 shadow-2xs ${
               quickFilter === "BUGS"
                 ? "bg-rose-50 text-rose-800 border border-rose-300 font-semibold"
-                : "bg-white text-[#111827] border border-[#D7D7D7] hover:bg-slate-50"
+                : "bg-white/80 dark:bg-zinc-800/80 text-[#111827] dark:text-zinc-200 border border-slate-200 dark:border-zinc-600 hover:bg-white dark:hover:bg-zinc-700 backdrop-blur-md"
             }`}
             title="Lọc các lỗi / Bugs và ưu tiên khẩn cấp"
           >
-            <Bug className="w-3 h-3 text-rose-600" />
+            <Bug className="w-3.5 h-3.5 text-rose-600" />
             <span className="hidden sm:inline">Lỗi / Bugs</span>
           </button>
 
           <button
             onClick={() => setQuickFilter((prev) => (prev === "RECENT" ? "ALL" : "RECENT"))}
-            className={`text-xs px-2.5 py-1.5 rounded-full font-medium transition flex items-center gap-1 ${
+            className={`text-xs px-3 py-1.5 rounded-full font-medium transition flex items-center gap-1.5 shadow-2xs ${
               quickFilter === "RECENT"
                 ? "bg-emerald-50 text-[#EE0033] border border-emerald-300 font-semibold"
-                : "bg-white text-[#111827] border border-[#D7D7D7] hover:bg-slate-50"
+                : "bg-white/80 dark:bg-zinc-800/80 text-[#111827] dark:text-zinc-200 border border-slate-200 dark:border-zinc-600 hover:bg-white dark:hover:bg-zinc-700 backdrop-blur-md"
             }`}
             title="Lọc các công việc vừa cập nhật 24h qua"
           >
-            <Clock className="w-3 h-3 text-[#EE0033]" />
+            <Clock className="w-3.5 h-3.5 text-[#EE0033]" />
             <span className="hidden sm:inline">Mới cập nhật</span>
           </button>
 
           <button
             onClick={() => setQuickFilter((prev) => (prev === "UNASSIGNED" ? "ALL" : "UNASSIGNED"))}
-            className={`text-xs px-2.5 py-1.5 rounded-full font-medium transition flex items-center gap-1 ${
+            className={`text-xs px-3 py-1.5 rounded-full font-medium transition flex items-center gap-1.5 shadow-2xs ${
               quickFilter === "UNASSIGNED"
                 ? "bg-amber-100 text-amber-800 border border-amber-300 font-semibold"
-                : "bg-white text-[#111827] border border-[#D7D7D7] hover:bg-slate-50"
+                : "bg-white/80 dark:bg-zinc-800/80 text-[#111827] dark:text-zinc-200 border border-slate-200 dark:border-zinc-600 hover:bg-white dark:hover:bg-zinc-700 backdrop-blur-md"
             }`}
             title="Lọc các task chưa phân công ai"
           >
-            <UserCheck className="w-3 h-3 text-amber-600" />
+            <UserCheck className="w-3.5 h-3.5 text-amber-600" />
             <span className="hidden md:inline">Chưa ai nhận</span>
           </button>
 
@@ -355,7 +364,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                   key={user.id}
                   onClick={() => toggleAssigneeFilter(user.id)}
                   title={`Lọc theo ${user.name}`}
-                  className={`w-6 h-6 rounded-full transition-transform relative ${
+                  className={`w-7 h-7 rounded-full transition-transform relative ${
                     isSelected ? "ring-2 ring-[#EE0033] scale-110 z-10" : "opacity-80 hover:opacity-100"
                   }`}
                 >
@@ -369,15 +378,15 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                 <button
                   type="button"
                   onClick={() => setShowAssigneeOverflow(!showAssigneeOverflow)}
-                  className="w-6 h-6 rounded-full bg-slate-100 hover:bg-slate-200 border border-[#D7D7D7] text-[10px] font-bold text-slate-700 flex items-center justify-center transition-transform hover:scale-105 ml-0.5"
+                  className="w-7 h-7 rounded-full bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 dark:hover:bg-zinc-700 border border-[#D7D7D7] dark:border-zinc-700 text-[10px] font-bold text-slate-700 dark:text-zinc-200 flex items-center justify-center transition-transform hover:scale-105 ml-0.5"
                   title="Xem thêm nhân sự dự án"
                 >
                   +{overflowUsers.length}
                 </button>
 
                 {showAssigneeOverflow && (
-                  <div className="absolute left-0 mt-2 w-48 bg-white border border-slate-200 rounded-xl shadow-xl py-1.5 z-50 animate-in fade-in zoom-in-95">
-                    <div className="px-3 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">
+                  <div className="absolute left-0 mt-2 w-48 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-xl border border-slate-200 dark:border-zinc-800 rounded-2xl shadow-xl py-2 z-50 animate-in fade-in zoom-in-95">
+                    <div className="px-3.5 py-1 text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-wider border-b border-slate-100 dark:border-zinc-800">
                       Nhân sự dự án
                     </div>
                     <div className="max-h-48 overflow-y-auto py-1">
@@ -387,15 +396,15 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                           <button
                             key={u.id}
                             onClick={() => toggleAssigneeFilter(u.id)}
-                            className={`w-full text-left px-3 py-1.5 flex items-center justify-between text-xs transition ${
-                              isSelected ? "bg-slate-100 text-slate-900 font-semibold" : "text-slate-600 hover:bg-slate-50"
+                            className={`w-full text-left px-3.5 py-1.5 flex items-center justify-between text-xs transition ${
+                              isSelected ? "bg-slate-100 dark:bg-zinc-800 text-slate-900 dark:text-zinc-100 font-semibold" : "text-slate-600 dark:text-zinc-300 hover:bg-slate-50 dark:hover:bg-zinc-800/50"
                             }`}
                           >
                             <div className="flex items-center gap-2 truncate">
                               <img src={u.avatar} alt={u.name} className="w-4 h-4 rounded-full object-cover shrink-0" />
                               <span className="truncate">{u.name}</span>
                             </div>
-                            {isSelected && <Check className="w-3.5 h-3.5 text-slate-900 shrink-0" />}
+                            {isSelected && <Check className="w-3.5 h-3.5 text-[#EE0033] shrink-0" />}
                           </button>
                         );
                       })}
@@ -406,10 +415,10 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
             )}
           </div>
 
-          <div className="h-4 w-px bg-[#D7D7D7] mx-0.5" />
+          <div className="h-4 w-px bg-slate-200 dark:bg-zinc-800 mx-1" />
 
           {/* Sprint Selector (Clean, no redundant duplicate dates) */}
-          <div className="flex items-center gap-1.5 bg-white border border-[#D7D7D7] rounded-full px-2.5 py-1 text-xs shadow-2xs">
+          <div className="flex items-center gap-1.5 bg-white/80 dark:bg-zinc-800/80 backdrop-blur-md border border-white/80 dark:border-zinc-700/80 rounded-full px-3 py-1.5 text-xs shadow-2xs">
             <Layers className="w-3.5 h-3.5 text-[#EE0033] shrink-0" />
             <select
               value={effectiveSprintId}
@@ -419,15 +428,15 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                   sprintId: e.target.value,
                 })
               }
-              className="bg-transparent text-xs font-semibold text-[#111827] focus:outline-none cursor-pointer pr-1"
+              className="bg-transparent text-xs font-semibold text-[#111827] dark:text-zinc-200 focus:outline-none cursor-pointer pr-1"
             >
               {sprints.map((s) => (
-                <option key={s.id} value={s.id}>
+                <option key={s.id} value={s.id} className="dark:bg-zinc-900">
                   {s.name}
                 </option>
               ))}
-              <option value="ALL">Tất cả chu kỳ</option>
-              <option value="BACKLOG">Chỉ Backlog</option>
+              <option value="ALL" className="dark:bg-zinc-900">Tất cả chu kỳ</option>
+              <option value="BACKLOG" className="dark:bg-zinc-900">Chỉ Backlog</option>
             </select>
           </div>
 
@@ -436,10 +445,10 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
             <button
               type="button"
               onClick={() => setShowMoreFilters(!showMoreFilters)}
-              className={`flex items-center space-x-1.5 text-xs font-semibold px-3 py-1 rounded-full border transition ${
+              className={`flex items-center space-x-1.5 text-xs font-semibold px-3.5 py-1.5 rounded-full border transition backdrop-blur-md shadow-2xs ${
                 showMoreFilters || swimlaneMode !== "NONE" || filterState.epicIds.length > 0
-                  ? "bg-rose-50 text-[#EE0033] border-rose-300 shadow-xs"
-                  : "bg-white text-[#111827] border-[#D7D7D7] hover:bg-[#F8F8F8]"
+                  ? "bg-rose-50 dark:bg-rose-950/40 text-[#EE0033] border-rose-300 dark:border-rose-800 shadow-xs"
+                  : "bg-white/80 dark:bg-zinc-800/80 text-[#111827] dark:text-zinc-200 border-white/80 dark:border-zinc-700/80 hover:bg-white dark:hover:bg-zinc-700"
               }`}
             >
               <Sliders className="w-3.5 h-3.5" />
@@ -448,13 +457,13 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
             </button>
 
             {showMoreFilters && (
-              <div className="absolute right-0 mt-2 w-72 bg-white/95 backdrop-blur-md border border-[#D7D7D7] rounded-2xl shadow-2xl p-3 z-50 animate-in fade-in zoom-in-95 space-y-3">
+              <div className="absolute right-0 mt-2 w-72 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-xl border border-white/80 dark:border-zinc-800 rounded-2xl shadow-2xl p-4 z-50 animate-in fade-in zoom-in-95 space-y-4">
                 {/* Swimlane Options */}
                 <div>
-                  <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">
+                  <div className="text-[11px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-wider mb-2">
                     Phân làn hiển thị (Swimlanes)
                   </div>
-                  <div className="grid grid-cols-2 gap-1.5">
+                  <div className="grid grid-cols-2 gap-2">
                     {[
                       { id: "NONE", label: "Mặc định" },
                       { id: "EPIC", label: "Theo Epic" },
@@ -467,7 +476,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                         className={`text-xs px-2.5 py-1.5 rounded-xl border text-center transition font-medium ${
                           swimlaneMode === mode.id
                             ? "bg-[#EE0033] text-white border-[#EE0033] shadow-xs"
-                            : "bg-[#FAFAFA] text-[#111827] border-[#D7D7D7] hover:bg-slate-100"
+                            : "bg-[#FAFAFA] dark:bg-zinc-800 text-[#111827] dark:text-zinc-200 border-[#D7D7D7] dark:border-zinc-700 hover:bg-slate-100 dark:hover:bg-zinc-700"
                         }`}
                       >
                         {mode.label}
@@ -478,7 +487,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
 
                 {/* Epic Filter */}
                 <div>
-                  <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                  <div className="text-[11px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-wider mb-1.5">
                     Lọc theo Epic
                   </div>
                   <select
@@ -489,7 +498,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                         epicIds: e.target.value ? [e.target.value] : [],
                       })
                     }
-                    className="w-full text-xs bg-[#FAFAFA] border border-[#D7D7D7] rounded-xl px-2.5 py-1.5 text-[#111827] font-medium focus:outline-none focus:ring-2 focus:ring-[#EE0033]/20"
+                    className="w-full text-xs bg-[#FAFAFA] dark:bg-zinc-800 border border-[#D7D7D7] dark:border-zinc-700 rounded-xl px-3 py-2 text-[#111827] dark:text-zinc-200 font-medium focus:outline-none focus:ring-2 focus:ring-[#EE0033]/20"
                   >
                     <option value="">Tất cả Epics</option>
                     {epics.map((epic) => (
@@ -502,16 +511,16 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
 
                 {/* Settings Links */}
                 {canCustomizeWorkflow && (
-                  <div className="pt-2 border-t border-slate-100 space-y-1.5">
+                  <div className="pt-3 border-t border-slate-100 dark:border-zinc-800 space-y-2">
                     <button
                       onClick={() => {
                         setShowMoreFilters(false);
                         onOpenWorkflowSettings();
                       }}
-                      className="w-full text-left text-xs font-medium text-slate-700 hover:text-[#EE0033] hover:bg-rose-50 px-2 py-1.5 rounded-lg flex items-center justify-between transition"
+                      className="w-full text-left text-xs font-medium text-slate-700 dark:text-zinc-200 hover:text-[#EE0033] hover:bg-rose-50 dark:hover:bg-rose-950/40 px-2 py-1.5 rounded-xl flex items-center justify-between transition"
                     >
-                      <span className="flex items-center gap-1.5">
-                        <Sliders className="w-3.5 h-3.5 text-slate-500" />
+                      <span className="flex items-center gap-2">
+                        <Sliders className="w-3.5 h-3.5 text-slate-500 dark:text-zinc-400" />
                         <span>Cài đặt Quy trình (Workflow)</span>
                       </span>
                     </button>
@@ -522,9 +531,9 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                           setShowMoreFilters(false);
                           onOpenEpicSettings();
                         }}
-                        className="w-full text-left text-xs font-medium text-slate-700 hover:text-[#EE0033] hover:bg-rose-50 px-2 py-1.5 rounded-lg flex items-center justify-between transition"
+                        className="w-full text-left text-xs font-medium text-slate-700 dark:text-zinc-200 hover:text-[#EE0033] hover:bg-rose-50 dark:hover:bg-rose-950/40 px-2 py-1.5 rounded-xl flex items-center justify-between transition"
                       >
-                        <span className="flex items-center gap-1.5">
+                        <span className="flex items-center gap-2">
                           <FolderGit2 className="w-3.5 h-3.5 text-purple-600" />
                           <span>Quản lý danh mục Epic</span>
                         </span>
@@ -539,7 +548,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                   quickFilter !== "ALL" ||
                   filterState.assigneeIds.length > 0 ||
                   filterState.epicIds.length > 0) && (
-                  <div className="pt-2 border-t border-slate-100">
+                  <div className="pt-2 border-t border-slate-100 dark:border-zinc-800">
                     <button
                       onClick={() => {
                         setQuickFilter("ALL");
@@ -579,29 +588,32 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
         </div>
       )}
 
-      {/* Board Columns & Swimlanes Container - Tammi OA Neutral Surface Canvas */}
-      <div className="flex-1 overflow-auto p-3 sm:p-6 space-y-4 sm:space-y-6 bg-[#F5F6F8] touch-pan-x">
+      {/* Board Columns & Swimlanes Container - Single unified vertical & bottom-pinned horizontal scroll */}
+      <div
+        onScroll={handleBoardScroll}
+        className="flex-1 overflow-x-auto overflow-y-auto p-4 space-y-4 bg-[#F5F6F8] dark:bg-[#09090B] touch-pan-x"
+      >
         {isLoading ? (
           <div className="grid grid-flow-col auto-cols-[300px] gap-4 min-h-[500px]">
             {[1, 2, 3, 4].map((n) => (
-              <div key={n} className="bg-[#F8F8F8] rounded-xl p-3 flex flex-col space-y-3 animate-pulse border border-[#D7D7D7]">
-                <div className="flex items-center justify-between pb-2 border-b border-[#D7D7D7]">
-                  <div className="h-4 bg-slate-300 rounded w-28"></div>
-                  <div className="h-4 bg-slate-300 rounded-full w-6"></div>
+              <div key={n} className="bg-[#F8F8F8] dark:bg-zinc-900 rounded-xl p-3 flex flex-col space-y-3 animate-pulse border border-[#D7D7D7] dark:border-zinc-800">
+                <div className="flex items-center justify-between pb-2 border-b border-[#D7D7D7] dark:border-zinc-800">
+                  <div className="h-4 bg-slate-300 dark:bg-zinc-700 rounded w-28"></div>
+                  <div className="h-4 bg-slate-300 dark:bg-zinc-700 rounded-full w-6"></div>
                 </div>
                 <div className="space-y-3 flex-1">
-                  <div className="h-24 bg-white rounded-lg shadow-xs p-3 space-y-2 border border-[#D7D7D7]">
-                    <div className="h-3 bg-slate-200 rounded w-16"></div>
-                    <div className="h-4 bg-slate-300 rounded w-3/4"></div>
-                    <div className="h-3 bg-slate-100 rounded w-1/2"></div>
+                  <div className="h-24 bg-white dark:bg-zinc-800/80 rounded-lg shadow-xs p-3 space-y-2 border border-[#D7D7D7] dark:border-zinc-700/80">
+                    <div className="h-3 bg-slate-200 dark:bg-zinc-700 rounded w-16"></div>
+                    <div className="h-4 bg-slate-300 dark:bg-zinc-600 rounded w-3/4"></div>
+                    <div className="h-3 bg-slate-100 dark:bg-zinc-700/60 rounded w-1/2"></div>
                   </div>
-                  <div className="h-20 bg-white rounded-lg shadow-xs p-3 space-y-2 border border-[#D7D7D7]">
-                    <div className="h-4 bg-slate-300 rounded w-2/3"></div>
-                    <div className="h-3 bg-slate-200 rounded w-1/3"></div>
+                  <div className="h-20 bg-white dark:bg-zinc-800/80 rounded-lg shadow-xs p-3 space-y-2 border border-[#D7D7D7] dark:border-zinc-700/80">
+                    <div className="h-4 bg-slate-300 dark:bg-zinc-600 rounded w-2/3"></div>
+                    <div className="h-3 bg-slate-200 dark:bg-zinc-700 rounded w-1/3"></div>
                   </div>
-                  <div className="h-24 bg-white rounded-lg shadow-xs p-3 space-y-2 border border-[#D7D7D7]">
-                    <div className="h-3 bg-slate-200 rounded w-12"></div>
-                    <div className="h-4 bg-slate-300 rounded w-4/5"></div>
+                  <div className="h-24 bg-white dark:bg-zinc-800/80 rounded-lg shadow-xs p-3 space-y-2 border border-[#D7D7D7] dark:border-zinc-700/80">
+                    <div className="h-3 bg-slate-200 dark:bg-zinc-700 rounded w-12"></div>
+                    <div className="h-4 bg-slate-300 dark:bg-zinc-600 rounded w-4/5"></div>
                   </div>
                 </div>
               </div>
@@ -649,8 +661,8 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                 </div>
               )}
 
-              {/* Status Columns Grid */}
-              <div className="flex space-x-4 overflow-x-auto pb-2">
+              {/* Status Columns Grid - columns expand full height, pinned horizontal scroll at bottom */}
+              <div className="flex gap-4 min-w-max pb-4 items-start">
                 {statuses.map((col) => {
                   const colIssues = lane.issues.filter((i) => i.status === col.id);
                   const totalPoints = colIssues.reduce((acc, curr) => acc + (curr.storyPoints || 0), 0);
@@ -664,22 +676,22 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                       key={col.id}
                       onDragOver={(e) => handleDragOver(e, col.id)}
                       onDrop={(e) => handleDrop(e, col.id)}
-                      className={`w-72 flex-shrink-0 flex flex-col rounded-2xl transition-all border ${
+                      className={`w-80 flex-shrink-0 rounded-2xl transition-all border ${
                         isOver
-                          ? "bg-rose-50/60 border-2 border-dashed border-[#EE0033]"
+                          ? "bg-rose-50/60 dark:bg-rose-950/20 border-2 border-dashed border-[#EE0033]"
                           : isWipExceeded
-                          ? "bg-rose-50/70 border-rose-300 shadow-sm"
-                          : "bg-white border-[#E5E7EB] shadow-xs"
+                          ? "bg-rose-50/70 dark:bg-rose-950/10 border-rose-300 dark:border-rose-800 shadow-sm"
+                          : "bg-white dark:bg-zinc-900 border-[#E5E7EB] dark:border-zinc-800 shadow-xs"
                       }`}
                     >
-                      {/* Column Header */}
-                      <div className="p-3 pb-2 flex items-center justify-between">
+                      {/* Column Header - Pinned at top when scrolling vertically */}
+                      <div className="p-4 pb-3 flex items-center justify-between sticky top-0 rounded-t-2xl bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md z-10 border-b border-[#E5E7EB] dark:border-zinc-800">
                         <div className="flex items-center space-x-2">
                           <span
                             className="w-2.5 h-2.5 rounded-full flex-shrink-0"
                             style={{ backgroundColor: col.color }}
                           />
-                          <span className="text-xs font-bold text-[#111827] tracking-wider uppercase truncate">
+                          <span className="text-xs font-bold text-[#111827] dark:text-zinc-100 tracking-wider uppercase truncate">
                             {col.name}
                           </span>
                           <span
@@ -687,8 +699,8 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                               isWipExceeded
                                 ? "bg-[#EE0033] text-white"
                                 : isWipMax
-                                ? "bg-amber-100 text-amber-800 border border-amber-300"
-                                : "bg-white border border-[#D7D7D7] text-[#111827]"
+                                ? "bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-700"
+                                : "bg-white dark:bg-zinc-800 border border-[#D7D7D7] dark:border-zinc-700 text-[#111827] dark:text-zinc-200"
                             }`}
                             title={hasWip ? `Giới hạn WIP: ${colIssues.length}/${col.maxWip}` : undefined}
                           >
@@ -699,14 +711,14 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                           </span>
                         </div>
                         {totalPoints > 0 && (
-                          <span className="text-[10px] font-semibold text-[#9B9B9B]" title="Total Story Points">
+                          <span className="text-[10px] font-semibold text-[#9B9B9B] dark:text-zinc-500" title="Total Story Points">
                             {totalPoints} pts
                           </span>
                         )}
                       </div>
 
-                      {/* Column Cards List */}
-                      <div className="flex-1 p-2 pt-0 space-y-2.5 overflow-y-auto max-h-[calc(100vh-180px)]">
+                      {/* Column Cards List - 16px gap, 16px padding, full expand no internal scroll */}
+                      <div className="p-4 pt-4 space-y-4 pb-4">
                         {dragOverCol === col.id && (
                           <div className="h-16 border-2 border-dashed border-[#EE0033] bg-rose-50/80 rounded-lg flex items-center justify-center text-xs font-semibold text-[#EE0033] animate-pulse">
                             Thả thẻ vào cột {col.name}...
@@ -734,7 +746,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                       {!isViewer && (
                         <div className="p-2 pt-0">
                           {quickAddStatus === col.id ? (
-                            <div className="bg-white p-2.5 rounded-lg border border-[#EE0033]/50 shadow-xs space-y-2 animate-in fade-in duration-100">
+                            <div className="bg-white dark:bg-zinc-800/90 p-2.5 rounded-lg border border-[#EE0033]/50 dark:border-[#EE0033]/30 shadow-xs space-y-2 animate-in fade-in duration-100">
                               <textarea
                                 autoFocus
                                 rows={2}
@@ -758,7 +770,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                                   }
                                 }}
                                 placeholder="Nhập tiêu đề công việc... (Enter để tạo, Esc hủy)"
-                                className="w-full text-xs p-2 border border-[#D7D7D7] rounded-lg outline-none focus:border-[#EE0033] focus:ring-2 focus:ring-[#EE0033]/20 resize-none font-medium text-[#111827]"
+                                className="w-full text-xs p-2 border border-[#D7D7D7] dark:border-zinc-700 rounded-lg outline-none focus:border-[#EE0033] focus:ring-2 focus:ring-[#EE0033]/20 resize-none font-medium text-[#111827] dark:text-zinc-100 bg-white dark:bg-zinc-800 placeholder:text-slate-400 dark:placeholder:text-zinc-500"
                               />
                               <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-1.5">
@@ -785,7 +797,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                                       setQuickAddStatus(null);
                                       setQuickAddTitle("");
                                     }}
-                                    className="px-2.5 py-1.5 text-xs text-[#9B9B9B] hover:text-[#111827] rounded-lg transition"
+                                    className="px-2.5 py-1.5 text-xs text-[#9B9B9B] dark:text-zinc-500 hover:text-[#111827] dark:hover:text-zinc-100 rounded-lg transition"
                                   >
                                     Hủy
                                   </button>
@@ -809,7 +821,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                                 setQuickAddStatus(col.id);
                                 setQuickAddTitle("");
                               }}
-                              className="w-full text-left px-2.5 py-1.5 text-xs text-[#111827] hover:bg-white rounded-lg border border-transparent hover:border-[#D7D7D7] transition font-medium flex items-center gap-1.5"
+                              className="w-full text-left px-2.5 py-1.5 text-xs text-[#111827] dark:text-zinc-400 hover:text-[#111827] dark:hover:text-zinc-100 hover:bg-white dark:hover:bg-zinc-700/60 rounded-lg border border-transparent hover:border-[#D7D7D7] dark:hover:border-zinc-600 transition font-medium flex items-center gap-1.5"
                             >
                               <span className="text-sm font-bold leading-none text-[#EE0033]">+</span> Tạo nhanh công việc
                             </button>

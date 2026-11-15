@@ -87,7 +87,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
     actionList.push({
       id: "action-shortcuts",
       category: "ACTION",
-      title: "Xem bảng phím tắt Jira (Keyboard Shortcuts)",
+      title: "Xem bảng phím tắt hệ thống (Keyboard Shortcuts)",
       subtitle: "Phím tắt nhanh: bấm '?'",
       icon: <Keyboard className="w-4 h-4 text-amber-500" />,
       onSelect: () => {
@@ -203,16 +203,16 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-[9990] flex items-start justify-center pt-20 p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-150"
+      className="fixed inset-0 z-[9990] flex items-start justify-center pt-20 p-4 bg-slate-900/60 dark:bg-black/70 backdrop-blur-sm animate-in fade-in duration-150"
       onClick={onClose}
     >
       <div
-        className="w-full max-w-2xl bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[75vh] animate-in zoom-in-95 duration-150"
+        className="w-full max-w-2xl bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-zinc-800 overflow-hidden flex flex-col max-h-[75vh] animate-in zoom-in-95 duration-150"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Search Input Bar */}
-        <div className="flex items-center gap-3 px-4 py-3.5 border-b border-slate-100 bg-slate-50/70">
-          <Search className="w-5 h-5 text-slate-400 shrink-0" />
+        <div className="flex items-center gap-3 px-4 py-3.5 border-b border-slate-100 dark:border-zinc-800 bg-slate-50/70 dark:bg-zinc-900/90">
+          <Search className="w-5 h-5 text-slate-400 dark:text-zinc-400 shrink-0" />
           <input
             ref={inputRef}
             type="text"
@@ -220,23 +220,23 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Tìm kiếm công việc, dự án, view hoặc gõ lệnh... (Nhấn Esc để đóng)"
-            className="flex-1 bg-transparent border-none outline-none text-slate-800 placeholder:text-slate-400 text-sm font-medium"
+            className="flex-1 bg-transparent border-none outline-none text-slate-800 dark:text-zinc-100 placeholder:text-slate-400 dark:placeholder:text-zinc-500 text-sm font-medium"
           />
-          <kbd className="hidden sm:inline-block px-2 py-0.5 text-[11px] font-semibold text-slate-400 bg-white border border-slate-200 rounded shadow-xs">
+          <kbd className="hidden sm:inline-block px-2 py-0.5 text-[11px] font-semibold text-slate-400 dark:text-zinc-400 bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded shadow-xs">
             ESC
           </kbd>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-600 p-1 rounded-md transition-colors"
+            className="text-slate-400 hover:text-slate-600 dark:hover:text-zinc-200 p-1 rounded-md transition-colors"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* Results List */}
-        <div className="flex-1 overflow-y-auto p-2 divide-y divide-slate-50">
+        <div className="flex-1 overflow-y-auto p-2 divide-y divide-slate-50 dark:divide-zinc-800/60 bg-white dark:bg-zinc-900">
           {items.length === 0 ? (
-            <div className="p-8 text-center text-sm text-slate-400">
+            <div className="p-8 text-center text-sm text-slate-400 dark:text-zinc-500">
               Không tìm thấy kết quả phù hợp với "{query}".
             </div>
           ) : (
@@ -249,13 +249,13 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                   onMouseEnter={() => setSelectedIndex(idx)}
                   className={`flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer transition-all ${
                     isSelected
-                      ? "bg-red-50 text-slate-900 shadow-xs"
-                      : "text-slate-700 hover:bg-slate-50"
+                      ? "bg-rose-50 dark:bg-rose-950/30 text-slate-900 dark:text-zinc-100 shadow-xs"
+                      : "text-slate-700 dark:text-zinc-300 hover:bg-slate-50 dark:hover:bg-zinc-800/50"
                   }`}
                 >
                   <div
                     className={`p-2 rounded-lg shrink-0 ${
-                      isSelected ? "bg-white shadow-xs" : "bg-slate-100 text-slate-500"
+                      isSelected ? "bg-white dark:bg-zinc-800 shadow-xs" : "bg-slate-100 dark:bg-zinc-800 text-slate-500 dark:text-zinc-400"
                     }`}
                   >
                     {item.icon}
@@ -265,13 +265,13 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                       {item.title}
                     </div>
                     {item.subtitle && (
-                      <div className="text-xs text-slate-400 truncate">
+                      <div className="text-xs text-slate-400 dark:text-zinc-500 truncate">
                         {item.subtitle}
                       </div>
                     )}
                   </div>
                   {isSelected && (
-                    <ArrowRight className="w-4 h-4 text-red-600 shrink-0" />
+                    <ArrowRight className="w-4 h-4 text-[#EE0033] shrink-0" />
                   )}
                 </div>
               );
@@ -280,23 +280,23 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
         </div>
 
         {/* Footer shortcuts hint */}
-        <div className="px-4 py-2 border-t border-slate-100 bg-slate-50 text-xs text-slate-500 flex items-center justify-between">
+        <div className="px-4 py-2 border-t border-slate-100 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-900/90 text-xs text-slate-500 dark:text-zinc-400 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <span>
-              <kbd className="px-1.5 py-0.5 bg-white border border-slate-200 rounded font-bold mr-1">↑</kbd>
-              <kbd className="px-1.5 py-0.5 bg-white border border-slate-200 rounded font-bold mr-1">↓</kbd>
+              <kbd className="px-1.5 py-0.5 bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded font-bold mr-1">↑</kbd>
+              <kbd className="px-1.5 py-0.5 bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded font-bold mr-1">↓</kbd>
               Di chuyển
             </span>
             <span>
-              <kbd className="px-1.5 py-0.5 bg-white border border-slate-200 rounded font-bold mr-1">↵</kbd>
+              <kbd className="px-1.5 py-0.5 bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded font-bold mr-1">↵</kbd>
               Chọn
             </span>
           </div>
-          <div className="flex items-center gap-1 text-[11px] text-slate-400">
+          <div className="flex items-center gap-1 text-[11px] text-slate-400 dark:text-zinc-500">
             <span>Mẹo: Gõ</span>
-            <kbd className="px-1 bg-white border border-slate-200 rounded font-bold">c</kbd>
+            <kbd className="px-1 bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded font-bold">c</kbd>
             <span>để tạo task,</span>
-            <kbd className="px-1 bg-white border border-slate-200 rounded font-bold">?</kbd>
+            <kbd className="px-1 bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded font-bold">?</kbd>
             <span>để xem tất cả phím tắt</span>
           </div>
         </div>

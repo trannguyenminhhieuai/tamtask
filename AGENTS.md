@@ -52,4 +52,18 @@ This workspace is integrated with **Mouse-1 Safeguards** via Antigravity lifecyc
 - Giữ vững màu đỏ chuẩn Viettel `#EE0033` cho các nút hành động chính, active tabs, và điểm nhấn quan trọng.
 - Đảm bảo Drawer và Modal tương thích hoàn hảo trên thiết bị di động (`w-full md:max-w-4xl`).
 
+#### E. Quy tắc Bắt Buộc Hỗ Trợ Kép Dark Mode & Light Mode (100% Dual Theme Standard):
+- **Nguyên tắc cốt tử**: Khi tạo mới hoặc cập nhật bất kỳ Feature, Component, Page, Modal hay Drawer nào, **BẮT BUỘC** phải triển khai đầy đủ cả 2 chế độ Dark Mode và Light Mode. Tuyệt đối không để lẫn lộn màu sáng trong Dark Mode hoặc ngược lại.
+- **Quy chuẩn Form Controls & Inputs**:
+  - Toàn bộ `input`, `textarea`, `select` và các thẻ `<option>` phải có cấu trúc: `bg-white dark:bg-zinc-800 border-slate-200 dark:border-zinc-700 text-slate-900 dark:text-zinc-100 placeholder:text-slate-400 dark:placeholder:text-zinc-500`.
+  - Không được dùng class nền tĩnh `bg-white`, `bg-gray-50`, `bg-slate-100` mà thiếu tiền tố `dark:`.
+- **Quy chuẩn Badges & Tags (Epic, Priority, Status)**:
+  - Text trong Dark Mode bắt buộc phải có độ tương phản cao (lightness >= 70%), không được dùng thẳng màu hex sẫm của Light Mode lên nền tối khiến chữ bị chìm.
+  - Priority badge phải có cặp class `dark:bg-...-950/40 dark:text-...-400 dark:border-...-900/60`.
+- **Quy chuẩn Khoảng Cách & Căn Giáp (Layout Alignment & Spacing)**:
+  - Khoảng cách giữa Sidebar và các Views trong hệ thống luôn đồng bộ chuẩn **16px** (`gap-4`, `p-4`).
+  - Cạnh trên của Island Header của mỗi View phải thẳng hàng tuyệt đối với cạnh trên của Sidebar (`pt-4 = 16px`).
+  - Logo thương hiệu TamTask trong Navbar căn thẳng hàng theo trục đứng với icon trong Sidebar khi Sidebar thu gọn (`w-16`).
+
+
 

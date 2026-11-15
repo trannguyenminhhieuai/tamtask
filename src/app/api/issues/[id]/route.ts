@@ -177,6 +177,17 @@ export async function PATCH(
       data.timeSpent = body.timeSpent ? parseInt(body.timeSpent) : 0;
     }
 
+    // Synchronize attachments if provided
+    if (body.attachments !== undefined && Array.isArray(body.attachments)) {
+      const remainingIds = body.attachments.map((a: any) => a.id).filter(Boolean);
+      await prisma.attachment.deleteMany({
+        where: {
+          issueId: params.id,
+          id: { notIn: remainingIds },
+        },
+      }).catch(() => {});
+    }
+
     // Trigger notification if assigned to someone new
     if (body.assigneeId && body.assigneeId !== existing.assigneeId) {
       await prisma.notification.create({
@@ -203,8 +214,20 @@ export async function PATCH(
       }).catch(() => {});
     }
 
-    // 3. Update subtasks if provided
+    // 3. Update subtasks if provided (Sync deletions, edits, and descriptions)
     if (body.subtasks && Array.isArray(body.subtasks)) {
+      const presentIds = body.subtasks
+        .map((st: any) => st.id)
+        .filter((id: string) => id && !id.startsWith("sub-"));
+
+      // Delete subtasks that were removed
+      await prisma.subtask.deleteMany({
+        where: {
+          issueId: params.id,
+          id: { notIn: presentIds },
+        },
+      }).catch(() => {});
+
       for (const st of body.subtasks) {
         if (st.id && !st.id.startsWith("sub-")) {
           await prisma.subtask
@@ -212,6 +235,7 @@ export async function PATCH(
               where: { id: st.id },
               data: {
                 title: st.title,
+                description: st.description !== undefined ? st.description : undefined,
                 isCompleted: Boolean(st.isCompleted),
               },
             })
@@ -221,6 +245,7 @@ export async function PATCH(
             .create({
               data: {
                 title: st.title,
+                description: st.description || "",
                 isCompleted: Boolean(st.isCompleted),
                 issueId: params.id,
               },

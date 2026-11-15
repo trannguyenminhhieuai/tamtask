@@ -256,6 +256,14 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
     const file = e.target.files?.[0];
     if (!file) return;
 
+    // Giới hạn kích thước tệp tối đa 15MB an toàn
+    const MAX_FILE_SIZE = 15 * 1024 * 1024;
+    if (file.size > MAX_FILE_SIZE) {
+      notify.error("Tệp đính kèm quá lớn", "Dung lượng tệp tối đa cho phép là 15MB.");
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
+
     setIsUploading(true);
     const formData = new FormData();
     formData.append("file", file);
@@ -288,12 +296,18 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
     }
   };
 
-  const handleRemoveAttachment = (attId: string) => {
+  const handleRemoveAttachment = async (attId: string) => {
+    try {
+      await fetch(`/api/upload?id=${attId}`, { method: "DELETE" });
+    } catch (err) {
+      console.warn("Delete attachment failed:", err);
+    }
     const updated = {
       ...issue,
-      attachments: issue.attachments.filter((a) => a.id !== attId),
+      attachments: (issue.attachments || []).filter((a) => a.id !== attId),
     };
     onUpdateIssue(updated);
+    notify.success("Đã xóa tệp đính kèm", "Tệp đã được loại bỏ khỏi công việc thành công.");
   };
 
   const handleTitleBlur = () => {
@@ -327,6 +341,35 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
 
     setMouseFeedback(null);
     onUpdateIssue({ ...issue, status: newStatus });
+  };
+
+  // Subtask expanded detail state
+  const [expandedSubtaskId, setExpandedSubtaskId] = useState<string | null>(null);
+  const [subtaskTitleInput, setSubtaskTitleInput] = useState<string>("");
+  const [subtaskDescInput, setSubtaskDescInput] = useState<string>("");
+
+  const deleteSubtask = (subId: string) => {
+    if (isViewer) return;
+    const updatedSubtasks = issue.subtasks.filter((s) => s.id !== subId);
+    onUpdateIssue({ ...issue, subtasks: updatedSubtasks });
+    if (expandedSubtaskId === subId) {
+      setExpandedSubtaskId(null);
+    }
+  };
+
+  const saveSubtask = (subId: string) => {
+    if (isViewer) return;
+    const updatedSubtasks = issue.subtasks.map((s) =>
+      s.id === subId
+        ? {
+            ...s,
+            title: subtaskTitleInput.trim() || s.title,
+            description: subtaskDescInput,
+          }
+        : s
+    );
+    onUpdateIssue({ ...issue, subtasks: updatedSubtasks });
+    notify.success("Đã lưu công việc phụ", "Cập nhật thành công.");
   };
 
   const toggleSubtask = (subtaskId: string) => {
@@ -430,17 +473,17 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
       onClick={onClose}
     >
       <div
-        className="w-full md:max-w-4xl bg-white h-full shadow-2xl flex flex-col border-l border-[#D7D7D7] rounded-l-2xl sm:rounded-l-3xl overflow-hidden animate-in slide-in-from-right duration-200"
+        className="w-full md:max-w-4xl bg-white dark:bg-zinc-900 h-full shadow-2xl flex flex-col border-l border-[#D7D7D7] dark:border-zinc-800 rounded-l-2xl sm:rounded-l-3xl overflow-hidden animate-in slide-in-from-right duration-200"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Top Header */}
-        <div className="px-6 py-3 border-b border-[#D7D7D7] flex items-center justify-between bg-[#F8F8F8]">
+        <div className="px-6 py-3.5 border-b border-[#E5E7EB] dark:border-zinc-800 flex items-center justify-between bg-white/70 dark:bg-zinc-900/70 backdrop-blur-md">
           <div className="flex items-center space-x-3">
-            <span className="text-xs font-semibold font-mono text-slate-700 bg-slate-100 px-2.5 py-0.5 rounded-full border border-slate-200">
+            <span className="text-xs font-semibold font-mono text-slate-700 dark:text-zinc-300 bg-slate-100 dark:bg-zinc-800 px-2.5 py-0.5 rounded-full border border-slate-200 dark:border-zinc-700">
               {issue.key}
             </span>
             <span className="text-xs text-slate-400">/</span>
-            <span className="text-xs font-semibold text-slate-600 uppercase tracking-wider">
+            <span className="text-xs font-semibold text-slate-600 dark:text-zinc-400 uppercase tracking-wider">
               {issue.type}
             </span>
           </div>
@@ -449,7 +492,7 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
             {canDelete && !isViewer && (
               <button
                 onClick={() => onDeleteIssue(issue.id)}
-                className="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-full transition"
+                className="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-full transition"
                 title="Xóa công việc"
               >
                 <Trash2 className="w-4 h-4" />
@@ -457,7 +500,7 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
             )}
             <button
               onClick={onClose}
-              className="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-black/5 rounded-full transition"
+              className="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-zinc-200 hover:bg-black/5 dark:hover:bg-white/5 rounded-full transition"
               title="Đóng (Esc)"
             >
               <X className="w-4 h-4" />
@@ -465,10 +508,11 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
           </div>
         </div>
 
-        {/* Content Body (2 Columns) */}
-        <div className="flex-1 overflow-y-auto flex flex-col md:flex-row">
-          {/* Left Column: Title, Description, Subtasks, Comments */}
-          <div className="flex-1 p-6 md:border-r border-gray-200 space-y-6">
+        {/* Content Body (2 Columns) - Unified Single Scrollbar with 16px bottom padding */}
+        <div className="flex-1 overflow-y-auto">
+          <div className="flex flex-col md:flex-row md:items-start min-h-full pb-4">
+            {/* Left Column: Title, Description, Subtasks, Comments */}
+            <div className="flex-1 p-6 pb-6 md:border-r border-gray-200 dark:border-zinc-800 space-y-6 bg-white dark:bg-zinc-900 flex flex-col justify-start">
             {/* Title */}
             <div>
               <input
@@ -477,8 +521,10 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
                 readOnly={isViewer}
                 onChange={(e) => setTitle(e.target.value)}
                 onBlur={isViewer ? undefined : handleTitleBlur}
-                className={`w-full text-lg font-bold text-gray-900 border-none rounded px-2 py-1 -ml-2 transition ${
-                  isViewer ? "bg-transparent cursor-default focus:ring-0" : "hover:bg-gray-50 focus:bg-white focus:ring-2 focus:ring-[#EE0033]"
+                className={`w-full text-lg font-bold text-slate-900 dark:text-zinc-100 rounded-xl px-2.5 py-1.5 -ml-2.5 transition border ${
+                  isViewer
+                    ? "bg-transparent border-transparent cursor-default focus:ring-0"
+                    : "bg-transparent dark:bg-transparent border-transparent hover:border-slate-200 dark:hover:border-zinc-700/60 hover:bg-slate-50/80 dark:hover:bg-zinc-800/50 focus:bg-white dark:focus:bg-zinc-800 focus:border-[#EE0033] dark:focus:border-[#EE0033] focus:ring-2 focus:ring-[#EE0033]/20"
                 }`}
               />
             </div>
@@ -486,18 +532,19 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
             {/* Description */}
             <div>
               <div className="flex items-center justify-between mb-1.5">
-                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider">
-                  Description {isViewer && <span className="text-[10px] text-gray-400 font-normal lowercase">(chỉ xem)</span>}
+                <label className="block text-xs font-bold text-gray-700 dark:text-zinc-300 uppercase tracking-wider">
+                  Description {isViewer && <span className="text-[10px] text-gray-400 dark:text-zinc-500 font-normal lowercase">(chỉ xem)</span>}
                 </label>
                 {!isViewer && (
                   <button
                     type="button"
                     onClick={handleGenerateCriteria}
                     disabled={isGeneratingCriteria}
-                    className="text-[11px] text-purple-700 hover:text-purple-800 font-medium flex items-center gap-1 transition disabled:opacity-50"
+                    className="text-[11px] text-purple-700 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-300 font-semibold flex items-center gap-1.5 transition disabled:opacity-50 px-2 py-0.5 rounded-lg hover:bg-purple-50 dark:hover:bg-purple-950/30"
+                    title="Nhấn để AI gợi ý chuẩn hóa mô tả và cấu trúc hóa công việc thông minh"
                   >
-                    <Sparkles className="w-3.5 h-3.5 text-purple-600" />
-                    <span>{isGeneratingCriteria ? "Đang sinh tiêu chí..." : "Sinh Tiêu Chí Nghiệm Thu BDD"}</span>
+                    <Sparkles className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+                    <span>{isGeneratingCriteria ? "Đang xử lý..." : "Gợi ý thông minh"}</span>
                   </button>
                 )}
               </div>
@@ -516,7 +563,7 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
                     <button
                       type="button"
                       onClick={() => setDescription(issue.description || "")}
-                      className="px-2.5 py-1 text-xs font-medium text-slate-500 hover:bg-slate-100 rounded transition"
+                      className="px-2.5 py-1 text-xs font-medium text-slate-500 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-zinc-800 rounded transition"
                     >
                       Hủy thay đổi
                     </button>
@@ -534,8 +581,8 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
 
             {/* PR Link if present */}
             {issue.prLink && (
-              <div className="p-3 bg-blue-50 border border-blue-200 rounded-md flex items-center justify-between text-xs">
-                <span className="text-blue-900 font-medium">Pull Request Connected:</span>
+              <div className="p-3 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-xl flex items-center justify-between text-xs">
+                <span className="text-blue-900 dark:text-blue-300 font-medium">Pull Request Connected:</span>
                 <a
                   href={issue.prLink}
                   target="_blank"
@@ -551,33 +598,146 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
             {/* Subtasks Section */}
             <div>
               <div className="flex items-center justify-between mb-2">
-                <label className="text-xs font-bold text-gray-700 uppercase tracking-wider">
+                <label className="text-xs font-bold text-gray-700 dark:text-zinc-300 uppercase tracking-wider">
                   Subtasks ({issue.subtasks.filter((s) => s.isCompleted).length}/{issue.subtasks.length})
                 </label>
               </div>
 
-              <div className="space-y-1.5 mb-3">
-                {issue.subtasks.map((sub) => (
-                  <div
-                    key={sub.id}
-                    className="flex items-center space-x-2.5 p-2 bg-gray-50 hover:bg-gray-100 rounded-md border border-gray-200/80 transition"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={sub.isCompleted}
-                      disabled={isViewer}
-                      onChange={() => toggleSubtask(sub.id)}
-                      className={`w-4 h-4 text-[#EE0033] rounded focus:ring-0 ${isViewer ? "cursor-not-allowed opacity-60" : "cursor-pointer"}`}
-                    />
-                    <span
-                      className={`text-xs flex-1 ${
-                        sub.isCompleted ? "line-through text-gray-400" : "text-gray-800"
-                      }`}
+              <div className="space-y-2 mb-3">
+                {issue.subtasks.map((sub) => {
+                  const isExpanded = expandedSubtaskId === sub.id;
+                  return (
+                    <div
+                      key={sub.id}
+                      className="bg-gray-50 dark:bg-zinc-800/60 rounded-xl border border-gray-200/80 dark:border-zinc-700/60 transition overflow-hidden"
                     >
-                      {sub.title}
-                    </span>
-                  </div>
-                ))}
+                      <div
+                        className="flex items-center justify-between space-x-2.5 p-2.5 hover:bg-gray-100/80 dark:hover:bg-zinc-800 cursor-pointer overflow-hidden"
+                        onClick={() => {
+                          if (isExpanded) {
+                            setExpandedSubtaskId(null);
+                          } else {
+                            setExpandedSubtaskId(sub.id);
+                            setSubtaskTitleInput(sub.title);
+                            setSubtaskDescInput(sub.description || "");
+                          }
+                        }}
+                      >
+                        <div className="flex items-center space-x-2.5 flex-1 min-w-0 overflow-hidden">
+                          <input
+                            type="checkbox"
+                            checked={sub.isCompleted}
+                            disabled={isViewer}
+                            onClick={(e) => e.stopPropagation()}
+                            onChange={() => toggleSubtask(sub.id)}
+                            className={`w-4 h-4 text-[#EE0033] rounded focus:ring-0 shrink-0 ${isViewer ? "cursor-not-allowed opacity-60" : "cursor-pointer"}`}
+                          />
+                          <div className="flex-1 min-w-0 overflow-hidden">
+                            <span
+                              className={`text-xs block truncate break-all max-w-full ${
+                                sub.isCompleted
+                                  ? "line-through text-gray-400 dark:text-zinc-500"
+                                  : "text-gray-800 dark:text-zinc-200 font-medium"
+                              }`}
+                              title={sub.title}
+                            >
+                              {sub.title}
+                            </span>
+                            {sub.description && !isExpanded && (
+                              <span
+                                className="text-[11px] text-gray-500 dark:text-zinc-400 line-clamp-1 truncate max-w-full mt-0.5"
+                                title={sub.description.replace(/<[^>]+>/g, "")}
+                              >
+                                {sub.description.replace(/<[^>]+>/g, "")}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="flex items-center space-x-1 shrink-0 ml-2">
+                          <span className="text-[10px] text-slate-400 dark:text-zinc-500 px-1.5 py-0.5 rounded bg-slate-200/50 dark:bg-zinc-700/50 font-mono">
+                            {isExpanded ? "Đóng mô tả" : "Xem/Sửa"}
+                          </span>
+                          {!isViewer && (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                deleteSubtask(sub.id);
+                              }}
+                              className="p-1 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 rounded-lg transition"
+                              title="Xóa công việc phụ"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Subtask Details & Editor */}
+                      {isExpanded && (
+                        <div className="px-3.5 pb-3.5 pt-2.5 border-t border-gray-200/60 dark:border-zinc-700/60 bg-white/60 dark:bg-zinc-900/40 space-y-3 animate-in fade-in duration-150">
+                          <div className="flex items-center justify-between">
+                            <label className="block text-[11px] font-bold text-slate-700 dark:text-zinc-300 uppercase tracking-wider">
+                              Tên công việc phụ:
+                            </label>
+                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${
+                              sub.isCompleted
+                                ? "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300"
+                                : "bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300"
+                            }`}>
+                              {sub.isCompleted ? "ĐÃ HOÀN THÀNH" : "CHƯA HOÀN THÀNH"}
+                            </span>
+                          </div>
+
+                          <div>
+                            <input
+                              type="text"
+                              disabled={isViewer}
+                              value={subtaskTitleInput}
+                              onChange={(e) => setSubtaskTitleInput(e.target.value)}
+                              placeholder="Nhập tên công việc phụ..."
+                              className="w-full text-xs px-3 py-2 bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-slate-900 dark:text-zinc-100 placeholder:text-slate-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-[#EE0033]/20 focus:border-[#EE0033] transition font-semibold"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-[11px] font-bold text-slate-700 dark:text-zinc-300 uppercase tracking-wider mb-1">
+                              Mô tả chi tiết:
+                            </label>
+                            <textarea
+                              rows={3}
+                              disabled={isViewer}
+                              value={subtaskDescInput}
+                              onChange={(e) => setSubtaskDescInput(e.target.value)}
+                              placeholder="Nhập mô tả chi tiết, hướng dẫn hoặc tiêu chí..."
+                              className="w-full text-xs p-2.5 bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-slate-900 dark:text-zinc-100 placeholder:text-slate-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-[#EE0033]/20 focus:border-[#EE0033] transition"
+                            />
+                          </div>
+
+                          {!isViewer && (
+                            <div className="flex items-center justify-end space-x-2 pt-0.5">
+                              <button
+                                type="button"
+                                onClick={() => setExpandedSubtaskId(null)}
+                                className="px-3 py-1 text-xs text-slate-600 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-zinc-800 rounded-lg transition"
+                              >
+                                Thu gọn
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => saveSubtask(sub.id)}
+                                className="px-3.5 py-1 text-xs font-semibold bg-[#EE0033] hover:bg-[#D6002E] text-white rounded-lg shadow-xs transition"
+                              >
+                                Lưu thay đổi
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
 
               {/* Add subtask input (Hidden for VIEWER) */}
@@ -589,11 +749,11 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
                     onChange={(e) => setNewSubtaskTitle(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && addSubtask()}
                     placeholder="+ Add a subtask..."
-                    className="flex-1 text-xs bg-white border border-gray-200 rounded px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#EE0033]"
+                    className="flex-1 text-xs bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 text-gray-900 dark:text-zinc-100 placeholder:text-gray-400 dark:placeholder:text-zinc-500 rounded px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#EE0033]"
                   />
                   <button
                     onClick={addSubtask}
-                    className="bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs px-3 py-1.5 rounded font-semibold transition"
+                    className="bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 dark:hover:bg-zinc-700 text-gray-700 dark:text-zinc-200 border border-transparent dark:border-zinc-700 text-xs px-3 py-1.5 rounded font-semibold transition"
                   >
                     Add
                   </button>
@@ -604,8 +764,8 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
             {/* Attachments Section */}
             <div>
               <div className="flex items-center justify-between mb-2">
-                <label className="text-xs font-bold text-gray-700 uppercase tracking-wider flex items-center gap-1.5">
-                  <Paperclip className="w-3.5 h-3.5 text-gray-500" />
+                <label className="text-xs font-bold text-gray-700 dark:text-zinc-300 uppercase tracking-wider flex items-center gap-1.5">
+                  <Paperclip className="w-3.5 h-3.5 text-gray-500 dark:text-zinc-400" />
                   <span>Attachments ({(issue.attachments || []).length})</span>
                 </label>
                 <input
@@ -633,7 +793,7 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
                   {issue.attachments.map((att) => (
                     <div
                       key={att.id}
-                      className="p-2.5 bg-gray-50 hover:bg-gray-100 rounded-md border border-gray-200/80 flex items-center justify-between transition group"
+                      className="p-2.5 bg-gray-50 dark:bg-zinc-800/60 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-md border border-gray-200/80 dark:border-zinc-700/80 flex items-center justify-between transition group"
                     >
                       <div className="flex items-center space-x-2.5 overflow-hidden">
                         <FileText className="w-4 h-4 text-[#EE0033] flex-shrink-0" />
@@ -642,12 +802,12 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
                             href={att.url}
                             target="_blank"
                             rel="noreferrer"
-                            className="text-xs font-semibold text-gray-800 hover:text-[#EE0033] truncate block"
+                            className="text-xs font-semibold text-gray-800 dark:text-zinc-200 hover:text-[#EE0033] dark:hover:text-rose-400 truncate block"
                             title={att.name}
                           >
                             {att.name}
                           </a>
-                          <div className="text-[10px] text-gray-400">{att.size}</div>
+                          <div className="text-[10px] text-gray-400 dark:text-zinc-500">{att.size}</div>
                         </div>
                       </div>
 
@@ -655,7 +815,7 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
                         <a
                           href={att.url}
                           download={att.name}
-                          className="p-1 text-gray-400 hover:text-gray-700 rounded"
+                          className="p-1 text-gray-400 hover:text-gray-700 dark:hover:text-zinc-200 rounded"
                           title="Download"
                         >
                           <Download className="w-3.5 h-3.5" />
@@ -677,14 +837,13 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
               ) : (
                 <div
                   onClick={() => !isViewer && fileInputRef.current?.click()}
-                  className={`p-4 border-2 border-dashed border-gray-200 rounded-md text-center transition bg-gray-50/50 ${
-                    isViewer ? "cursor-default" : "hover:border-blue-400 hover:bg-blue-50/20 cursor-pointer"
-                  }`}
+                  className={`p-4 border-2 border-dashed border-gray-200 dark:border-zinc-700 rounded-md text-center transition bg-gray-50/50 dark:bg-zinc-800/30 ${isViewer ? "cursor-default" : "hover:border-[#EE0033]/60 dark:hover:border-[#EE0033]/60 hover:bg-rose-50/20 dark:hover:bg-rose-950/20 cursor-pointer"
+                    }`}
                 >
-                  <p className="text-xs text-gray-500 font-medium">
+                  <p className="text-xs text-gray-500 dark:text-zinc-400 font-medium">
                     {isUploading ? "Đang tải tệp lên..." : isViewer ? "Chưa có tệp đính kèm nào" : "Kéo thả tệp hoặc bấm vào đây để đính kèm tệp"}
                   </p>
-                  <span className="text-[10px] text-gray-400">Hỗ trợ PNG, JPG, PDF, DOCX...</span>
+                  <span className="text-[10px] text-gray-400 dark:text-zinc-500">Hỗ trợ PNG, JPG, PDF, DOCX...</span>
                 </div>
               )}
             </div>
@@ -692,8 +851,8 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
             {/* Linked Issues Section (Công việc liên kết) */}
             <div className="pt-2">
               <div className="flex items-center justify-between mb-2">
-                <label className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
-                  <Link2 className="w-3.5 h-3.5 text-slate-500" />
+                <label className="text-xs font-bold text-slate-700 dark:text-zinc-300 uppercase tracking-wider flex items-center gap-1.5">
+                  <Link2 className="w-3.5 h-3.5 text-slate-500 dark:text-zinc-400" />
                   <span>Công việc liên kết ({((issue.sourceLinks?.length || 0) + (issue.targetLinks?.length || 0))})</span>
                 </label>
                 {!isViewer && (
@@ -710,35 +869,35 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
 
               {/* Add Link Form */}
               {isLinkingOpen && !isViewer && (
-                <div className="mb-3 p-3 bg-slate-50 border border-slate-200 rounded-lg space-y-2.5">
-                  <div className="text-xs font-semibold text-slate-800">Thêm liên kết mới</div>
+                <div className="mb-3 p-3 bg-slate-50 dark:bg-zinc-800/80 border border-slate-200 dark:border-zinc-700 rounded-lg space-y-2.5">
+                  <div className="text-xs font-semibold text-slate-800 dark:text-zinc-100">Thêm liên kết mới</div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     <div>
-                      <label className="block text-[11px] text-slate-500 mb-1">Mối quan hệ</label>
+                      <label className="block text-[11px] text-slate-500 dark:text-zinc-400 mb-1">Mối quan hệ</label>
                       <select
                         value={linkType}
                         onChange={(e) => setLinkType(e.target.value as IssueLinkType)}
-                        className="w-full text-xs bg-white border border-slate-200 rounded px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#EE0033]"
+                        className="w-full text-xs bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 text-slate-900 dark:text-zinc-100 rounded px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#EE0033]"
                       >
-                        <option value="BLOCKS">Chặn (Blocks)</option>
-                        <option value="IS_BLOCKED_BY">Bị chặn bởi (Is blocked by)</option>
-                        <option value="RELATES_TO">Liên quan tới (Relates to)</option>
-                        <option value="DUPLICATES">Trùng lặp với (Duplicates)</option>
+                        <option value="BLOCKS" className="dark:bg-zinc-800">Chặn (Blocks)</option>
+                        <option value="IS_BLOCKED_BY" className="dark:bg-zinc-800">Bị chặn bởi (Is blocked by)</option>
+                        <option value="RELATES_TO" className="dark:bg-zinc-800">Liên quan tới (Relates to)</option>
+                        <option value="DUPLICATES" className="dark:bg-zinc-800">Trùng lặp với (Duplicates)</option>
                       </select>
                     </div>
 
                     <div>
-                      <label className="block text-[11px] text-slate-500 mb-1">Chọn công việc mục tiêu</label>
+                      <label className="block text-[11px] text-slate-500 dark:text-zinc-400 mb-1">Chọn công việc mục tiêu</label>
                       <select
                         value={linkTargetId}
                         onChange={(e) => setLinkTargetId(e.target.value)}
-                        className="w-full text-xs bg-white border border-slate-200 rounded px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#EE0033]"
+                        className="w-full text-xs bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 text-slate-900 dark:text-zinc-100 rounded px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#EE0033]"
                       >
-                        <option value="">-- Chọn công việc --</option>
+                        <option value="" className="dark:bg-zinc-800">-- Chọn công việc --</option>
                         {allIssues
                           .filter((i) => i.id !== issue.id)
                           .map((i) => (
-                            <option key={i.id} value={i.id}>
+                            <option key={i.id} value={i.id} className="dark:bg-zinc-800">
                               {i.key} - {i.title.slice(0, 45)}
                             </option>
                           ))}
@@ -750,7 +909,7 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
                     <button
                       type="button"
                       onClick={() => setIsLinkingOpen(false)}
-                      className="px-2.5 py-1 text-xs text-slate-600 hover:bg-slate-200 rounded transition"
+                      className="px-2.5 py-1 text-xs text-slate-600 dark:text-zinc-400 hover:bg-slate-200 dark:hover:bg-zinc-700 rounded transition"
                     >
                       Hủy
                     </button>
@@ -777,23 +936,23 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
                       link.type === "BLOCKS"
                         ? "Chặn"
                         : link.type === "IS_BLOCKED_BY"
-                        ? "Bị chặn bởi"
-                        : link.type === "DUPLICATES"
-                        ? "Trùng lặp với"
-                        : "Liên quan";
+                          ? "Bị chặn bởi"
+                          : link.type === "DUPLICATES"
+                            ? "Trùng lặp với"
+                            : "Liên quan";
                     const badgeClass =
                       link.type === "BLOCKS"
-                        ? "bg-amber-50 text-amber-700 border-amber-200"
+                        ? "bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800/60"
                         : link.type === "IS_BLOCKED_BY"
-                        ? "bg-rose-50 text-rose-700 border-rose-200"
-                        : link.type === "DUPLICATES"
-                        ? "bg-slate-100 text-slate-700 border-slate-200"
-                        : "bg-blue-50 text-blue-700 border-blue-200";
+                          ? "bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-800/60"
+                          : link.type === "DUPLICATES"
+                            ? "bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 border-slate-200 dark:border-zinc-700"
+                            : "bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800/60";
 
                     return (
                       <div
                         key={link.id}
-                        className="px-3 py-2 bg-slate-50/80 hover:bg-slate-100/90 rounded-md border border-slate-200 flex items-center justify-between transition group text-xs"
+                        className="px-3 py-2 bg-slate-50/80 dark:bg-zinc-800/60 hover:bg-slate-100/90 dark:hover:bg-zinc-800 rounded-md border border-slate-200 dark:border-zinc-700/80 flex items-center justify-between transition group text-xs"
                       >
                         <div className="flex items-center space-x-2.5 overflow-hidden">
                           <span className={`text-[10px] font-medium px-2 py-0.5 rounded border ${badgeClass}`}>
@@ -804,13 +963,13 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
                               const found = allIssues.find((i) => i.id === link.targetId);
                               if (found && onSelectIssue) onSelectIssue(found);
                             }}
-                            className="font-mono font-semibold text-slate-700 hover:text-[#EE0033] cursor-pointer"
+                            className="font-mono font-semibold text-slate-700 dark:text-zinc-300 hover:text-[#EE0033] dark:hover:text-rose-400 cursor-pointer"
                           >
                             {target?.key || "ISSUE"}
                           </span>
-                          <span className="text-slate-700 truncate max-w-xs">{target?.title}</span>
+                          <span className="text-slate-700 dark:text-zinc-200 truncate max-w-xs">{target?.title}</span>
                           {target?.status && (
-                            <span className="text-[10px] uppercase font-semibold text-slate-500 bg-white px-1.5 py-0.5 rounded border border-slate-200">
+                            <span className="text-[10px] uppercase font-semibold text-slate-500 dark:text-zinc-400 bg-white dark:bg-zinc-800 px-1.5 py-0.5 rounded border border-slate-200 dark:border-zinc-700">
                               {target.status}
                             </span>
                           )}
@@ -837,21 +996,21 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
                       link.type === "BLOCKS"
                         ? "Bị chặn bởi"
                         : link.type === "IS_BLOCKED_BY"
-                        ? "Chặn"
-                        : link.type === "DUPLICATES"
-                        ? "Bị trùng lặp bởi"
-                        : "Liên quan";
+                          ? "Chặn"
+                          : link.type === "DUPLICATES"
+                            ? "Bị trùng lặp bởi"
+                            : "Liên quan";
                     const badgeClass =
                       link.type === "BLOCKS"
-                        ? "bg-rose-50 text-rose-700 border-rose-200"
+                        ? "bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-800/60"
                         : link.type === "IS_BLOCKED_BY"
-                        ? "bg-amber-50 text-amber-700 border-amber-200"
-                        : "bg-blue-50 text-blue-700 border-blue-200";
+                          ? "bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800/60"
+                          : "bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800/60";
 
                     return (
                       <div
                         key={link.id}
-                        className="px-3 py-2 bg-slate-50/80 hover:bg-slate-100/90 rounded-md border border-slate-200 flex items-center justify-between transition group text-xs"
+                        className="px-3 py-2 bg-slate-50/80 dark:bg-zinc-800/60 hover:bg-slate-100/90 dark:hover:bg-zinc-800 rounded-md border border-slate-200 dark:border-zinc-700/80 flex items-center justify-between transition group text-xs"
                       >
                         <div className="flex items-center space-x-2.5 overflow-hidden">
                           <span className={`text-[10px] font-medium px-2 py-0.5 rounded border ${badgeClass}`}>
@@ -862,13 +1021,13 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
                               const found = allIssues.find((i) => i.id === link.sourceId);
                               if (found && onSelectIssue) onSelectIssue(found);
                             }}
-                            className="font-mono font-semibold text-slate-700 hover:text-[#EE0033] cursor-pointer"
+                            className="font-mono font-semibold text-slate-700 dark:text-zinc-300 hover:text-[#EE0033] dark:hover:text-rose-400 cursor-pointer"
                           >
                             {source?.key || "ISSUE"}
                           </span>
-                          <span className="text-slate-700 truncate max-w-xs">{source?.title}</span>
+                          <span className="text-slate-700 dark:text-zinc-200 truncate max-w-xs">{source?.title}</span>
                           {source?.status && (
-                            <span className="text-[10px] uppercase font-semibold text-slate-500 bg-white px-1.5 py-0.5 rounded border border-slate-200">
+                            <span className="text-[10px] uppercase font-semibold text-slate-500 dark:text-zinc-400 bg-white dark:bg-zinc-800 px-1.5 py-0.5 rounded border border-slate-200 dark:border-zinc-700">
                               {source.status}
                             </span>
                           )}
@@ -889,27 +1048,26 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
                   })}
                 </div>
               ) : (
-                <div className="p-3 border border-dashed border-slate-200 rounded-md text-center bg-slate-50/50">
-                  <p className="text-xs text-slate-400">Chưa có công việc liên kết nào</p>
+                <div className="p-3 border border-dashed border-slate-200 dark:border-zinc-700 rounded-md text-center bg-slate-50/50 dark:bg-zinc-800/30">
+                  <p className="text-xs text-slate-400 dark:text-zinc-500">Chưa có công việc liên kết nào</p>
                 </div>
               )}
             </div>
 
             {/* Activity & Comments Tabs */}
             <div>
-              <div className="flex items-center space-x-6 border-b border-gray-200 mb-4">
+              <div className="flex items-center space-x-6 border-b border-gray-200 dark:border-zinc-800 mb-4">
                 <button
                   type="button"
                   onClick={() => setActiveTab("COMMENTS")}
-                  className={`pb-2.5 text-xs font-bold uppercase tracking-wider flex items-center space-x-2 border-b-2 transition ${
-                    activeTab === "COMMENTS"
-                      ? "border-[#EE0033] text-[#EE0033]"
-                      : "border-transparent text-gray-500 hover:text-gray-800"
-                  }`}
+                  className={`pb-2.5 text-xs font-bold uppercase tracking-wider flex items-center space-x-2 border-b-2 transition ${activeTab === "COMMENTS"
+                    ? "border-[#EE0033] text-[#EE0033]"
+                    : "border-transparent text-gray-500 dark:text-zinc-400 hover:text-gray-800 dark:hover:text-zinc-200"
+                    }`}
                 >
                   <MessageSquare className="w-3.5 h-3.5" />
                   <span>Bình luận</span>
-                  <span className="text-[10px] bg-gray-100 text-gray-600 font-semibold px-1.5 py-0.5 rounded-full">
+                  <span className="text-[10px] bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-zinc-300 font-semibold px-1.5 py-0.5 rounded-full">
                     {issue.comments?.length || 0}
                   </span>
                 </button>
@@ -917,15 +1075,14 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
                 <button
                   type="button"
                   onClick={() => setActiveTab("HISTORY")}
-                  className={`pb-2.5 text-xs font-bold uppercase tracking-wider flex items-center space-x-2 border-b-2 transition ${
-                    activeTab === "HISTORY"
-                      ? "border-[#EE0033] text-[#EE0033]"
-                      : "border-transparent text-gray-500 hover:text-gray-800"
-                  }`}
+                  className={`pb-2.5 text-xs font-bold uppercase tracking-wider flex items-center space-x-2 border-b-2 transition ${activeTab === "HISTORY"
+                    ? "border-[#EE0033] text-[#EE0033]"
+                    : "border-transparent text-gray-500 dark:text-zinc-400 hover:text-gray-800 dark:hover:text-zinc-200"
+                    }`}
                 >
                   <History className="w-3.5 h-3.5" />
                   <span>Lịch sử thay đổi</span>
-                  <span className="text-[10px] bg-gray-100 text-gray-600 font-semibold px-1.5 py-0.5 rounded-full">
+                  <span className="text-[10px] bg-gray-100 dark:bg-zinc-800 text-gray-600 dark:text-zinc-300 font-semibold px-1.5 py-0.5 rounded-full">
                     {issue.activities?.length || 0}
                   </span>
                 </button>
@@ -942,17 +1099,17 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
                             alt={comment.author.name}
                             className="w-6 h-6 rounded-full object-cover flex-shrink-0 mt-0.5"
                           />
-                          <div className="flex-1 bg-gray-50 border border-gray-200 rounded-md p-2.5">
-                            <div className="flex items-center justify-between text-[11px] text-gray-500 mb-1">
-                              <span className="font-semibold text-gray-800">{comment.author.name}</span>
+                          <div className="flex-1 bg-gray-50 dark:bg-zinc-800/60 border border-gray-200 dark:border-zinc-700/80 rounded-md p-2.5">
+                            <div className="flex items-center justify-between text-[11px] text-gray-500 dark:text-zinc-400 mb-1">
+                              <span className="font-semibold text-gray-800 dark:text-zinc-200">{comment.author.name}</span>
                               <span>{comment.createdAt}</span>
                             </div>
-                            <p className="text-gray-700 leading-relaxed">{comment.content}</p>
+                            <p className="text-gray-700 dark:text-zinc-300 leading-relaxed">{comment.content}</p>
                           </div>
                         </div>
                       ))
                     ) : (
-                      <p className="text-xs text-gray-400 italic bg-gray-50 p-3 rounded text-center">
+                      <p className="text-xs text-gray-400 dark:text-zinc-500 italic bg-gray-50 dark:bg-zinc-800/40 p-3 rounded-lg text-center border border-dashed border-gray-200 dark:border-zinc-700/60">
                         Chưa có bình luận nào. Hãy là người đầu tiên trao đổi!
                       </p>
                     )}
@@ -967,18 +1124,18 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
                         onChange={(e) => setNewComment(e.target.value)}
                         onKeyDown={(e) => e.key === "Enter" && addComment()}
                         placeholder="Viết bình luận..."
-                        className="flex-1 text-xs bg-white border border-gray-200 rounded px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[#EE0033]"
+                        className="flex-1 text-xs bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 text-gray-900 dark:text-zinc-100 placeholder:text-gray-400 dark:placeholder:text-zinc-500 rounded px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[#EE0033]"
                       />
                       <button
                         onClick={addComment}
-                        className="bg-[#EE0033] hover:bg-[#D6002E] text-white px-3 py-2 rounded text-xs font-semibold flex items-center gap-1 transition"
+                        className="bg-[#EE0033] hover:bg-[#D6002E] text-white px-3 py-2 rounded text-xs font-semibold flex items-center gap-1 transition shadow-xs"
                       >
                         <Send className="w-3.5 h-3.5" />
                         <span>Gửi</span>
                       </button>
                     </div>
                   ) : (
-                    <p className="text-xs text-gray-400 italic bg-gray-50 p-2.5 rounded border border-gray-200">
+                    <p className="text-xs text-gray-400 dark:text-zinc-500 italic bg-gray-50 dark:bg-zinc-800/40 p-2.5 rounded border border-gray-200 dark:border-zinc-700/60">
                       Tài khoản quyền VIEWER ở chế độ chỉ đọc, không thể gửi bình luận.
                     </p>
                   )}
@@ -987,21 +1144,21 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
                 /* History Tab */
                 <div>
                   {issue.activities && issue.activities.length > 0 ? (
-                    <div className="relative pl-6 space-y-4 before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-gray-200">
+                    <div className="relative pl-6 space-y-4 before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-gray-200 dark:before:bg-zinc-800">
                       {issue.activities.map((act) => (
                         <div key={act.id} className="relative flex items-start space-x-3 text-xs">
-                          <span className="absolute -left-[19px] top-1.5 w-2.5 h-2.5 rounded-full bg-[#EE0033] ring-4 ring-white" />
+                          <span className="absolute -left-[19px] top-1.5 w-2.5 h-2.5 rounded-full bg-[#EE0033] ring-4 ring-white dark:ring-zinc-900" />
                           <img
                             src={
                               act.actor?.avatar ||
                               "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop&crop=faces"
                             }
                             alt={act.actor?.name || "Actor"}
-                            className="w-6 h-6 rounded-full object-cover flex-shrink-0 mt-0.5 border border-gray-200"
+                            className="w-6 h-6 rounded-full object-cover flex-shrink-0 mt-0.5 border border-gray-200 dark:border-zinc-700"
                           />
-                          <div className="flex-1 bg-gray-50 border border-gray-200/80 rounded-md p-2.5">
-                            <div className="flex items-center justify-between text-[11px] text-gray-500 mb-1">
-                              <span className="font-semibold text-gray-800">{act.actor?.name || "Thành viên"}</span>
+                          <div className="flex-1 bg-gray-50 dark:bg-zinc-800/60 border border-gray-200/80 dark:border-zinc-700/80 rounded-md p-2.5">
+                            <div className="flex items-center justify-between text-[11px] text-gray-500 dark:text-zinc-400 mb-1">
+                              <span className="font-semibold text-gray-800 dark:text-zinc-200">{act.actor?.name || "Thành viên"}</span>
                               <span className="text-[10px]">
                                 {new Date(act.createdAt).toLocaleString("vi-VN", {
                                   hour: "2-digit",
@@ -1012,39 +1169,39 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
                                 })}
                               </span>
                             </div>
-                            <div className="text-gray-700 leading-relaxed text-xs">
+                            <div className="text-gray-700 dark:text-zinc-300 leading-relaxed text-xs">
                               {act.fieldChanged === "STATUS" ? (
                                 <span>
                                   Đã đổi trạng thái từ{" "}
-                                  <span className="font-semibold px-1.5 py-0.5 bg-gray-100 rounded text-gray-700">
+                                  <span className="font-semibold px-1.5 py-0.5 bg-gray-100 dark:bg-zinc-800 rounded text-gray-700 dark:text-zinc-300">
                                     {act.oldValue || "Chưa có"}
                                   </span>{" "}
                                   sang{" "}
-                                  <span className="font-semibold px-1.5 py-0.5 bg-blue-50 text-blue-700 rounded">
+                                  <span className="font-semibold px-1.5 py-0.5 bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 rounded">
                                     {act.newValue}
                                   </span>
                                 </span>
                               ) : act.fieldChanged === "PRIORITY" ? (
                                 <span>
                                   Đã đổi độ ưu tiên từ{" "}
-                                  <span className="font-semibold text-gray-700">{act.oldValue}</span> sang{" "}
-                                  <span className="font-semibold text-blue-700">{act.newValue}</span>
+                                  <span className="font-semibold text-gray-700 dark:text-zinc-300">{act.oldValue}</span> sang{" "}
+                                  <span className="font-semibold text-blue-700 dark:text-blue-300">{act.newValue}</span>
                                 </span>
                               ) : act.fieldChanged === "STORY_POINTS" ? (
                                 <span>
                                   Đã đổi Story Points từ{" "}
                                   <span className="font-semibold">{act.oldValue || 0}</span> sang{" "}
-                                  <span className="font-semibold text-blue-700">{act.newValue}</span>
+                                  <span className="font-semibold text-blue-700 dark:text-blue-300">{act.newValue}</span>
                                 </span>
                               ) : act.fieldChanged === "ASSIGNEE" ? (
                                 <span>
                                   Đã gán người thực hiện:{" "}
-                                  <span className="font-semibold text-gray-700">{act.oldValue || "Chưa gán"}</span> &rarr;{" "}
-                                  <span className="font-semibold text-blue-700">{act.newValue || "Chưa gán"}</span>
+                                  <span className="font-semibold text-gray-700 dark:text-zinc-300">{act.oldValue || "Chưa gán"}</span> &rarr;{" "}
+                                  <span className="font-semibold text-blue-700 dark:text-blue-300">{act.newValue || "Chưa gán"}</span>
                                 </span>
                               ) : act.fieldChanged === "TITLE" ? (
                                 <span>
-                                  Đã đổi tiêu đề thành <span className="font-semibold text-gray-800">"{act.newValue}"</span>
+                                  Đã đổi tiêu đề thành <span className="font-semibold text-gray-800 dark:text-zinc-100">"{act.newValue}"</span>
                                 </span>
                               ) : act.fieldChanged === "DESCRIPTION" ? (
                                 <span>Đã cập nhật mô tả task</span>
@@ -1059,7 +1216,7 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
                       ))}
                     </div>
                   ) : (
-                    <div className="p-6 text-center text-xs text-gray-400 bg-gray-50 rounded border border-dashed border-gray-200">
+                    <div className="p-6 text-center text-xs text-gray-400 dark:text-zinc-500 bg-gray-50 dark:bg-zinc-800/40 rounded border border-dashed border-gray-200 dark:border-zinc-700/60">
                       Chưa có hoạt động hay thay đổi nào được ghi nhận cho task này.
                     </div>
                   )}
@@ -1068,29 +1225,29 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
             </div>
           </div>
 
-          {/* Right Column: Metadata & Fast Actions */}
-          <div className="w-full md:w-80 p-6 bg-[#F8F8F8] md:border-l border-[#D7D7D7] space-y-5">
+          {/* Right Column: Metadata & Fast Actions (Unified Single Scroll, Full Stretch) */}
+          <div className="w-full md:w-80 lg:w-88 p-5 pb-16 bg-slate-50/70 dark:bg-zinc-900/60 md:border-l border-slate-200 dark:border-zinc-800 space-y-4 shrink-0 flex flex-col justify-start">
             {/* Auto Triage Action Button */}
             {!isViewer && (
-              <div className="bg-white border border-[#D7D7D7] rounded-2xl p-3.5 shadow-2xs">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-1.5 text-xs font-bold text-[#111827]">
-                    <Sparkles className="w-3.5 h-3.5 text-[#EE0033]" />
-                    <span>Gợi Ý Phân Phối Tự Động</span>
+              <div className="bg-white dark:bg-zinc-800/80 border border-slate-200 dark:border-zinc-700/80 rounded-2xl p-4 shadow-2xs space-y-2.5">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center space-x-1.5 text-xs font-bold text-slate-900 dark:text-zinc-100">
+                    <Sparkles className="w-3.5 h-3.5 text-[#EE0033] shrink-0" />
+                    <span>Gợi Ý Phân Phối</span>
                   </div>
                   <button
                     onClick={triggerMouse1Triage}
                     disabled={isTriaging}
-                    className="text-[11px] bg-[#EE0033] hover:bg-[#D6002E] active:bg-[#BD0029] text-white font-semibold px-3 py-1 rounded-full transition shadow-xs disabled:opacity-50 focus:ring-3 focus:ring-[#EE0033]/20"
+                    className="text-xs bg-[#EE0033] hover:bg-[#D6002E] active:bg-[#BD0029] text-white font-semibold px-3.5 py-1.5 rounded-full transition shadow-xs disabled:opacity-50 shrink-0 focus:ring-2 focus:ring-[#EE0033]/20"
                   >
                     {isTriaging ? "Đang tính..." : "Phân phối ngay"}
                   </button>
                 </div>
-                <p className="text-[10px] text-gray-600 mt-1">
-                  Tự động tối ưu người thực hiện, mức ưu tiên và Epic phù hợp cho công việc.
+                <p className="text-[11px] text-slate-500 dark:text-zinc-400 leading-snug">
+                  Tối ưu người thực hiện, mức ưu tiên và Epic phù hợp.
                 </p>
                 {mouseFeedback && (
-                  <div className="mt-2 text-[10px] text-emerald-800 bg-emerald-50 border border-emerald-200 p-2 rounded-xl">
+                  <div className="mt-2 text-[10px] text-emerald-800 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 p-2.5 rounded-xl">
                     {mouseFeedback}
                   </div>
                 )}
@@ -1099,30 +1256,31 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
 
             {/* Status Selector */}
             <div>
-              <label className="block text-[11px] font-bold text-[#4B5563] uppercase tracking-wider mb-1.5">
+              <label className="block text-[11px] font-bold text-slate-600 dark:text-zinc-400 uppercase tracking-wider mb-1.5">
                 Status
               </label>
               <select
                 value={issue.status}
                 disabled={isViewer}
                 onChange={(e) => handleStatusChange(e.target.value as IssueStatus)}
-                className={`w-full text-xs font-bold border rounded-xl px-3.5 py-2 transition focus:outline-none focus:ring-2 focus:ring-[#EE0033]/20 focus:border-[#EE0033] ${
-                  isViewer ? "bg-gray-100 text-gray-500 cursor-not-allowed border-[#D7D7D7]" : "bg-[#FAFAFA] text-[#111827] border-[#D7D7D7]"
-                }`}
+                className={`w-full text-xs font-bold border rounded-xl px-3.5 py-2 transition focus:outline-none focus:ring-2 focus:ring-[#EE0033]/20 focus:border-[#EE0033] ${isViewer
+                  ? "bg-gray-100 dark:bg-zinc-800 text-gray-500 dark:text-zinc-500 cursor-not-allowed border-slate-200 dark:border-zinc-700"
+                  : "bg-white dark:bg-zinc-800 text-slate-900 dark:text-zinc-100 border-slate-200 dark:border-zinc-700 shadow-2xs"
+                  }`}
               >
                 {statuses && statuses.length > 0 ? (
                   statuses.map((s) => (
-                    <option key={s.id} value={s.id}>
+                    <option key={s.id} value={s.id} className="dark:bg-zinc-800">
                       {s.name.toUpperCase()}
                     </option>
                   ))
                 ) : (
                   <>
-                    <option value="BACKLOG">BACKLOG</option>
-                    <option value="TODO">TO DO</option>
-                    <option value="IN_PROGRESS">IN PROGRESS</option>
-                    <option value="IN_REVIEW">IN REVIEW</option>
-                    <option value="DONE">DONE</option>
+                    <option value="BACKLOG" className="dark:bg-zinc-800">BACKLOG</option>
+                    <option value="TODO" className="dark:bg-zinc-800">TO DO</option>
+                    <option value="IN_PROGRESS" className="dark:bg-zinc-800">IN PROGRESS</option>
+                    <option value="IN_REVIEW" className="dark:bg-zinc-800">IN REVIEW</option>
+                    <option value="DONE" className="dark:bg-zinc-800">DONE</option>
                   </>
                 )}
               </select>
@@ -1130,7 +1288,7 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
 
             {/* Assignee Selector */}
             <div>
-              <label className="block text-[11px] font-bold text-[#4B5563] uppercase tracking-wider mb-1.5">
+              <label className="block text-[11px] font-bold text-slate-600 dark:text-zinc-400 uppercase tracking-wider mb-1.5">
                 Assignee
               </label>
               <select
@@ -1140,13 +1298,14 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
                   const user = users.find((u) => u.id === e.target.value);
                   onUpdateIssue({ ...issue, assignee: user });
                 }}
-                className={`w-full text-xs font-medium border rounded-xl px-3.5 py-2 transition focus:outline-none focus:ring-2 focus:ring-[#EE0033]/20 focus:border-[#EE0033] ${
-                  isViewer ? "bg-gray-100 text-gray-500 cursor-not-allowed border-[#D7D7D7]" : "bg-[#FAFAFA] text-[#111827] border-[#D7D7D7]"
-                }`}
+                className={`w-full text-xs font-medium border rounded-xl px-3.5 py-2 transition focus:outline-none focus:ring-2 focus:ring-[#EE0033]/20 focus:border-[#EE0033] ${isViewer
+                  ? "bg-gray-100 dark:bg-zinc-800 text-gray-500 dark:text-zinc-500 cursor-not-allowed border-slate-200 dark:border-zinc-700"
+                  : "bg-white dark:bg-zinc-800 text-slate-900 dark:text-zinc-100 border-slate-200 dark:border-zinc-700 shadow-2xs"
+                  }`}
               >
-                <option value="">Unassigned</option>
+                <option value="" className="dark:bg-zinc-800">Unassigned</option>
                 {users.map((u) => (
-                  <option key={u.id} value={u.id}>
+                  <option key={u.id} value={u.id} className="dark:bg-zinc-800">
                     {u.name} ({u.role})
                   </option>
                 ))}
@@ -1155,7 +1314,7 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
 
             {/* Epic Selector with Highlight Color */}
             <div>
-              <label className="block text-[11px] font-bold text-[#4B5563] uppercase tracking-wider mb-1.5">
+              <label className="block text-[11px] font-bold text-slate-600 dark:text-zinc-400 uppercase tracking-wider mb-1.5">
                 Epic Link
               </label>
               <select
@@ -1165,13 +1324,14 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
                   const epic = epics.find((ep) => ep.id === e.target.value);
                   onUpdateIssue({ ...issue, epic });
                 }}
-                className={`w-full text-xs font-medium border rounded-xl px-3.5 py-2 transition focus:outline-none focus:ring-2 focus:ring-[#EE0033]/20 focus:border-[#EE0033] ${
-                  isViewer ? "bg-gray-100 text-gray-500 cursor-not-allowed border-[#D7D7D7]" : "bg-[#FAFAFA] text-[#111827] border-[#D7D7D7]"
-                }`}
+                className={`w-full text-xs font-medium border rounded-xl px-3.5 py-2 transition focus:outline-none focus:ring-2 focus:ring-[#EE0033]/20 focus:border-[#EE0033] ${isViewer
+                  ? "bg-gray-100 dark:bg-zinc-800 text-gray-500 dark:text-zinc-500 cursor-not-allowed border-slate-200 dark:border-zinc-700"
+                  : "bg-white dark:bg-zinc-800 text-slate-900 dark:text-zinc-100 border-slate-200 dark:border-zinc-700 shadow-2xs"
+                  }`}
               >
-                <option value="">None</option>
+                <option value="" className="dark:bg-zinc-800">None</option>
                 {epics.map((e) => (
-                  <option key={e.id} value={e.id}>
+                  <option key={e.id} value={e.id} className="dark:bg-zinc-800">
                     {e.name}
                   </option>
                 ))}
@@ -1179,10 +1339,27 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
               {issue.epic && (
                 <div className="mt-1.5 flex items-center space-x-1.5">
                   <span
-                    className="w-3 h-3 rounded-full"
+                    className="w-3 h-3 rounded-full shrink-0"
                     style={{ backgroundColor: issue.epic.color }}
                   />
-                  <span className="text-xs font-semibold" style={{ color: issue.epic.color }}>
+                  <span
+                    className="text-xs font-semibold [color:var(--epic-c)] dark:[color:var(--epic-c-dark)]"
+                    style={{
+                      ["--epic-c" as any]: issue.epic.color,
+                      ["--epic-c-dark" as any]: (() => {
+                        try {
+                          const clean = issue.epic.color.replace("#", "");
+                          const n = parseInt(clean.length === 3 ? clean.split("").map(c => c + c).join("") : clean, 16);
+                          const r = Math.min(255, (n >> 16) + 115);
+                          const g = Math.min(255, ((n >> 8) & 0xff) + 115);
+                          const b = Math.min(255, (n & 0xff) + 115);
+                          return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
+                        } catch {
+                          return issue.epic.color;
+                        }
+                      })(),
+                    }}
+                  >
                     {issue.epic.name}
                   </span>
                 </div>
@@ -1191,7 +1368,7 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
 
             {/* Priority Selector */}
             <div>
-              <label className="block text-[11px] font-bold text-[#4B5563] uppercase tracking-wider mb-1.5">
+              <label className="block text-[11px] font-bold text-slate-600 dark:text-zinc-400 uppercase tracking-wider mb-1.5">
                 Priority
               </label>
               <select
@@ -1200,21 +1377,22 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
                 onChange={(e) =>
                   onUpdateIssue({ ...issue, priority: e.target.value as IssuePriority })
                 }
-                className={`w-full text-xs font-medium border rounded-xl px-3.5 py-2 transition focus:outline-none focus:ring-2 focus:ring-[#EE0033]/20 focus:border-[#EE0033] ${
-                  isViewer ? "bg-gray-100 text-gray-500 cursor-not-allowed border-[#D7D7D7]" : "bg-[#FAFAFA] text-[#111827] border-[#D7D7D7]"
-                }`}
+                className={`w-full text-xs font-medium border rounded-xl px-3.5 py-2 transition focus:outline-none focus:ring-2 focus:ring-[#EE0033]/20 focus:border-[#EE0033] ${isViewer
+                  ? "bg-gray-100 dark:bg-zinc-800 text-gray-500 dark:text-zinc-500 cursor-not-allowed border-slate-200 dark:border-zinc-700"
+                  : "bg-white dark:bg-zinc-800 text-slate-900 dark:text-zinc-100 border-slate-200 dark:border-zinc-700 shadow-2xs"
+                  }`}
               >
-                <option value="HIGHEST">Highest</option>
-                <option value="HIGH">High</option>
-                <option value="MEDIUM">Medium</option>
-                <option value="LOW">Low</option>
-                <option value="LOWEST">Lowest</option>
+                <option value="HIGHEST" className="dark:bg-zinc-800">Highest</option>
+                <option value="HIGH" className="dark:bg-zinc-800">High</option>
+                <option value="MEDIUM" className="dark:bg-zinc-800">Medium</option>
+                <option value="LOW" className="dark:bg-zinc-800">Low</option>
+                <option value="LOWEST" className="dark:bg-zinc-800">Lowest</option>
               </select>
             </div>
 
             {/* Story Points */}
             <div>
-              <label className="block text-[11px] font-bold text-[#4B5563] uppercase tracking-wider mb-1.5">
+              <label className="block text-[11px] font-bold text-slate-600 dark:text-zinc-400 uppercase tracking-wider mb-1.5">
                 Story Points (Estimate)
               </label>
               <input
@@ -1227,19 +1405,18 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
                     storyPoints: e.target.value ? parseInt(e.target.value) : undefined,
                   })
                 }
-                className={`w-full text-xs font-medium border rounded-xl px-3.5 py-2 transition focus:outline-none focus:ring-2 focus:ring-[#EE0033]/20 focus:border-[#EE0033] ${
-                  isViewer ? "bg-gray-100 text-gray-500 cursor-not-allowed border-[#D7D7D7]" : "bg-[#FAFAFA] text-[#111827] border-[#D7D7D7]"
-                }`}
+                className={`w-full text-xs font-medium border rounded-xl px-3.5 py-2 transition focus:outline-none focus:ring-2 focus:ring-[#EE0033]/20 focus:border-[#EE0033] ${isViewer
+                  ? "bg-gray-100 dark:bg-zinc-800 text-gray-500 dark:text-zinc-500 cursor-not-allowed border-slate-200 dark:border-zinc-700"
+                  : "bg-white dark:bg-zinc-800 text-slate-900 dark:text-zinc-100 border-slate-200 dark:border-zinc-700 shadow-2xs"
+                  }`}
                 placeholder="0"
                 min="0"
               />
             </div>
 
-            {/* Time Tracking & Worklog: Tạm thời ẩn theo yêu cầu REQ-3 */}
-
             {/* Labels (Nhãn) */}
-            <div className="pt-2 border-t border-slate-200">
-              <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1">
+            <div className="pt-2 border-t border-slate-200 dark:border-zinc-800">
+              <label className="block text-[11px] font-bold text-slate-600 dark:text-zinc-400 uppercase tracking-wider mb-1">
                 Nhãn (Labels)
               </label>
               <div className="flex flex-wrap gap-1 mb-1.5">
@@ -1250,9 +1427,9 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
                   .map((lbl) => (
                     <span
                       key={lbl}
-                      className="inline-flex items-center gap-1 text-[11px] bg-slate-100 text-slate-700 px-2 py-0.5 rounded border border-slate-200"
+                      className="inline-flex items-center gap-1 text-[11px] bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 px-2.5 py-0.5 rounded-full border border-slate-200 dark:border-zinc-700"
                     >
-                      <Tag className="w-2.5 h-2.5 text-slate-400" />
+                      <Tag className="w-2.5 h-2.5 text-slate-400 dark:text-zinc-400" />
                       {lbl}
                       {!isViewer && (
                         <button
@@ -1295,13 +1472,13 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
                       }
                     }
                   }}
-                  className="w-full text-xs border border-slate-200 rounded px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#EE0033] bg-white"
+                  className="w-full text-xs border border-slate-200 dark:border-zinc-700 rounded-xl px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#EE0033] bg-white dark:bg-zinc-800 text-slate-900 dark:text-zinc-100 placeholder:text-slate-400 dark:placeholder:text-zinc-500"
                 />
               )}
             </div>
 
             {/* Dates */}
-            <div className="pt-3 border-t border-gray-200 text-[11px] text-gray-500 space-y-1">
+            <div className="pt-3 border-t border-slate-200 dark:border-zinc-800 text-[11px] text-slate-500 dark:text-zinc-400 space-y-1">
               <div>Created: {issue.createdAt}</div>
               <div>Updated: {issue.updatedAt}</div>
             </div>
@@ -1309,6 +1486,7 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
         </div>
       </div>
     </div>
+  </div>
   );
 };
 

@@ -37,7 +37,7 @@ export const CreateIssueModal: React.FC<CreateIssueModalProps> = ({
   const [assigneeId, setAssigneeId] = useState("");
   const [epicId, setEpicId] = useState("");
   const [priority, setPriority] = useState<IssuePriority>("MEDIUM");
-  const [storyPoints, setStoryPoints] = useState<string>("3");
+  const [storyPoints, setStoryPoints] = useState<string>("");
   const [sprintId, setSprintId] = useState(sprints[0]?.id || "");
   const [isAiSuggesting, setIsAiSuggesting] = useState(false);
   const [isGeneratingCriteria, setIsGeneratingCriteria] = useState(false);
@@ -119,7 +119,7 @@ export const CreateIssueModal: React.FC<CreateIssueModalProps> = ({
       reporter: currentUser,
       epic: selectedEpic,
       sprintId,
-      storyPoints: storyPoints ? parseInt(storyPoints) : 0,
+      storyPoints: storyPoints ? parseInt(storyPoints) : undefined,
       subtasks: [],
       attachments: [],
       comments: [],
@@ -229,22 +229,22 @@ export const CreateIssueModal: React.FC<CreateIssueModalProps> = ({
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden border border-[#D7D7D7] animate-in fade-in zoom-in-95 duration-150"
+        className="bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden border border-[#D7D7D7] dark:border-zinc-800 animate-in fade-in zoom-in-95 duration-150"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="px-6 py-4 border-b border-[#D7D7D7] flex items-center justify-between bg-[#F8F8F8] flex-shrink-0">
+        <div className="px-6 py-4 border-b border-[#E5E7EB] dark:border-zinc-800 flex items-center justify-between bg-white/70 dark:bg-zinc-900/70 backdrop-blur-md flex-shrink-0">
           <div className="flex items-center gap-2">
-            <h3 className="text-base font-bold text-[#111827]">Tạo Công Việc</h3>
+            <h3 className="text-base font-bold text-[#111827] dark:text-zinc-100">Tạo Công Việc</h3>
             {currentProject && (
-              <span className="text-xs bg-white text-[#111827] font-semibold px-2.5 py-0.5 rounded-full border border-[#D7D7D7]">
+              <span className="text-xs bg-slate-100 dark:bg-zinc-800 text-[#111827] dark:text-zinc-200 font-semibold px-2.5 py-0.5 rounded-full border border-slate-200 dark:border-zinc-700">
                 {currentProject.key}
               </span>
             )}
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-700 hover:bg-black/5 rounded-full transition"
+            className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-700 dark:hover:text-zinc-200 hover:bg-black/5 dark:hover:bg-white/5 rounded-full transition"
             title="Đóng (Esc)"
           >
             <X className="w-4 h-4" />
@@ -254,20 +254,20 @@ export const CreateIssueModal: React.FC<CreateIssueModalProps> = ({
         {/* Form Body - Scrollable */}
         <form onSubmit={handleSubmit} className="p-6 space-y-4 overflow-y-auto flex-1">
           {/* Tammi OA Signature Notice Banner */}
-          <div className="p-3 bg-[#FFFBEB] border border-[#FDE68A] text-[#B45309] rounded-2xl flex items-center gap-2.5 text-xs font-medium">
+          <div className="p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/60 text-amber-800 dark:text-amber-400 rounded-xl flex items-center gap-2.5 text-xs font-medium">
             <AlertCircle className="w-4 h-4 text-[#F59E0B] shrink-0" />
             <span>Công việc được tạo sẽ tự động đồng bộ và phản chiếu tức thì trên Bảng Kanban dự án.</span>
           </div>
 
           {/* Issue Type */}
           <div>
-            <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
+            <label className="block text-xs font-bold text-gray-700 dark:text-zinc-300 uppercase tracking-wider mb-1">
               Loại Công Việc
             </label>
             <select
               value={type}
               onChange={(e) => setType(e.target.value as IssueType)}
-              className="w-full text-xs bg-[#FAFAFA] border border-[#D7D7D7] rounded-xl px-3.5 py-2 font-semibold text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#EE0033]/20 focus:border-[#EE0033] transition"
+              className="w-full text-xs bg-[#FAFAFA] dark:bg-zinc-800 border border-[#D7D7D7] dark:border-zinc-700 rounded-xl px-3.5 py-2 font-semibold text-gray-800 dark:text-zinc-200 focus:outline-none focus:ring-2 focus:ring-[#EE0033]/20 focus:border-[#EE0033] transition"
             >
               <option value="STORY">📖 Story</option>
               <option value="TASK">☑️ Task</option>
@@ -280,16 +280,16 @@ export const CreateIssueModal: React.FC<CreateIssueModalProps> = ({
           {/* Title */}
           <div>
             <div className="flex items-center justify-between mb-1">
-              <label className="text-xs font-semibold text-slate-700 uppercase tracking-wider">
+              <label className="text-xs font-semibold text-slate-700 dark:text-zinc-300 uppercase tracking-wider">
                 Tiêu đề công việc <span className="text-[#EE0033] font-bold">*</span>
               </label>
               <button
                 type="button"
                 onClick={handleMouse1AutoFill}
                 disabled={isAiSuggesting}
-                className="text-[11px] text-slate-600 hover:text-slate-900 font-semibold flex items-center gap-1 transition disabled:opacity-50"
+                className="text-[11px] text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-100 font-semibold flex items-center gap-1 transition disabled:opacity-50"
               >
-                <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+                <Sparkles className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
                 <span>{isAiSuggesting ? "Đang gợi ý..." : "Gợi ý thông minh"}</span>
               </button>
             </div>
@@ -299,43 +299,43 @@ export const CreateIssueModal: React.FC<CreateIssueModalProps> = ({
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Ví dụ: Xây dựng giao diện đăng nhập Google SSO"
-              className="w-full text-xs bg-[#FAFAFA] border border-[#D7D7D7] rounded-xl px-3.5 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#EE0033]/20 focus:border-[#EE0033] transition"
+              className="w-full text-xs bg-[#FAFAFA] dark:bg-zinc-800 border border-[#D7D7D7] dark:border-zinc-700 rounded-xl px-3.5 py-2 text-slate-900 dark:text-zinc-100 placeholder:text-slate-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-[#EE0033]/20 focus:border-[#EE0033] transition"
             />
             {aiMessage && (
-              <p className="mt-1 text-[11px] text-emerald-700 font-medium">{aiMessage}</p>
+              <p className="mt-1 text-[11px] text-emerald-700 dark:text-emerald-400 font-medium">{aiMessage}</p>
             )}
 
             {/* Duplicate Warning Card */}
             {duplicateMatches.length > 0 && (
-              <div className="mt-2.5 p-3 bg-amber-50 border border-amber-200 rounded-lg animate-in fade-in duration-200">
+              <div className="mt-2.5 p-3 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/70 rounded-xl animate-in fade-in duration-200">
                 <div className="flex items-start gap-2">
-                  <AlertTriangle className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
+                  <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
                   <div className="flex-1">
-                    <p className="text-xs font-bold text-amber-900">
+                    <p className="text-xs font-bold text-amber-900 dark:text-amber-200">
                       Cảnh báo trùng lặp công việc
                     </p>
-                    <p className="text-[11px] text-amber-800 mt-0.5">
+                    <p className="text-[11px] text-amber-800 dark:text-amber-300/90 mt-0.5">
                       Phát hiện {duplicateMatches.length} công việc có nội dung tương đồng trong dự án:
                     </p>
                     <div className="mt-2 space-y-1.5">
                       {duplicateMatches.map((m) => (
                         <div
                           key={m.id}
-                          className="flex items-center justify-between bg-white/80 p-2 rounded border border-amber-200/80 text-xs"
+                          className="flex items-center justify-between bg-white/80 dark:bg-zinc-800/80 p-2 rounded-lg border border-amber-200/80 dark:border-zinc-700 text-xs"
                         >
                           <div className="flex items-center gap-2">
-                            <span className="font-mono font-bold text-[#0052CC] text-[11px]">
+                            <span className="font-mono font-bold text-[#0052CC] dark:text-sky-400 text-[11px]">
                               {m.key}
                             </span>
-                            <span className="text-gray-900 font-medium line-clamp-1">
+                            <span className="text-gray-900 dark:text-zinc-200 font-medium line-clamp-1">
                               {m.title}
                             </span>
                           </div>
                           <div className="flex items-center gap-2 flex-shrink-0">
-                            <span className="text-[10px] px-1.5 py-0.5 bg-gray-100 rounded text-gray-600 font-semibold">
+                            <span className="text-[10px] px-1.5 py-0.5 bg-gray-100 dark:bg-zinc-700 rounded text-gray-600 dark:text-zinc-300 font-semibold">
                               {m.status}
                             </span>
-                            <span className="text-[10px] font-bold text-amber-700 bg-amber-100/80 px-1.5 py-0.5 rounded">
+                            <span className="text-[10px] font-bold text-amber-700 dark:text-amber-400 bg-amber-100/80 dark:bg-amber-950/60 px-1.5 py-0.5 rounded">
                               {Math.round(m.similarity * 100)}% trùng
                             </span>
                           </div>
@@ -378,17 +378,17 @@ export const CreateIssueModal: React.FC<CreateIssueModalProps> = ({
           <div className="grid grid-cols-2 gap-4">
             {/* Assignee */}
             <div>
-              <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
+              <label className="block text-xs font-bold text-gray-700 dark:text-zinc-300 uppercase tracking-wider mb-1">
                 Người thực hiện
               </label>
               <select
                 value={assigneeId}
                 onChange={(e) => setAssigneeId(e.target.value)}
-                className="w-full text-xs bg-[#FAFAFA] border border-[#D7D7D7] rounded-xl px-3.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#EE0033]/20 focus:border-[#EE0033] transition"
+                className="w-full text-xs bg-[#FAFAFA] dark:bg-zinc-800 border border-[#D7D7D7] dark:border-zinc-700 rounded-xl px-3.5 py-2 text-[#111827] dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#EE0033]/20 focus:border-[#EE0033] transition"
               >
-                <option value="">Chưa phân công</option>
+                <option value="" className="dark:bg-zinc-800">Chưa phân công</option>
                 {users.map((u) => (
-                  <option key={u.id} value={u.id}>
+                  <option key={u.id} value={u.id} className="dark:bg-zinc-800">
                     {u.name}
                   </option>
                 ))}
@@ -397,17 +397,17 @@ export const CreateIssueModal: React.FC<CreateIssueModalProps> = ({
 
             {/* Epic Link */}
             <div>
-              <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
+              <label className="block text-xs font-bold text-gray-700 dark:text-zinc-300 uppercase tracking-wider mb-1">
                 Thuộc Epic
               </label>
               <select
                 value={epicId}
                 onChange={(e) => setEpicId(e.target.value)}
-                className="w-full text-xs bg-[#FAFAFA] border border-[#D7D7D7] rounded-xl px-3.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#EE0033]/20 focus:border-[#EE0033] transition"
+                className="w-full text-xs bg-[#FAFAFA] dark:bg-zinc-800 border border-[#D7D7D7] dark:border-zinc-700 rounded-xl px-3.5 py-2 text-[#111827] dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#EE0033]/20 focus:border-[#EE0033] transition"
               >
-                <option value="">Không có</option>
+                <option value="" className="dark:bg-zinc-800">Không có</option>
                 {epics.map((e) => (
-                  <option key={e.id} value={e.id}>
+                  <option key={e.id} value={e.id} className="dark:bg-zinc-800">
                     {e.name}
                   </option>
                 ))}
@@ -416,32 +416,32 @@ export const CreateIssueModal: React.FC<CreateIssueModalProps> = ({
 
             {/* Priority */}
             <div>
-              <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
+              <label className="block text-xs font-bold text-gray-700 dark:text-zinc-300 uppercase tracking-wider mb-1">
                 Mức độ ưu tiên
               </label>
               <select
                 value={priority}
                 onChange={(e) => setPriority(e.target.value as IssuePriority)}
-                className="w-full text-xs bg-[#FAFAFA] border border-[#D7D7D7] rounded-xl px-3.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#EE0033]/20 focus:border-[#EE0033] transition"
+                className="w-full text-xs bg-[#FAFAFA] dark:bg-zinc-800 border border-[#D7D7D7] dark:border-zinc-700 rounded-xl px-3.5 py-2 text-[#111827] dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#EE0033]/20 focus:border-[#EE0033] transition"
               >
-                <option value="HIGHEST">Rất cao (Highest)</option>
-                <option value="HIGH">Cao (High)</option>
-                <option value="MEDIUM">Trung bình (Medium)</option>
-                <option value="LOW">Thấp (Low)</option>
-                <option value="LOWEST">Rất thấp (Lowest)</option>
+                <option value="HIGHEST" className="dark:bg-zinc-800">Rất cao (Highest)</option>
+                <option value="HIGH" className="dark:bg-zinc-800">Cao (High)</option>
+                <option value="MEDIUM" className="dark:bg-zinc-800">Trung bình (Medium)</option>
+                <option value="LOW" className="dark:bg-zinc-800">Thấp (Low)</option>
+                <option value="LOWEST" className="dark:bg-zinc-800">Rất thấp (Lowest)</option>
               </select>
             </div>
 
             {/* Story Points */}
             <div>
-              <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
+              <label className="block text-xs font-bold text-gray-700 dark:text-zinc-300 uppercase tracking-wider mb-1">
                 Điểm ước tính (Points)
               </label>
               <input
                 type="number"
                 value={storyPoints}
                 onChange={(e) => setStoryPoints(e.target.value)}
-                className="w-full text-xs bg-[#FAFAFA] border border-[#D7D7D7] rounded-xl px-3.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#EE0033]/20 focus:border-[#EE0033] transition"
+                className="w-full text-xs bg-[#FAFAFA] dark:bg-zinc-800 border border-[#D7D7D7] dark:border-zinc-700 rounded-xl px-3.5 py-2 text-[#111827] dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#EE0033]/20 focus:border-[#EE0033] transition"
                 placeholder="Điểm ước tính (vd: 3, 5, 8)"
                 min="0"
               />
@@ -450,17 +450,17 @@ export const CreateIssueModal: React.FC<CreateIssueModalProps> = ({
 
           {/* Sprint */}
           <div>
-            <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
+            <label className="block text-xs font-bold text-gray-700 dark:text-zinc-300 uppercase tracking-wider mb-1">
               Chu kỳ phát triển (Sprint)
             </label>
             <select
               value={sprintId}
               onChange={(e) => setSprintId(e.target.value)}
-              className="w-full text-xs bg-[#FAFAFA] border border-[#D7D7D7] rounded-xl px-3.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#EE0033]/20 focus:border-[#EE0033] transition"
+              className="w-full text-xs bg-[#FAFAFA] dark:bg-zinc-800 border border-[#D7D7D7] dark:border-zinc-700 rounded-xl px-3.5 py-2 text-[#111827] dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#EE0033]/20 focus:border-[#EE0033] transition"
             >
-              <option value="">Hàng đợi công việc (Backlog)</option>
+              <option value="" className="dark:bg-zinc-800">Hàng đợi công việc (Backlog)</option>
               {sprints.map((s) => (
-                <option key={s.id} value={s.id}>
+                <option key={s.id} value={s.id} className="dark:bg-zinc-800">
                   {s.name} ({s.status})
                 </option>
               ))}
@@ -468,11 +468,11 @@ export const CreateIssueModal: React.FC<CreateIssueModalProps> = ({
           </div>
 
           {/* Footer Buttons - Dual Pill Variant */}
-          <div className="pt-4 border-t border-[#D7D7D7] flex items-center justify-end space-x-3">
+          <div className="pt-4 border-t border-[#E5E7EB] dark:border-zinc-800 flex items-center justify-end space-x-3">
             <button
               type="button"
               onClick={onClose}
-              className="px-5 py-2 text-xs font-semibold text-gray-700 bg-white hover:bg-[#F8F8F8] rounded-full border border-[#D7D7D7] transition shadow-2xs"
+              className="px-5 py-2 text-xs font-semibold text-gray-700 dark:text-zinc-300 bg-white dark:bg-zinc-800 hover:bg-[#F8F8F8] dark:hover:bg-zinc-700 rounded-full border border-[#D7D7D7] dark:border-zinc-700 transition shadow-2xs"
             >
               Hủy
             </button>

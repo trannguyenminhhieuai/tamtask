@@ -112,3 +112,25 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: error?.message || "Lỗi xử lý tệp tải lên" }, { status: 500 });
   }
 }
+
+export async function DELETE(request: Request) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get("id");
+
+    if (!id) {
+      return NextResponse.json({ error: "Thiếu ID tệp đính kèm." }, { status: 400 });
+    }
+
+    await prisma.attachment.delete({
+      where: { id },
+    }).catch((err) => {
+      console.warn("Attachment delete warning:", err);
+    });
+
+    return NextResponse.json({ success: true, message: "Đã xóa tệp đính kèm thành công." });
+  } catch (error: any) {
+    console.error("DELETE /api/upload error:", error);
+    return NextResponse.json({ error: error?.message || "Lỗi xóa tệp" }, { status: 500 });
+  }
+}

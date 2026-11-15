@@ -197,22 +197,22 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ issues, sprints, u
   const completionRate = totalIssues > 0 ? Math.round((doneIssues / totalIssues) * 100) : 0;
 
   return (
-    <div className="flex-1 overflow-y-auto p-3 sm:p-6 bg-[#F5F6F8] space-y-4">
+    <div className="flex-1 overflow-y-auto p-4 bg-[#F5F6F8] dark:bg-[#09090B] space-y-4 transition-colors duration-200">
       {/* Unified Glass Island Header */}
-      <div className="p-3.5 sm:p-4 rounded-2xl bg-white/85 backdrop-blur-md border border-white/60 shadow-[0_4px_20px_rgba(0,0,0,0.03)] flex flex-wrap items-center justify-between gap-3 shrink-0">
+      <div className="p-4 rounded-2xl bg-white/75 dark:bg-zinc-900/75 backdrop-blur-xl border border-white/80 dark:border-white/10 shadow-[0_8px_32px_0_rgba(31,38,135,0.05)] flex flex-wrap items-center justify-between gap-4 shrink-0">
         <div className="flex items-center space-x-2.5">
-          <h1 className="text-base sm:text-lg font-extrabold text-[#111827] tracking-tight flex items-center gap-2">
+          <h1 className="text-base sm:text-lg font-extrabold text-[#111827] dark:text-zinc-100 tracking-tight flex items-center gap-2">
             <TrendingUp className="w-4 h-4 text-[#EE0033]" />
             <span>Báo Cáo & Thống Kê Tiến Độ</span>
           </h1>
-          <span className="text-[11px] font-semibold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full">
+          <span className="text-[11px] font-semibold text-emerald-800 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 px-2.5 py-0.5 rounded-full">
             {currentSprint.name} • {completionRate}% hoàn thành
           </span>
         </div>
 
         <button
           onClick={handleExportCSV}
-          className="bg-white border border-[#D7D7D7] hover:bg-slate-50 text-slate-700 text-xs font-semibold px-3.5 py-1.5 rounded-full flex items-center gap-1.5 transition shadow-2xs"
+          className="bg-white dark:bg-zinc-800 border border-[#D7D7D7] dark:border-zinc-700 hover:bg-slate-50 dark:hover:bg-zinc-700 text-slate-700 dark:text-zinc-200 text-xs font-semibold px-3.5 py-1.5 rounded-full flex items-center gap-1.5 transition shadow-2xs"
           title="Tải toàn bộ danh sách issues dạng CSV tương thích Excel"
         >
           <Download className="w-3.5 h-3.5 text-[#EE0033]" />
@@ -222,78 +222,78 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ issues, sprints, u
 
       {/* Metric Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-        <div className="bg-white p-4 rounded-lg border border-slate-200 shadow-xs flex items-center justify-between">
+        <div className="bg-white dark:bg-zinc-900 p-4 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-xs flex items-center justify-between">
           <div>
-            <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Tỷ lệ hoàn thành</div>
-            <div className="text-2xl font-black text-emerald-600 mt-1">{completionRate}%</div>
-            <div className="text-[11px] text-slate-500 mt-0.5">{doneIssues} / {totalIssues} issues closed</div>
+            <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-zinc-500">Tỷ lệ hoàn thành</div>
+            <div className="text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1">{completionRate}%</div>
+            <div className="text-[11px] text-slate-500 dark:text-zinc-400 mt-0.5">{doneIssues} / {totalIssues} issues closed</div>
           </div>
-          <div className="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600">
+          <div className="w-10 h-10 rounded-full bg-emerald-50 dark:bg-emerald-950/40 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
             <CheckCircle className="w-5 h-5" />
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-lg border border-slate-200 shadow-xs flex items-center justify-between">
+        <div className="bg-white dark:bg-zinc-900 p-4 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-xs flex items-center justify-between">
           <div>
-            <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Story Points Sprint</div>
+            <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-zinc-500">Story Points Sprint</div>
             <div className="text-2xl font-black text-[#EE0033] mt-1">{sprintTotalPoints} pts</div>
-            <div className="text-[11px] text-slate-500 mt-0.5">Đã xong {sprintDonePoints} pts (còn {remainingPoints})</div>
+            <div className="text-[11px] text-slate-500 dark:text-zinc-400 mt-0.5">Đã xong {sprintDonePoints} pts (còn {remainingPoints})</div>
           </div>
-          <div className="w-10 h-10 rounded-full bg-rose-50 flex items-center justify-center text-[#EE0033]">
+          <div className="w-10 h-10 rounded-full bg-rose-50 dark:bg-rose-950/40 flex items-center justify-center text-[#EE0033]">
             <TrendingUp className="w-5 h-5" />
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-lg border border-slate-200 shadow-xs flex items-center justify-between">
+        <div className="bg-white dark:bg-zinc-900 p-4 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-xs flex items-center justify-between">
           <div>
-            <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Giờ làm việc (Worklog)</div>
-            <div className="text-2xl font-black text-indigo-600 mt-1">{totalSpentHours}h</div>
-            <div className="text-[11px] text-slate-500 mt-0.5">Ước lượng: {totalEstimateHours || totalSpentHours}h</div>
+            <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-zinc-500">Giờ làm việc (Worklog)</div>
+            <div className="text-2xl font-black text-indigo-600 dark:text-indigo-400 mt-1">{totalSpentHours}h</div>
+            <div className="text-[11px] text-slate-500 dark:text-zinc-400 mt-0.5">Ước lượng: {totalEstimateHours || totalSpentHours}h</div>
           </div>
-          <div className="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600">
+          <div className="w-10 h-10 rounded-full bg-indigo-50 dark:bg-indigo-950/40 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
             <Timer className="w-5 h-5" />
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-lg border border-slate-200 shadow-xs flex items-center justify-between">
+        <div className="bg-white dark:bg-zinc-900 p-4 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-xs flex items-center justify-between">
           <div>
-            <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Thời gian còn lại</div>
-            <div className="text-2xl font-black text-amber-600 mt-1">4 Ngày</div>
-            <div className="text-[11px] text-slate-500 mt-0.5">Kết thúc: 14/11/2026</div>
+            <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-zinc-500">Thời gian còn lại</div>
+            <div className="text-2xl font-black text-amber-600 dark:text-amber-400 mt-1">4 Ngày</div>
+            <div className="text-[11px] text-slate-500 dark:text-zinc-400 mt-0.5">Kết thúc: 14/11/2026</div>
           </div>
-          <div className="w-10 h-10 rounded-full bg-amber-50 flex items-center justify-center text-amber-600">
+          <div className="w-10 h-10 rounded-full bg-amber-50 dark:bg-amber-950/40 flex items-center justify-center text-amber-600 dark:text-amber-400">
             <Clock className="w-5 h-5" />
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-lg border border-slate-200 shadow-xs flex items-center justify-between">
+        <div className="bg-white dark:bg-zinc-900 p-4 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-xs flex items-center justify-between">
           <div>
-            <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Tốc độ xử lý</div>
+            <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-zinc-500">Tốc độ xử lý</div>
             <div className="text-2xl font-black text-[#EE0033] mt-1">~100ms</div>
-            <div className="text-[11px] text-slate-500 mt-0.5">Tự động hóa & Kiểm soát an toàn</div>
+            <div className="text-[11px] text-slate-500 dark:text-zinc-400 mt-0.5">Tự động hóa & Kiểm soát an toàn</div>
           </div>
-          <div className="w-10 h-10 rounded-full bg-rose-50 flex items-center justify-center text-[#EE0033]">
+          <div className="w-10 h-10 rounded-full bg-rose-50 dark:bg-rose-950/40 flex items-center justify-center text-[#EE0033]">
             <Zap className="w-5 h-5" />
           </div>
         </div>
       </div>
 
       {/* Cumulative Flow Diagram (CFD) Section */}
-      <div className="bg-white p-5 rounded-lg border border-gray-200 shadow-sm">
+      <div className="bg-white dark:bg-zinc-900 p-5 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-xs">
         <div className="flex flex-wrap items-center justify-between mb-4 gap-2">
           <div>
-            <h3 className="text-sm font-bold text-gray-800 flex items-center gap-1.5">
-              <Layers className="w-4 h-4 text-[#0052CC]" />
+            <h3 className="text-sm font-bold text-[#111827] dark:text-zinc-100 flex items-center gap-1.5">
+              <Layers className="w-4 h-4 text-[#EE0033]" />
               <span>Cumulative Flow Diagram (CFD)</span>
             </h3>
-            <p className="text-[11px] text-gray-400">
+            <p className="text-[11px] text-slate-500 dark:text-zinc-400">
               Biểu đồ dòng chảy tích lũy: Đo lường thời gian chu kỳ (Cycle Time) và phát hiện nghẽn cổ chai
             </p>
           </div>
 
           {isBottleneckInReview && (
-            <div className="flex items-center space-x-1.5 bg-amber-50 border border-amber-200 text-amber-800 text-xs px-3 py-1 rounded-md animate-pulse">
-              <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
+            <div className="flex items-center space-x-1.5 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-300 text-xs px-3 py-1 rounded-full animate-pulse">
+              <AlertTriangle className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
               <span>Cảnh báo nghẽn: Có {inReviewCount} task đang chờ duyệt Review!</span>
             </div>
           )}
@@ -302,10 +302,21 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ issues, sprints, u
         <div className="h-64">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={cfdData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-              <XAxis dataKey="day" tick={{ fontSize: 11 }} />
-              <YAxis tick={{ fontSize: 11 }} />
-              <Tooltip />
+              <CartesianGrid strokeDasharray="3 3" stroke="currentColor" className="text-slate-100 dark:text-zinc-800" />
+              <XAxis dataKey="day" tick={{ fontSize: 11, fill: '#71717A' }} />
+              <YAxis tick={{ fontSize: 11, fill: '#71717A' }} />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: "rgba(24, 24, 27, 0.95)",
+                  borderColor: "rgba(63, 63, 70, 0.8)",
+                  borderRadius: "1rem",
+                  boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.3)",
+                  fontSize: "11px",
+                  color: "#F4F4F5",
+                }}
+                itemStyle={{ color: "#E4E4E7" }}
+                labelStyle={{ color: "#A1A1AA", fontWeight: "bold" }}
+              />
               <Legend wrapperStyle={{ fontSize: 11 }} />
               <Area type="monotone" dataKey="done" stackId="1" name="DONE" stroke="#36B37E" fill="#36B37E" fillOpacity={0.7} />
               <Area type="monotone" dataKey="inReview" stackId="1" name="IN REVIEW" stroke="#FFAB00" fill="#FFAB00" fillOpacity={0.7} />
@@ -317,18 +328,18 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ issues, sprints, u
       </div>
 
       {/* Burndown & Burnup 2 Charts Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Burndown Chart */}
-        <div className="bg-white p-5 rounded-lg border border-gray-200 shadow-sm">
+        <div className="bg-white dark:bg-zinc-900 p-5 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-xs">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h3 className="text-sm font-bold text-gray-800 flex items-center gap-1.5">
-                <TrendingDown className="w-4 h-4 text-[#0052CC]" />
+              <h3 className="text-sm font-bold text-[#111827] dark:text-zinc-100 flex items-center gap-1.5">
+                <TrendingDown className="w-4 h-4 text-[#EE0033]" />
                 <span>Sprint Burndown Chart</span>
               </h3>
-              <p className="text-[11px] text-gray-400">Đường lý tưởng (Guideline) vs. Điểm thực tế còn lại</p>
+              <p className="text-[11px] text-slate-500 dark:text-zinc-400">Đường lý tưởng (Guideline) vs. Điểm thực tế còn lại</p>
             </div>
-            <span className="text-[10px] bg-blue-50 text-[#0052CC] font-bold px-2 py-0.5 rounded">
+            <span className="text-[10px] bg-rose-50 dark:bg-rose-950/40 text-[#EE0033] font-bold px-2.5 py-0.5 rounded-full border border-rose-200 dark:border-rose-800/60">
               Story Points
             </span>
           </div>
@@ -336,10 +347,21 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ issues, sprints, u
           <div className="h-60">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={burndownData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                <XAxis dataKey="day" tick={{ fontSize: 11 }} />
-                <YAxis tick={{ fontSize: 11 }} domain={[0, 55]} />
-                <Tooltip />
+                <CartesianGrid strokeDasharray="3 3" stroke="currentColor" className="text-slate-100 dark:text-zinc-800" />
+                <XAxis dataKey="day" tick={{ fontSize: 11, fill: '#71717A' }} />
+                <YAxis tick={{ fontSize: 11, fill: '#71717A' }} domain={[0, 55]} />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "rgba(24, 24, 27, 0.95)",
+                    borderColor: "rgba(63, 63, 70, 0.8)",
+                    borderRadius: "1rem",
+                    boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.3)",
+                    fontSize: "11px",
+                    color: "#F4F4F5",
+                  }}
+                  itemStyle={{ color: "#E4E4E7" }}
+                  labelStyle={{ color: "#A1A1AA", fontWeight: "bold" }}
+                />
                 <Legend wrapperStyle={{ fontSize: 11 }} />
                 <Line
                   type="monotone"
@@ -354,7 +376,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ issues, sprints, u
                   type="monotone"
                   dataKey="actual"
                   name="Actual Remaining (Thực tế)"
-                  stroke="#0052CC"
+                  stroke="#EE0033"
                   strokeWidth={3}
                   activeDot={{ r: 6 }}
                 />
@@ -364,16 +386,16 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ issues, sprints, u
         </div>
 
         {/* Burnup Chart */}
-        <div className="bg-white p-5 rounded-lg border border-gray-200 shadow-sm">
+        <div className="bg-white dark:bg-zinc-900 p-5 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-xs">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h3 className="text-sm font-bold text-gray-800 flex items-center gap-1.5">
-                <TrendingUp className="w-4 h-4 text-emerald-600" />
+              <h3 className="text-sm font-bold text-[#111827] dark:text-zinc-100 flex items-center gap-1.5">
+                <TrendingUp className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                 <span>Sprint Burnup Chart</span>
               </h3>
-              <p className="text-[11px] text-gray-400">Theo dõi Scope Creep và Khối lượng hoàn thành</p>
+              <p className="text-[11px] text-slate-500 dark:text-zinc-400">Theo dõi Scope Creep và Khối lượng hoàn thành</p>
             </div>
-            <span className="text-[10px] bg-emerald-50 text-emerald-700 font-bold px-2 py-0.5 rounded">
+            <span className="text-[10px] bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 font-bold px-2.5 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800/60">
               Cumulative Scope
             </span>
           </div>
@@ -381,10 +403,21 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ issues, sprints, u
           <div className="h-60">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={burnupData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                <XAxis dataKey="day" tick={{ fontSize: 11 }} />
-                <YAxis tick={{ fontSize: 11 }} domain={[0, 60]} />
-                <Tooltip />
+                <CartesianGrid strokeDasharray="3 3" stroke="currentColor" className="text-slate-100 dark:text-zinc-800" />
+                <XAxis dataKey="day" tick={{ fontSize: 11, fill: '#71717A' }} />
+                <YAxis tick={{ fontSize: 11, fill: '#71717A' }} domain={[0, 60]} />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "rgba(24, 24, 27, 0.95)",
+                    borderColor: "rgba(63, 63, 70, 0.8)",
+                    borderRadius: "1rem",
+                    boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.3)",
+                    fontSize: "11px",
+                    color: "#F4F4F5",
+                  }}
+                  itemStyle={{ color: "#E4E4E7" }}
+                  labelStyle={{ color: "#A1A1AA", fontWeight: "bold" }}
+                />
                 <Legend wrapperStyle={{ fontSize: 11 }} />
                 <Line
                   type="stepAfter"
@@ -409,51 +442,73 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ issues, sprints, u
       </div>
 
       {/* Multi-Sprint Velocity & Workload Distribution 2 Columns */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Multi-Sprint Velocity Chart */}
-        <div className="bg-white p-5 rounded-lg border border-gray-200 shadow-sm">
+        <div className="bg-white dark:bg-zinc-900 p-5 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-xs">
           <div className="flex items-center justify-between mb-3">
             <div>
-              <h3 className="text-sm font-bold text-gray-800 flex items-center gap-1.5">
-                <BarChart2 className="w-4 h-4 text-purple-600" />
+              <h3 className="text-sm font-bold text-[#111827] dark:text-zinc-100 flex items-center gap-1.5">
+                <BarChart2 className="w-4 h-4 text-purple-600 dark:text-purple-400" />
                 <span>Multi-Sprint Velocity Chart</span>
               </h3>
-              <p className="text-[11px] text-gray-400">So sánh điểm cam kết (Committed) vs bàn giao (Completed)</p>
+              <p className="text-[11px] text-slate-500 dark:text-zinc-400">So sánh điểm cam kết (Committed) vs bàn giao (Completed)</p>
             </div>
           </div>
           <div className="h-56">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={velocityData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                <XAxis dataKey="name" tick={{ fontSize: 11 }} />
-                <YAxis tick={{ fontSize: 11 }} />
-                <Tooltip />
+                <CartesianGrid strokeDasharray="3 3" stroke="currentColor" className="text-slate-100 dark:text-zinc-800" />
+                <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#71717A' }} />
+                <YAxis tick={{ fontSize: 11, fill: '#71717A' }} />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "rgba(24, 24, 27, 0.95)",
+                    borderColor: "rgba(63, 63, 70, 0.8)",
+                    borderRadius: "1rem",
+                    boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.3)",
+                    fontSize: "11px",
+                    color: "#F4F4F5",
+                  }}
+                  itemStyle={{ color: "#E4E4E7" }}
+                  labelStyle={{ color: "#A1A1AA", fontWeight: "bold" }}
+                />
                 <Legend wrapperStyle={{ fontSize: 11 }} />
-                <Bar dataKey="committed" name="Committed Points" fill="#A5B2C6" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="completed" name="Completed Points" fill="#0052CC" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="committed" name="Committed Points" fill="#A5B2C6" radius={[6, 6, 0, 0]} />
+                <Bar dataKey="completed" name="Completed Points" fill="#EE0033" radius={[6, 6, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
         </div>
 
         {/* Workload Distribution Chart */}
-        <div className="bg-white p-5 rounded-lg border border-gray-200 shadow-sm">
+        <div className="bg-white dark:bg-zinc-900 p-5 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-xs">
           <div className="flex items-center justify-between mb-3">
             <div>
-              <h3 className="text-sm font-bold text-gray-800">Team Member Workload</h3>
-              <p className="text-[11px] text-gray-400">Phân bổ số lượng task và story points theo từng thành viên</p>
+              <h3 className="text-sm font-bold text-[#111827] dark:text-zinc-100">Team Member Workload</h3>
+              <p className="text-[11px] text-slate-500 dark:text-zinc-400">Phân bổ số lượng task và story points theo từng thành viên</p>
             </div>
           </div>
           <div className="h-56">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={workloadData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                <XAxis dataKey="name" tick={{ fontSize: 11 }} />
-                <YAxis tick={{ fontSize: 11 }} />
-                <Tooltip />
+                <CartesianGrid strokeDasharray="3 3" stroke="currentColor" className="text-slate-100 dark:text-zinc-800" />
+                <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#71717A' }} />
+                <YAxis tick={{ fontSize: 11, fill: '#71717A' }} />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "rgba(24, 24, 27, 0.95)",
+                    borderColor: "rgba(63, 63, 70, 0.8)",
+                    borderRadius: "1rem",
+                    boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.3)",
+                    fontSize: "11px",
+                    color: "#F4F4F5",
+                  }}
+                  itemStyle={{ color: "#E4E4E7" }}
+                  labelStyle={{ color: "#A1A1AA", fontWeight: "bold" }}
+                />
                 <Legend wrapperStyle={{ fontSize: 11 }} />
-                <Bar dataKey="tasks" name="Active Tasks" fill="#0052CC" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="points" name="Story Points" fill="#6554C0" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="tasks" name="Active Tasks" fill="#3B82F6" radius={[6, 6, 0, 0]} />
+                <Bar dataKey="points" name="Story Points" fill="#6554C0" radius={[6, 6, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>

@@ -38,6 +38,13 @@ export const authOptions: NextAuthOptions = {
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID || "",
       clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
+      authorization: {
+        params: {
+          prompt: "select_account",
+          access_type: "offline",
+          response_type: "code",
+        },
+      },
     }),
 
     // Credentials Provider with Real Password Verification & 2FA Gate
@@ -138,12 +145,14 @@ export const authOptions: NextAuthOptions = {
       return token;
     },
 
-    // Session callback: Expose updated role & status to client app
+    // Session callback: Expose updated role, name & latest avatar to client app
     async session({ session, token }) {
       if (session.user) {
         (session.user as any).id = token.sub;
         (session.user as any).role = (token as any).role || "DEVELOPER";
         (session.user as any).status = (token as any).status || "ACTIVE";
+        session.user.name = token.name || session.user.name;
+        session.user.image = (token.picture as string) || session.user.image;
       }
       return session;
     },

@@ -85,22 +85,26 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-[80] flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 animate-in fade-in"
+      className="fixed inset-0 z-[80] flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-in fade-in"
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-xl shadow-2xl w-full max-w-lg overflow-hidden border border-gray-200 animate-in zoom-in-95 duration-150"
+        className="bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden border border-slate-200 dark:border-zinc-800 animate-in zoom-in-95 duration-150"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header - Viettel Red */}
-        <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-50/80">
-          <div className="flex items-center space-x-2">
-            <div className="w-7 h-7 rounded-md bg-[#EE0033] flex items-center justify-center text-white">
+        <div className="px-6 py-4 border-b border-slate-200 dark:border-zinc-800 flex items-center justify-between bg-slate-50/80 dark:bg-zinc-900">
+          <div className="flex items-center space-x-2.5">
+            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#EE0033] to-[#C7002B] flex items-center justify-center text-white shadow-xs">
               <FolderPlus className="w-4 h-4" />
             </div>
-            <h3 className="text-sm font-semibold text-slate-900">Tạo Dự Án Mới</h3>
+            <h3 className="text-sm font-bold text-slate-900 dark:text-zinc-100">Tạo Dự Án Mới</h3>
           </div>
-          <button onClick={onClose} className="p-1 text-slate-400 hover:text-slate-600 rounded">
+          <button
+            onClick={onClose}
+            className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-zinc-200 hover:bg-slate-100 dark:hover:bg-zinc-800 rounded-full transition"
+            title="Đóng (Esc)"
+          >
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -108,29 +112,29 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
         {/* Body */}
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           {errorMsg && (
-            <div className="p-3 bg-rose-50 border border-rose-200 rounded-md text-xs text-rose-700">
+            <div className="p-3 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/80 rounded-xl text-xs text-rose-700 dark:text-rose-300 font-medium">
               {errorMsg}
             </div>
           )}
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
-              Tên Dự Án (Project Name) <span className="text-rose-600">*</span>
+            <label className="block text-xs font-bold text-slate-700 dark:text-zinc-300 uppercase tracking-wider mb-1">
+              Tên Dự Án (Project Name) <span className="text-[#EE0033]">*</span>
             </label>
             <input
               type="text"
               required
               value={name}
               onChange={(e) => handleNameChange(e.target.value)}
-              placeholder="e.g. TamTask Core, Mobile App, CRM Platform..."
-              className="w-full text-xs bg-white border border-slate-300 rounded px-3 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#EE0033]/20 focus:border-[#EE0033] transition"
+              placeholder="Ví dụ: TamTask Core, Mobile App, Hành Chính Công..."
+              className="w-full text-xs bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl px-3.5 py-2.5 text-slate-900 dark:text-zinc-100 placeholder:text-slate-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-[#EE0033]/20 focus:border-[#EE0033] transition"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
-                Mã Định Danh (Key) <span className="text-rose-600">*</span>
+              <label className="block text-xs font-bold text-slate-700 dark:text-zinc-300 uppercase tracking-wider mb-1">
+                Mã Định Danh (Key) <span className="text-[#EE0033]">*</span>
               </label>
               <input
                 type="text"
@@ -138,23 +142,23 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
                 maxLength={8}
                 value={key}
                 onChange={(e) => setKey(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ""))}
-                placeholder="e.g. TT, PROJ"
-                className="w-full text-xs font-bold uppercase tracking-wider bg-white border border-slate-300 rounded px-3 py-2 text-[#EE0033] focus:outline-none focus:ring-2 focus:ring-[#EE0033]/20 focus:border-[#EE0033] font-mono transition"
+                placeholder="e.g. TT, HCC"
+                className="w-full text-xs font-bold uppercase tracking-wider bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl px-3.5 py-2.5 text-[#EE0033] focus:outline-none focus:ring-2 focus:ring-[#EE0033]/20 focus:border-[#EE0033] font-mono transition"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
+              <label className="block text-xs font-bold text-slate-700 dark:text-zinc-300 uppercase tracking-wider mb-1">
                 Trưởng Dự Án (Project Lead)
               </label>
               <select
                 value={leadId}
                 onChange={(e) => setLeadId(e.target.value)}
-                className="w-full text-xs bg-white border border-slate-300 rounded px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#EE0033]/20 focus:border-[#EE0033] transition"
+                className="w-full text-xs bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl px-3.5 py-2.5 text-slate-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#EE0033]/20 focus:border-[#EE0033] transition"
               >
-                <option value="">-- Chưa chỉ định --</option>
+                <option value="" className="dark:bg-zinc-800">-- Chưa chỉ định --</option>
                 {users.map((u) => (
-                  <option key={u.id} value={u.id}>
+                  <option key={u.id} value={u.id} className="dark:bg-zinc-800">
                     {u.name} ({u.role})
                   </option>
                 ))}
@@ -163,7 +167,7 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">
+            <label className="block text-xs font-bold text-slate-700 dark:text-zinc-300 uppercase tracking-wider mb-1">
               Mô Tả Dự Án (Description)
             </label>
             <textarea
@@ -171,11 +175,11 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Mục tiêu và phạm vi của dự án này..."
-              className="w-full text-xs bg-white border border-slate-300 rounded px-3 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#EE0033]/20 focus:border-[#EE0033] transition"
+              className="w-full text-xs bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl px-3.5 py-2.5 text-slate-900 dark:text-zinc-100 placeholder:text-slate-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-[#EE0033]/20 focus:border-[#EE0033] transition"
             />
           </div>
 
-          <div className="p-3 bg-slate-50 border border-slate-200 rounded-md text-[11px] text-slate-600 flex items-start space-x-2">
+          <div className="p-3.5 bg-slate-50 dark:bg-zinc-800/50 border border-slate-200 dark:border-zinc-700/60 rounded-xl text-[11px] text-slate-600 dark:text-zinc-400 flex items-start space-x-2.5">
             <Check className="w-4 h-4 text-[#EE0033] flex-shrink-0 mt-0.5" />
             <span>
               Hệ thống sẽ tự động khởi tạo <strong>Sprint 1</strong>, các <strong>Epic cơ sở</strong> và bộ <strong>Workflow cột Kanban chuẩn</strong> cho dự án này.
@@ -183,18 +187,18 @@ export const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
           </div>
 
           {/* Footer */}
-          <div className="pt-3 border-t border-slate-200 flex items-center justify-end space-x-2">
+          <div className="pt-3 border-t border-slate-200 dark:border-zinc-800 flex items-center justify-end space-x-2.5">
             <button
               type="button"
               onClick={onClose}
-              className="px-3 py-1.5 text-xs text-slate-600 hover:bg-slate-100 rounded transition font-medium"
+              className="px-4 py-1.5 text-xs text-slate-600 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-zinc-800 rounded-full transition font-semibold"
             >
               Hủy
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="px-4 py-1.5 text-xs font-medium bg-[#EE0033] hover:bg-[#D6002E] text-white rounded-md transition shadow-xs disabled:opacity-50"
+              className="px-5 py-1.5 text-xs font-semibold bg-[#EE0033] hover:bg-[#D6002E] text-white rounded-full transition shadow-xs disabled:opacity-50"
             >
               {isSubmitting ? "Đang tạo..." : "Khởi Tạo Dự Án"}
             </button>

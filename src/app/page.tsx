@@ -45,7 +45,7 @@ export default function JiraApp() {
   const { data: session, status: authStatus } = useSession();
 
   const [currentView, setCurrentView] = useState<NavView>("BOARD");
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(true);
   const [projects, setProjects] = useState<Project[]>([]);
   const [currentProject, setCurrentProject] = useState<Project | null>(null);
   const [users, setUsers] = useState<User[]>(MOCK_USERS);
@@ -94,6 +94,23 @@ export default function JiraApp() {
     return CURRENT_USER;
   }, [session]);
 
+  // Instant SWR Hydration: Render cached state instantly on mount (0ms latency feel)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const cached = localStorage.getItem("tamtask_swr_cache");
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed.projects) && parsed.projects.length > 0) setProjects(parsed.projects);
+        if (Array.isArray(parsed.issues) && parsed.issues.length > 0) setIssues(parsed.issues);
+        if (Array.isArray(parsed.users) && parsed.users.length > 0) setUsers(parsed.users);
+        if (Array.isArray(parsed.epics) && parsed.epics.length > 0) setEpics(parsed.epics);
+        if (Array.isArray(parsed.sprints) && parsed.sprints.length > 0) setSprints(parsed.sprints);
+        setIsLoadingData(false);
+      }
+    } catch {}
+  }, []);
+
   // Load project workflow statuses from DB whenever currentProject changes
   useEffect(() => {
     if (currentProject?.id) {
@@ -111,6 +128,12 @@ export default function JiraApp() {
   // Fetch live persistent data from backend API
   const loadData = useCallback(async () => {
     try {
+      let freshProjects: Project[] | undefined;
+      let freshIssues: Issue[] | undefined;
+      let freshUsers: User[] | undefined;
+      let freshEpics: Epic[] | undefined;
+      let freshSprints: Sprint[] | undefined;
+
       const [projectsRes, issuesRes, usersRes, epicsRes, sprintsRes] =
         await Promise.all([
           fetch("/api/projects"),
@@ -123,6 +146,7 @@ export default function JiraApp() {
       if (projectsRes.ok) {
         const projectsData: Project[] = await projectsRes.json();
         if (Array.isArray(projectsData) && projectsData.length > 0) {
+          freshProjects = projectsData;
           setProjects(projectsData);
           setCurrentProject((prev) => {
             const accessible =
@@ -169,6 +193,7 @@ export default function JiraApp() {
       if (issuesRes.ok) {
         const issuesData = await issuesRes.json();
         if (Array.isArray(issuesData) && issuesData.length > 0) {
+          freshIssues = issuesData;
           setIssues(issuesData);
         }
       }
@@ -176,6 +201,7 @@ export default function JiraApp() {
       if (usersRes.ok) {
         const usersData = await usersRes.json();
         if (Array.isArray(usersData) && usersData.length > 0) {
+          freshUsers = usersData;
           setUsers(usersData);
         }
       }
@@ -183,6 +209,7 @@ export default function JiraApp() {
       if (epicsRes.ok) {
         const epicsData = await epicsRes.json();
         if (Array.isArray(epicsData) && epicsData.length > 0) {
+          freshEpics = epicsData;
           setEpics(epicsData);
         }
       }
@@ -190,6 +217,7 @@ export default function JiraApp() {
       if (sprintsRes.ok) {
         const sprintsData: Sprint[] = await sprintsRes.json();
         if (Array.isArray(sprintsData) && sprintsData.length > 0) {
+          freshSprints = sprintsData;
           setSprints(sprintsData);
           // Check last project to align active sprint
           let targetProjectId = "";
@@ -210,6 +238,22 @@ export default function JiraApp() {
             sprintId: f.sprintId || active?.id || "",
           }));
         }
+      }
+
+      // Persist to SWR cache for instant 0ms subsequent renders
+      if (typeof window !== "undefined") {
+        try {
+          localStorage.setItem(
+            "tamtask_swr_cache",
+            JSON.stringify({
+              projects: freshProjects,
+              issues: freshIssues,
+              users: freshUsers,
+              epics: freshEpics,
+              sprints: freshSprints,
+            })
+          );
+        } catch {}
       }
     } catch (err) {
       console.warn("Could not fetch data from database API:", err);
@@ -449,6 +493,7 @@ export default function JiraApp() {
           prLink: updated.prLink,
           subtasks: updated.subtasks,
           labels: updated.labels,
+          attachments: updated.attachments,
           originalEstimate: updated.originalEstimate,
           timeSpent: updated.timeSpent,
           actorId: currentUser.id,
@@ -790,31 +835,29 @@ export default function JiraApp() {
     password?: string,
     isTwoFactorEnabled?: boolean
   ) => {
-    try {
-      const res = await fetch("/api/users", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, name, role, password, isTwoFactorEnabled }),
-      });
-      if (res.ok) {
-        const newUser = await res.json();
-        setUsers((prev) => [...prev, newUser]);
-        return;
-      }
-    } catch (err) {
-      console.error("Failed to create user in DB:", err);
+    const res = await fetch("/api/users", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, name, role, password, isTwoFactorEnabled }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.error || "Không thể khởi tạo nhân sự. Vui lòng kiểm tra lại thông tin.");
     }
+    setUsers((prev) => [...prev, data]);
+    notify.success("Khởi tạo nhân sự", `Đã tạo tài khoản cho ${name} thành công.`);
+  };
 
-    const fallbackUser: User = {
-      id: `u-${Date.now()}`,
-      name,
-      email,
-      role,
-      avatar:
-        "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=120&auto=format&fit=crop&q=80",
-      activeTasksCount: 0,
-    };
-    setUsers((prev) => [...prev, fallbackUser]);
+  const handleDeleteUser = async (userId: string) => {
+    const res = await fetch(`/api/users/${userId}`, {
+      method: "DELETE",
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.error || "Không thể xóa nhân sự khỏi hệ thống.");
+    }
+    setUsers((prev) => prev.filter((u) => u.id !== userId));
+    notify.success("Đã xóa nhân sự", "Tài khoản nhân sự đã được xóa khỏi hệ thống.");
   };
 
   const handleApproveUser = async (userId: string, role: User["role"], projectId?: string) => {
@@ -861,15 +904,15 @@ export default function JiraApp() {
     }
   };
 
-  // 1. Loading Authentication State - Viettel Red Signature
+  // 1. Loading Authentication State - Viettel Red Signature (Full Dark Mode Sync)
   if (authStatus === "loading") {
     return (
-      <div className="h-screen w-screen flex flex-col items-center justify-center bg-[#F8F8F8]">
-        <div className="w-14 h-14 rounded-2xl bg-[#EE0033] flex items-center justify-center text-white shadow-xl shadow-[#EE0033]/25 animate-pulse mb-4 font-black text-lg tracking-tight">
+      <div className="h-screen w-screen flex flex-col items-center justify-center bg-[#F8F9FA] dark:bg-[#09090B] transition-colors duration-200">
+        <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#EE0033] to-[#C7002B] flex items-center justify-center text-white shadow-xl shadow-[#EE0033]/25 animate-pulse mb-4 font-black text-lg tracking-tight">
           TT
         </div>
-        <div className="text-sm font-bold text-[#111827]">Đang khởi động TamTask...</div>
-        <div className="text-xs text-[#9B9B9B] mt-1">Đang đồng bộ dữ liệu dự án</div>
+        <div className="text-sm font-bold text-[#111827] dark:text-zinc-100">Đang khởi động TamTask...</div>
+        <div className="text-xs text-[#9B9B9B] dark:text-zinc-500 mt-1">Đang đồng bộ dữ liệu dự án</div>
       </div>
     );
   }
@@ -938,6 +981,7 @@ export default function JiraApp() {
             currentUser={currentUser}
             currentProject={currentProject}
             activeSprintName={activeSprint?.name}
+            onOpenShortcutsModal={() => setIsShortcutsModalOpen(true)}
           />
         </div>
 
@@ -1006,9 +1050,11 @@ export default function JiraApp() {
             <AdminView
               users={users}
               projects={projects}
+              currentUserId={currentUser.id}
               onUpdateUserRole={handleUpdateUserRole}
               onToggleUserStatus={handleToggleUserStatus}
               onInviteUser={handleInviteUser}
+              onDeleteUser={handleDeleteUser}
               onApproveUser={handleApproveUser}
             />
           )}
