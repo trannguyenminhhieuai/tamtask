@@ -910,6 +910,8 @@ export default function JiraApp() {
           onOpenCommandPalette={() => setIsCommandPaletteOpen(true)}
           onOpenShortcutsModal={() => setIsShortcutsModalOpen(true)}
           onToggleSidebar={() => setIsSidebarCollapsed((prev) => !prev)}
+          currentView={currentView}
+          onViewChange={setCurrentView}
         />
 
       {/* Main Workspace: Sidebar + Dynamic View */}

@@ -20,6 +20,9 @@ import {
   Eye,
   Clock,
   Menu,
+  Kanban,
+  ListTodo,
+  TrendingUp,
 } from "lucide-react";
 import { User, Project, NotificationItem } from "@/types/jira";
 import { useSession, signOut } from "next-auth/react";
@@ -38,6 +41,8 @@ interface NavbarProps {
   onOpenCommandPalette?: () => void;
   onOpenShortcutsModal?: () => void;
   onToggleSidebar?: () => void;
+  currentView?: string;
+  onViewChange?: (view: any) => void;
 }
 
 const ROLE_CONFIG: Record<
@@ -89,6 +94,8 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenCommandPalette,
   onOpenShortcutsModal,
   onToggleSidebar,
+  currentView = "BOARD",
+  onViewChange,
 }) => {
   const { data: session } = useSession();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
@@ -166,9 +173,9 @@ export const Navbar: React.FC<NavbarProps> = ({
   }, []);
 
   return (
-    <header className="h-14 bg-white border-b border-[#D7D7D7] px-3 sm:px-4 flex items-center justify-between sticky top-0 z-30 select-none shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
-      {/* Left: Hamburger, TamTask Brand & Project Selector */}
-      <div className="flex items-center space-x-1.5 sm:space-x-2.5">
+    <header className="h-14 bg-white border-b border-[#D7D7D7] px-3 sm:px-5 flex items-center justify-between sticky top-0 z-30 select-none shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
+      {/* Left: Tammi OA Brand & Project Selector */}
+      <div className="flex items-center space-x-2 sm:space-x-3 shrink-0">
         {/* Mobile Hamburger Menu Toggle */}
         {onToggleSidebar && (
           <button
@@ -181,26 +188,32 @@ export const Navbar: React.FC<NavbarProps> = ({
           </button>
         )}
 
+        {/* Official Tammi OA Brand Identity */}
+        <div className="flex items-center space-x-1.5 shrink-0">
+          <span className="font-extrabold text-lg sm:text-xl tracking-tight text-[#111827] flex items-center font-sans">
+            tammi<span className="text-[#EE0033] inline-block -mt-1 ml-0.5 text-xs">✦</span>
+          </span>
+          <span className="font-bold text-[11px] sm:text-xs text-[#EE0033] tracking-wide ml-0.5 bg-rose-50 px-1.5 py-0.5 rounded-md border border-rose-200/80">
+            OA
+          </span>
+        </div>
+
+        <div className="h-4 w-px bg-[#D7D7D7] hidden sm:block" />
+
         {/* Project Selector Dropdown */}
         <div className="relative z-40" ref={projectMenuRef}>
           <button
             onClick={() => setShowProjectDropdown(!showProjectDropdown)}
-            className="flex items-center space-x-2 sm:space-x-2.5 p-1 sm:p-1.5 rounded-lg hover:bg-[#F8F8F8] border border-transparent hover:border-[#D7D7D7] transition text-left group"
+            className="flex items-center space-x-2 p-1 sm:p-1.5 rounded-full hover:bg-[#F8F8F8] border border-[#D7D7D7] transition text-left group px-2 sm:px-2.5"
           >
-            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-[#EE0033] flex items-center justify-center text-white shadow-xs font-black text-xs tracking-tight shrink-0">
+            <div className="w-5 h-5 rounded-full bg-[#EE0033] flex items-center justify-center text-white shadow-xs font-black text-[10px] tracking-tight shrink-0">
               {currentProject ? currentProject.key.slice(0, 3) : "TT"}
             </div>
-            <div>
-              <div className="font-bold text-[#111827] text-xs sm:text-sm leading-none flex items-center gap-1 sm:gap-1.5">
-                <span className="truncate max-w-[90px] xs:max-w-[120px] sm:max-w-[160px]">
-                  {currentProject?.name || "TamTask Space"}
-                </span>
-                <span className="text-[10px] bg-[#F8F8F8] text-[#111827] font-mono font-medium px-1 sm:px-1.5 py-0.5 rounded border border-[#D7D7D7] hidden xs:inline">
-                  {currentProject?.key || "TAM"}
-                </span>
-                <ChevronDown className="w-3.5 h-3.5 text-[#9B9B9B] group-hover:text-[#111827] transition shrink-0" />
-              </div>
-              <div className="text-[10px] sm:text-[11px] text-[#9B9B9B] font-medium mt-0.5 hidden xs:block">TamTask Workspace</div>
+            <div className="font-semibold text-[#111827] text-xs leading-none flex items-center gap-1">
+              <span className="truncate max-w-[80px] xs:max-w-[110px] sm:max-w-[140px]">
+                {currentProject?.name || "TamTask Space"}
+              </span>
+              <ChevronDown className="w-3 h-3 text-[#9B9B9B] group-hover:text-[#111827] transition shrink-0" />
             </div>
           </button>
 
@@ -267,16 +280,75 @@ export const Navbar: React.FC<NavbarProps> = ({
             </div>
           )}
         </div>
+      </div>
+
+      {/* Center: Tammi OA Signature Center Pill Dock */}
+      <div className="hidden md:flex items-center bg-[#F0F2F5] p-1 rounded-full border border-gray-200/80 shadow-2xs">
+        <button
+          type="button"
+          onClick={() => onViewChange?.("BOARD")}
+          className={`flex items-center space-x-1.5 text-xs px-4 py-1.5 rounded-full transition-all font-semibold ${
+            currentView === "BOARD"
+              ? "bg-[#EE0033] text-white shadow-xs"
+              : "text-[#4B5563] hover:text-[#111827] hover:bg-white/60"
+          }`}
+        >
+          <Kanban className="w-3.5 h-3.5" />
+          <span>Bảng Việc</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => onViewChange?.("BACKLOG")}
+          className={`flex items-center space-x-1.5 text-xs px-4 py-1.5 rounded-full transition-all font-semibold ${
+            currentView === "BACKLOG"
+              ? "bg-[#EE0033] text-white shadow-xs"
+              : "text-[#4B5563] hover:text-[#111827] hover:bg-white/60"
+          }`}
+        >
+          <ListTodo className="w-3.5 h-3.5" />
+          <span>Kế Hoạch</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => onViewChange?.("DASHBOARD")}
+          className={`flex items-center space-x-1.5 text-xs px-4 py-1.5 rounded-full transition-all font-semibold ${
+            currentView === "DASHBOARD" || currentView === "ADMIN" || currentView === "AUTOMATION"
+              ? "bg-[#EE0033] text-white shadow-xs"
+              : "text-[#4B5563] hover:text-[#111827] hover:bg-white/60"
+          }`}
+        >
+          <TrendingUp className="w-3.5 h-3.5" />
+          <span>Quản Lý & Báo Cáo</span>
+        </button>
+      </div>
+
+      {/* Right: Search, Actions, Notifications & Profile */}
+      <div className="flex items-center space-x-1.5 sm:space-x-2.5">
+        {/* Quick Search Trigger */}
+        <button
+          type="button"
+          onClick={() => onOpenCommandPalette?.()}
+          className="relative flex items-center bg-[#FAFAFA] hover:bg-white border border-[#D7D7D7] hover:border-[#EE0033] rounded-full px-3 py-1.5 text-xs text-left text-[#9B9B9B] hover:text-[#111827] transition shadow-2xs group focus:ring-3 focus:ring-[#EE0033]/20"
+          title="Tìm kiếm nhanh (Ctrl + K)"
+        >
+          <Search className="w-3.5 h-3.5 text-[#9B9B9B] group-hover:text-[#EE0033] transition-colors" />
+          <span className="hidden xl:inline ml-2 truncate max-w-[130px]">
+            {searchQuery ? `"${searchQuery}"` : "Tìm kiếm..."}
+          </span>
+          <kbd className="hidden sm:inline ml-2 text-[10px] bg-white border border-[#D7D7D7] text-[#111827] px-1.5 py-0.2 rounded-full font-mono font-semibold">
+            ⌘K
+          </kbd>
+        </button>
 
         {/* Project Members Button (Admin & Project Lead) */}
         {canManageProjects && onOpenProjectMembers && currentProject && (
           <button
             onClick={onOpenProjectMembers}
-            className="flex items-center space-x-1.5 bg-[#F8F8F8] hover:bg-white text-[#111827] border border-[#D7D7D7] text-xs font-semibold px-3 py-1.5 rounded-full transition shadow-2xs"
+            className="hidden sm:flex items-center space-x-1.5 bg-[#F8F8F8] hover:bg-white text-[#111827] border border-[#D7D7D7] text-xs font-semibold px-3 py-1.5 rounded-full transition shadow-2xs"
             title="Quản lý nhân sự và thành viên tham gia dự án này"
           >
             <Users className="w-3.5 h-3.5 text-[#9B9B9B]" />
-            <span className="hidden md:inline">Nhân sự dự án</span>
+            <span className="hidden lg:inline">Nhân sự</span>
           </button>
         )}
 
@@ -284,10 +356,10 @@ export const Navbar: React.FC<NavbarProps> = ({
         {canCreateIssue ? (
           <button
             onClick={onCreateIssueClick}
-            className="flex items-center space-x-1.5 bg-[#EE0033] hover:bg-[#D6002E] active:bg-[#BD0029] focus:ring-3 focus:ring-[#EE0033]/20 text-white text-xs font-semibold px-3.5 sm:px-4 py-1.5 rounded-full transition shadow-xs shrink-0"
+            className="flex items-center space-x-1.5 bg-[#EE0033] hover:bg-[#D6002E] active:bg-[#BD0029] focus:ring-3 focus:ring-[#EE0033]/20 text-white text-xs font-semibold px-3 sm:px-4 py-1.5 rounded-full transition shadow-xs shrink-0"
           >
             <Plus className="w-4 h-4 text-white shrink-0" />
-            <span className="hidden sm:inline">Tạo Công Việc</span>
+            <span className="hidden xs:inline">Tạo Công Việc</span>
           </button>
         ) : (
           <div
@@ -297,27 +369,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             <span>Chỉ xem</span>
           </div>
         )}
-      </div>
 
-      {/* Middle: Quick Search & Command Palette Trigger */}
-      <div className="flex-1 max-w-md mx-3 sm:mx-6 hidden sm:block">
-        <button
-          type="button"
-          onClick={() => onOpenCommandPalette?.()}
-          className="w-full relative flex items-center bg-[#FAFAFA] hover:bg-white border border-[#D7D7D7] hover:border-[#EE0033] rounded-full pl-9 pr-3 py-1.5 text-xs text-left text-[#9B9B9B] hover:text-[#111827] transition shadow-2xs group focus:ring-3 focus:ring-[#EE0033]/20"
-        >
-          <Search className="w-4 h-4 text-[#9B9B9B] group-hover:text-[#EE0033] absolute left-3 top-1/2 -translate-y-1/2 transition-colors" />
-          <span className="truncate">
-            {searchQuery ? `Lọc: "${searchQuery}"` : `Tìm nhanh task, dự án, lệnh... (Ctrl + K)`}
-          </span>
-          <kbd className="ml-auto text-[10px] bg-white border border-[#D7D7D7] text-[#111827] px-1.5 py-0.5 rounded-full font-mono font-semibold">
-            ⌘K
-          </kbd>
-        </button>
-      </div>
-
-      {/* Right: Actions, Role Badge & User Profile */}
-      <div className="flex items-center space-x-1.5 sm:space-x-2.5">
         {/* Role Badge Indicator - Non-AI, Icon-based */}
         <div
           className={`flex items-center space-x-1 text-[11px] font-semibold px-2.5 py-0.5 rounded-full border ${roleConfig.color}`}

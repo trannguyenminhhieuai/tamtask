@@ -253,6 +253,12 @@ export const CreateIssueModal: React.FC<CreateIssueModalProps> = ({
 
         {/* Form Body - Scrollable */}
         <form onSubmit={handleSubmit} className="p-6 space-y-4 overflow-y-auto flex-1">
+          {/* Tammi OA Signature Notice Banner */}
+          <div className="p-3 bg-[#FFFBEB] border border-[#FDE68A] text-[#B45309] rounded-2xl flex items-center gap-2.5 text-xs font-medium">
+            <AlertCircle className="w-4 h-4 text-[#F59E0B] shrink-0" />
+            <span>Công việc được tạo sẽ tự động đồng bộ và phản chiếu tức thì trên Bảng Kanban dự án.</span>
+          </div>
+
           {/* Issue Type */}
           <div>
             <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">

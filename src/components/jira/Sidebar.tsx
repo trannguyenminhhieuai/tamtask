@@ -11,6 +11,7 @@ import {
   ChevronRight,
   Sparkles,
   Calendar,
+  Layers,
 } from "lucide-react";
 import { User, Project } from "@/types/jira";
 
@@ -59,20 +60,23 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   return (
     <aside
-      className={`bg-[#F8F8F8] border-r border-[#D7D7D7] transition-all duration-200 flex flex-col justify-between select-none relative ${
+      className={`bg-white border-r border-[#D7D7D7] transition-all duration-200 flex flex-col justify-between select-none relative ${
         isCollapsed ? "w-14" : "w-60"
       }`}
     >
       <div>
-        {/* Project Header Info */}
+        {/* Project & Workspace Header Info */}
         {!isCollapsed ? (
-          <div className="p-4 border-b border-[#D7D7D7]">
-            <div className="text-[11px] font-bold uppercase tracking-wider text-[#9B9B9B]">
-              {currentProject ? currentProject.name : "TamTask Space"}
+          <div className="p-4 border-b border-[#F0F2F5]">
+            <div className="flex items-center space-x-2 text-[#EE0033]">
+              <Layers className="w-4 h-4 text-[#EE0033] shrink-0" />
+              <span className="text-xs font-bold text-[#111827] uppercase tracking-wider truncate">
+                {currentProject ? currentProject.name : "Không Gian Dự Án"}
+              </span>
             </div>
-            <div className="text-sm font-semibold text-[#111827] mt-1 flex items-center justify-between">
+            <div className="text-[11px] text-[#6B7280] font-medium mt-1 flex items-center justify-between">
               <span className="truncate">{activeSprintName || "Chu Kỳ Hiện Tại"}</span>
-              <span className="text-[10px] bg-rose-50 text-[#EE0033] border border-rose-200/80 font-semibold px-1.5 py-0.5 rounded-md ml-1 shrink-0">
+              <span className="text-[9px] bg-rose-50 text-[#EE0033] border border-rose-200/80 font-bold px-1.5 py-0.2 rounded-full shrink-0">
                 ĐANG CHẠY
               </span>
             </div>
@@ -81,47 +85,67 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <div className="h-4" />
         )}
 
-        {/* Navigation Links */}
-        <nav className="p-2 space-y-1">
-          {visibleNavItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = currentView === item.id;
-            return (
-              <button
-                key={item.id}
-                onClick={() => {
-                  onViewChange(item.id);
-                  if (typeof window !== "undefined" && window.innerWidth < 768) {
-                    onToggleCollapse();
-                  }
-                }}
-                className={`w-full flex items-center ${
-                  isCollapsed ? "justify-center px-0" : "px-3"
-                } py-2 rounded-lg text-xs transition relative group ${
-                  isActive
-                    ? "bg-white text-[#EE0033] font-semibold border border-[#D7D7D7] shadow-xs"
-                    : "text-[#111827] hover:bg-white hover:text-[#EE0033] font-medium"
-                }`}
-                title={isCollapsed ? item.label : undefined}
-              >
-                {isActive && (
-                  <span className="absolute left-0 top-1.5 bottom-1.5 w-1 bg-[#EE0033] rounded-r" />
-                )}
-                <Icon className={`w-4 h-4 shrink-0 ${isActive ? "text-[#EE0033]" : "text-[#9B9B9B] group-hover:text-[#EE0033]"}`} />
-                {!isCollapsed && (
-                  <span className="ml-3 truncate">{item.label}</span>
-                )}
-              </button>
-            );
-          })}
-        </nav>
+        {/* Navigation Links - Tammi OA Hierarchical Tree Style */}
+        <div className="p-3">
+          {!isCollapsed && (
+            <div className="px-2 py-1.5 flex items-center justify-between text-[#EE0033] font-bold text-xs uppercase tracking-wider mb-1">
+              <div className="flex items-center space-x-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#EE0033]" />
+                <span>Quản Lý Công Việc</span>
+              </div>
+            </div>
+          )}
+
+          <nav className="space-y-0.5">
+            {visibleNavItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = currentView === item.id;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => {
+                    onViewChange(item.id);
+                    if (typeof window !== "undefined" && window.innerWidth < 768) {
+                      onToggleCollapse();
+                    }
+                  }}
+                  className={`w-full flex items-center ${
+                    isCollapsed ? "justify-center px-0 py-2.5" : "px-3 py-2"
+                  } text-xs transition-all relative group rounded-r-lg ${
+                    isActive
+                      ? "text-[#EE0033] font-bold bg-rose-50/60 border-l-2 border-[#EE0033]"
+                      : "text-[#4B5563] hover:text-[#111827] hover:bg-[#F8F9FA] font-medium border-l-2 border-transparent"
+                  }`}
+                  title={isCollapsed ? item.label : undefined}
+                >
+                  <Icon
+                    className={`w-4 h-4 shrink-0 transition-colors ${
+                      isActive ? "text-[#EE0033]" : "text-[#9B9B9B] group-hover:text-[#111827]"
+                    }`}
+                  />
+                  {!isCollapsed && (
+                    <span className="ml-3 truncate">{item.label}</span>
+                  )}
+                </button>
+              );
+            })}
+          </nav>
+        </div>
       </div>
 
-      {/* Bottom: Collapse Button */}
-      <div className="p-3 border-t border-[#D7D7D7]">
+      {/* Bottom: Theme Pill Toggle & Collapse Button */}
+      <div className="p-3 border-t border-[#F0F2F5] flex items-center justify-between">
+        {!isCollapsed && (
+          <div className="flex items-center space-x-2">
+            <div className="w-8 h-4 bg-gray-200 rounded-full p-0.5 flex items-center cursor-pointer">
+              <div className="w-3 h-3 bg-white rounded-full shadow-xs" />
+            </div>
+            <span className="text-[10px] text-gray-500 font-medium">Sáng</span>
+          </div>
+        )}
         <button
           onClick={onToggleCollapse}
-          className="w-full flex items-center justify-center p-2 text-[#9B9B9B] hover:text-[#111827] hover:bg-white rounded-lg border border-transparent hover:border-[#D7D7D7] transition"
+          className="p-1.5 text-[#9B9B9B] hover:text-[#111827] hover:bg-slate-100 rounded-lg transition"
           title={isCollapsed ? "Mở rộng thanh bên" : "Thu gọn thanh bên"}
         >
           {isCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}

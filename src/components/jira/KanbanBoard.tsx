@@ -259,9 +259,36 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   };
 
   return (
-    <div className="flex-1 flex flex-col h-full overflow-hidden bg-white">
-      {/* Top Filter Bar */}
-      <div className="px-3 sm:px-6 py-2 sm:py-2.5 border-b border-[#D7D7D7] bg-[#F8F8F8] flex flex-wrap items-center justify-between gap-2 sm:gap-3">
+    <div className="flex-1 flex flex-col h-full overflow-hidden bg-[#F5F6F8]">
+      {/* Tammi OA Dedicated Page Header */}
+      <div className="px-4 sm:px-6 pt-5 pb-3 bg-white border-b border-[#F0F2F5]">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center space-x-3">
+            <h1 className="text-xl sm:text-2xl font-extrabold text-[#111827] tracking-tight">
+              Bảng Công Việc Kanban
+            </h1>
+            <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full bg-[#E0F2FE] text-[#0284C7] border border-[#BAE6FD]">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#0284C7] animate-pulse" />
+              {activeSprint ? `${activeSprint.name} • Đang chạy` : "Chu Kỳ Đang Chạy"}
+            </span>
+          </div>
+
+          {activeSprint && (
+            <div className="text-xs text-[#6B7280] font-medium hidden sm:flex items-center gap-2">
+              <span>Thời gian:</span>
+              <span className="font-mono text-[#111827] bg-[#F8F9FA] px-2 py-0.5 rounded border border-[#E5E7EB]">
+                {activeSprint.startDate ? new Date(activeSprint.startDate).toLocaleDateString("vi-VN") : "2026-11-01"} - {activeSprint.endDate ? new Date(activeSprint.endDate).toLocaleDateString("vi-VN") : "2026-11-14"}
+              </span>
+            </div>
+          )}
+        </div>
+        <p className="text-xs text-[#6B7280] mt-1">
+          Theo dõi, kéo thả và điều phối trạng thái công việc của đội ngũ kỹ sư theo thời gian thực
+        </p>
+      </div>
+
+      {/* Tammi OA Clean Filter & Action Bar */}
+      <div className="px-4 sm:px-6 py-2.5 bg-white border-b border-[#E5E7EB] flex flex-wrap items-center justify-between gap-3 shadow-2xs">
         {/* Left: Quick Filters & Search */}
         <div className="flex flex-wrap items-center gap-2">
           {/* Only My Issues Button */}
@@ -554,8 +581,8 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
         </div>
       )}
 
-      {/* Board Columns & Swimlanes Container */}
-      <div className="flex-1 overflow-auto p-3 sm:p-6 space-y-4 sm:space-y-6 bg-white touch-pan-x">
+      {/* Board Columns & Swimlanes Container - Tammi OA Neutral Surface Canvas */}
+      <div className="flex-1 overflow-auto p-3 sm:p-6 space-y-4 sm:space-y-6 bg-[#F5F6F8] touch-pan-x">
         {isLoading ? (
           <div className="grid grid-flow-col auto-cols-[300px] gap-4 min-h-[500px]">
             {[1, 2, 3, 4].map((n) => (
@@ -644,7 +671,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                           ? "bg-rose-50/60 border-2 border-dashed border-[#EE0033]"
                           : isWipExceeded
                           ? "bg-rose-50/70 border-rose-300 shadow-sm"
-                          : "bg-[#F8F8F8] border-[#D7D7D7]"
+                          : "bg-white border-[#E5E7EB] shadow-xs"
                       }`}
                     >
                       {/* Column Header */}

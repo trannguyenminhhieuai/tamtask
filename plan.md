@@ -3885,3 +3885,31 @@ Dựa trên 2 ảnh chụp màn hình thực tế được người dùng đánh
 | **Hộp thoại Modal (Dialogs)** | Bo góc 12px `rounded-xl`, nút đóng `rounded-lg` | **Bo góc lớn `rounded-2xl sm:rounded-3xl` (24px - 32px)**, nút đóng tròn `rounded-full`, cặp nút viên thuốc ở footer | `CreateIssueModal.tsx`, `ProjectMembersModal.tsx` |
 | **Thẻ nhãn & Huy hiệu (Tags & Badges)** | Bo góc 4px `rounded-sm` | **Viên thuốc `rounded-full`**, chiều cao 20px / 24px, padding ngang `px-2.5` - `px-3` | `IssueCard.tsx`, `KanbanBoard.tsx`, `IssueDetailDrawer.tsx` |
 | **Thanh tìm kiếm nhanh (Search Input)** | Bo góc 8px | **Viên thuốc mềm mại `rounded-full`**, nền `#FAFAFA`, viền mảnh | `Navbar.tsx` |
+
+
+---
+
+## 34. Báo Cáo So Sánh Toàn Diện & Kế Hoạch Chuẩn Hóa Theo Giao Diện Gốc Tammi OA
+
+> **Căn cứ**: 4 ảnh chụp thực tế đối chiếu giữa phiên bản chạy local (`media_1794736974622_b1e18321.png`) và giao diện chuẩn mực Tammi OA (`media_1794737397716_3922a16b.png`, `media_1794737417697_df4bf8a6.png`, `media_1794737472345_60db176d.png`).
+
+### 34.1. Bảng So Sánh Đối Chiếu Chi Tiết
+
+| Thành Phần Giao Diện | Hiện Trạng Jira Local | Chuẩn Mực Gốc Tammi OA | Đánh Giá Đáp Ứng & Giải Pháp Đã Thực Thi |
+| :--- | :--- | :--- | :--- |
+| **Thương Hiệu & Logo Header** | Khối vuông đỏ chữ `TT` + chữ `TamTask Space` | Chữ `tammi` (chữ thường màu đen, có ngôi sao đỏ 4 cánh `✦` trên chữ `i`) kèm huy hiệu `OA` đỏ Viettel (`#EE0033`) | ❌ **Chưa đạt** $\rightarrow$ **Đã sửa**: Thay thế logo thành chuẩn `tammi✦ OA`, giữ nguyên nút chuyển dự án linh hoạt cạnh logo. |
+| **Thanh Điều Hướng Trung Tâm (Center Top Dock)** | Ô tìm kiếm thô kéo dài ở giữa | Thanh điều hướng viên thuốc xám nhạt (`bg-[#F0F2F5] rounded-full`), các tab `Bảng Việc` / `Kế Hoạch` / `Quản Lý`, tab active là **viên thuốc đỏ Viettel (`bg-[#EE0033] text-white`)** | ❌ **Chưa đạt** $\rightarrow$ **Đã sửa**: Bổ sung Tammi OA Center Dock với 3 phân hệ cốt lõi (`Bảng Việc`, `Kế Hoạch`, `Quản Lý & Báo Cáo`), active state màu đỏ Viettel đặc trưng. |
+| **Thanh Menu Trái (Sidebar Navigation)** | Tab active bị đóng khung viền đỏ toàn bộ hình chữ nhật (`border border-red-500 rounded-lg`) gây thô và gãy bố cục | Thanh menu dạng cây phân cấp nhẹ nhàng; tab active **chỉ có thanh chỉ báo dọc bên trái (`border-l-2 border-[#EE0033]`), chữ đỏ đậm `text-[#EE0033] font-bold`, nền mờ `bg-rose-50/60`**, không viền hộp | ❌ **Chưa đạt** $\rightarrow$ **Đã sửa**: Loại bỏ hoàn toàn viền hộp đỏ thô, chuyển sang chuẩn vạch chỉ báo đỏ bên trái và nền mờ siêu sạch. |
+| **Tiêu Đề Trang (Page Header Area)** | Bảng Kanban lập tức nhảy vào thanh lọc xám mà không có tiêu đề màn hình chính thức | Mỗi trang có khu vực Header riêng biệt: Tiêu đề lớn (24px font-bold), **Pill huy hiệu trạng thái xanh dương (`bg-[#E0F2FE] text-[#0284C7] rounded-full`)**, dòng mô tả phụ bên dưới | ❌ **Chưa đạt** $\rightarrow$ **Đã sửa**: Bổ sung tiêu đề chuẩn `Bảng Công Việc Kanban`, huy hiệu `• Sprint 1 (Active) - Đang chạy`, và dòng mô tả mục tiêu. |
+| **Bề Mặt Không Gian (Canvas & Card Contrast)** | Toàn bộ board nằm trên nền trắng phẳng, các cột màu xám mờ mờ thiếu tương phản | Canvas toàn trang là bề mặt xám trung tính **`#F5F6F8`**, các cột và thẻ là **Thẻ Trắng Tinh Khiết (`#FFFFFF`) bo góc `rounded-2xl`** với viền mảnh `border-[#E5E7EB]` tạo chiều sâu công nghệ cao | ❌ **Chưa đạt** $\rightarrow$ **Đã sửa**: Đổi nền canvas sang `#F5F6F8`, cột Kanban đổi sang thẻ trắng `#FFFFFF` bo góc mềm `rounded-2xl` bóng đổ nhẹ. |
+| **Hộp Thoại Modal ("Xem Chi Tiết" / "Tạo Task")** | Modal bo góc 12px thông thường | Modal bo góc mềm lớn **`rounded-[28px]` - `rounded-[32px]`**, có banner cảnh báo vàng nhạt (`bg-[#FFFBEB] border-[#FDE68A] text-[#B45309] rounded-2xl`), link phụ màu đỏ Viettel (`text-[#EE0033] Xem hướng dẫn`) | ❌ **Chưa đạt** $\rightarrow$ **Đã sửa**: Đồng bộ khung `rounded-3xl`, tích hợp banner cảnh báo chuẩn Tammi OA và các nút bấm viên thuốc `rounded-full`. |
+| **Thông Báo Nổi (Toast Notifications)** | Nằm ở góc dưới cùng bên phải | **Viên thuốc xanh lục Tammi Emerald (`#079455`) nổi ở chính giữa mép trên màn hình (`top-4 left-1/2 -translate-x-1/2`)**, chữ trắng, bo góc `rounded-full` | ❌ **Chưa đạt** $\rightarrow$ **Đã sửa**: Tinh chỉnh Toast nổi giữa mép trên chuẩn Tammi OA (`bg-[#079455] text-white rounded-full px-5 py-2.5`). |
+
+### 34.2. Danh Sách Tệp Đã Điều Chỉnh
+
+1. `src/components/jira/Navbar.tsx`: Nhận diện `tammi✦ OA`, top center pill dock, nút hành động viên thuốc.
+2. `src/components/jira/Sidebar.tsx`: Chuyển tab active sang chỉ báo viền đỏ bên trái, bổ sung toggle switch light/dark ở chân thanh bên.
+3. `src/components/jira/KanbanBoard.tsx`: Bổ sung Page Header chuẩn Tammi OA, đổi bề mặt canvas sang `#F5F6F8`, cột Kanban đổi sang thẻ trắng `#FFFFFF rounded-2xl`.
+4. `src/components/jira/CreateIssueModal.tsx`: Tích hợp banner thông báo vàng nhạt `bg-[#FFFBEB]`, các nút bấm viên thuốc.
+5. `src/components/jira/Toast.tsx`: Chuyển vị trí hiển thị lên chính giữa mép trên màn hình với nền xanh Tammi Emerald `#079455`.
+6. `src/app/page.tsx`: Kết nối `currentView` và `onViewChange` đồng bộ giữa Navbar Dock và Sidebar.

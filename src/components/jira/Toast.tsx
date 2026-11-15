@@ -91,8 +91,8 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   return (
     <ToastContext.Provider value={value}>
       {children}
-      {/* Toast Render Floating Container - Compact Mini-Pill Style */}
-      <div className="fixed bottom-4 right-4 z-[9999] flex flex-col items-end gap-1.5 pointer-events-none">
+      {/* Toast Render Floating Container - Tammi OA Top-Center Floating Pill */}
+      <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[9999] flex flex-col items-center gap-2 pointer-events-none">
         {toasts.map((t) => {
           const isError = t.type === "error";
           const isSuccess = t.type === "success";
@@ -101,24 +101,24 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           return (
             <div
               key={t.id}
-              className={`pointer-events-auto flex items-center gap-2 px-3 py-1.5 rounded-full shadow-lg border backdrop-blur-md transition-all duration-200 animate-in slide-in-from-bottom-2 fade-in ${
-                isError
-                  ? "bg-rose-950/90 text-rose-50 border-rose-800 shadow-rose-950/20"
-                  : isSuccess
-                  ? "bg-slate-900/95 text-white border-slate-700 shadow-slate-950/20"
+              className={`pointer-events-auto flex items-center gap-2 px-5 py-2.5 rounded-full shadow-xl transition-all duration-200 animate-in slide-in-from-top-3 fade-in ${
+                isSuccess
+                  ? "bg-[#079455] text-white shadow-[#079455]/20"
+                  : isError
+                  ? "bg-[#D92D20] text-white shadow-[#D92D20]/20"
                   : isWarning
-                  ? "bg-amber-950/90 text-amber-50 border-amber-800 shadow-amber-950/20"
-                  : "bg-slate-900/95 text-white border-slate-700 shadow-slate-950/20"
+                  ? "bg-[#F79009] text-white shadow-[#F79009]/20"
+                  : "bg-[#181818] text-white shadow-black/20"
               }`}
             >
               <div className="shrink-0">
-                {isSuccess && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />}
-                {isError && <AlertCircle className="w-3.5 h-3.5 text-rose-400" />}
-                {isWarning && <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />}
-                {t.type === "info" && <Info className="w-3.5 h-3.5 text-sky-400" />}
+                {isSuccess && <CheckCircle2 className="w-4 h-4 text-white" />}
+                {isError && <AlertCircle className="w-4 h-4 text-white" />}
+                {isWarning && <AlertTriangle className="w-4 h-4 text-white" />}
+                {t.type === "info" && <Info className="w-4 h-4 text-white" />}
               </div>
 
-              <span className="text-xs font-medium text-white truncate max-w-[220px]">
+              <span className="text-xs font-semibold text-white tracking-wide">
                 {t.title}
               </span>
 
@@ -129,7 +129,7 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                     t.undoAction?.();
                     removeToast(t.id);
                   }}
-                  className="shrink-0 flex items-center gap-1 text-[11px] font-bold text-amber-300 hover:text-amber-200 bg-amber-500/20 hover:bg-amber-500/30 px-2 py-0.5 rounded-full transition-colors ml-1"
+                  className="shrink-0 flex items-center gap-1 text-[11px] font-bold text-amber-200 hover:text-white bg-white/20 hover:bg-white/30 px-2.5 py-0.5 rounded-full transition-colors ml-1.5"
                 >
                   <RotateCcw className="w-3 h-3" />
                   <span>{t.undoLabel || "Hoàn tác"}</span>
@@ -139,9 +139,9 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
               <button
                 type="button"
                 onClick={() => removeToast(t.id)}
-                className="shrink-0 text-slate-400 hover:text-white p-0.5 rounded-full transition-colors ml-0.5"
+                className="shrink-0 text-white/80 hover:text-white p-0.5 rounded-full transition-colors ml-1"
               >
-                <X className="w-3 h-3" />
+                <X className="w-3.5 h-3.5" />
               </button>
             </div>
           );
