@@ -20,9 +20,6 @@ import {
   Eye,
   Clock,
   Menu,
-  Kanban,
-  ListTodo,
-  TrendingUp,
 } from "lucide-react";
 import { User, Project, NotificationItem } from "@/types/jira";
 import { useSession, signOut } from "next-auth/react";
@@ -173,8 +170,8 @@ export const Navbar: React.FC<NavbarProps> = ({
   }, []);
 
   return (
-    <header className="h-14 bg-white border-b border-[#D7D7D7] px-3 sm:px-5 flex items-center justify-between sticky top-0 z-30 select-none shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
-      {/* Left: Tammi OA Brand & Project Selector */}
+    <header className="h-14 bg-white/80 backdrop-blur-md border-b border-[#D7D7D7]/80 px-3 sm:px-5 flex items-center justify-between sticky top-0 z-30 select-none shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
+      {/* Left: TamTask Brand & Project Selector */}
       <div className="flex items-center space-x-2 sm:space-x-3 shrink-0">
         {/* Mobile Hamburger Menu Toggle */}
         {onToggleSidebar && (
@@ -188,14 +185,17 @@ export const Navbar: React.FC<NavbarProps> = ({
           </button>
         )}
 
-        {/* Official Tammi OA Brand Identity */}
-        <div className="flex items-center space-x-1.5 shrink-0">
-          <span className="font-extrabold text-lg sm:text-xl tracking-tight text-[#111827] flex items-center font-sans">
-            tammi<span className="text-[#EE0033] inline-block -mt-1 ml-0.5 text-xs">✦</span>
-          </span>
-          <span className="font-bold text-[11px] sm:text-xs text-[#EE0033] tracking-wide ml-0.5 bg-rose-50 px-1.5 py-0.5 rounded-md border border-rose-200/80">
-            OA
-          </span>
+        {/* TamTask Brand Identity */}
+        <div className="flex items-center space-x-2 shrink-0">
+          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#EE0033] to-[#C7002B] flex items-center justify-center text-white shadow-xs font-black text-xs tracking-tight shrink-0">
+            TT
+          </div>
+          <div className="font-extrabold text-base tracking-tight text-[#111827] flex items-center gap-1.5 font-sans">
+            <span>TamTask</span>
+            <span className="text-[10px] font-bold text-[#EE0033] bg-rose-50 px-2 py-0.5 rounded-full border border-rose-200/80 uppercase tracking-wider hidden sm:inline-block">
+              Space
+            </span>
+          </div>
         </div>
 
         <div className="h-4 w-px bg-[#D7D7D7] hidden sm:block" />
@@ -282,64 +282,28 @@ export const Navbar: React.FC<NavbarProps> = ({
         </div>
       </div>
 
-      {/* Center: Tammi OA Signature Center Pill Dock */}
-      <div className="hidden md:flex items-center bg-[#F0F2F5] p-1 rounded-full border border-gray-200/80 shadow-2xs">
-        <button
-          type="button"
-          onClick={() => onViewChange?.("BOARD")}
-          className={`flex items-center space-x-1.5 text-xs px-4 py-1.5 rounded-full transition-all font-semibold ${
-            currentView === "BOARD"
-              ? "bg-[#EE0033] text-white shadow-xs"
-              : "text-[#4B5563] hover:text-[#111827] hover:bg-white/60"
-          }`}
-        >
-          <Kanban className="w-3.5 h-3.5" />
-          <span>Bảng Việc</span>
-        </button>
-        <button
-          type="button"
-          onClick={() => onViewChange?.("BACKLOG")}
-          className={`flex items-center space-x-1.5 text-xs px-4 py-1.5 rounded-full transition-all font-semibold ${
-            currentView === "BACKLOG"
-              ? "bg-[#EE0033] text-white shadow-xs"
-              : "text-[#4B5563] hover:text-[#111827] hover:bg-white/60"
-          }`}
-        >
-          <ListTodo className="w-3.5 h-3.5" />
-          <span>Kế Hoạch</span>
-        </button>
-        <button
-          type="button"
-          onClick={() => onViewChange?.("DASHBOARD")}
-          className={`flex items-center space-x-1.5 text-xs px-4 py-1.5 rounded-full transition-all font-semibold ${
-            currentView === "DASHBOARD" || currentView === "ADMIN" || currentView === "AUTOMATION"
-              ? "bg-[#EE0033] text-white shadow-xs"
-              : "text-[#4B5563] hover:text-[#111827] hover:bg-white/60"
-          }`}
-        >
-          <TrendingUp className="w-3.5 h-3.5" />
-          <span>Quản Lý & Báo Cáo</span>
-        </button>
-      </div>
-
-      {/* Right: Search, Actions, Notifications & Profile */}
-      <div className="flex items-center space-x-1.5 sm:space-x-2.5">
-        {/* Quick Search Trigger */}
+      {/* Center: Balanced Auto-layout Horizontal Search Bar */}
+      <div className="flex-1 max-w-md lg:max-w-xl mx-2 sm:mx-6">
         <button
           type="button"
           onClick={() => onOpenCommandPalette?.()}
-          className="relative flex items-center bg-[#FAFAFA] hover:bg-white border border-[#D7D7D7] hover:border-[#EE0033] rounded-full px-3 py-1.5 text-xs text-left text-[#9B9B9B] hover:text-[#111827] transition shadow-2xs group focus:ring-3 focus:ring-[#EE0033]/20"
+          className="w-full flex items-center justify-between bg-[#FAFAFA] hover:bg-white border border-[#D7D7D7] hover:border-[#EE0033] rounded-full px-3.5 py-1.5 text-xs text-left text-[#9B9B9B] hover:text-[#111827] transition shadow-2xs group focus:ring-3 focus:ring-[#EE0033]/20"
           title="Tìm kiếm nhanh (Ctrl + K)"
         >
-          <Search className="w-3.5 h-3.5 text-[#9B9B9B] group-hover:text-[#EE0033] transition-colors" />
-          <span className="hidden xl:inline ml-2 truncate max-w-[130px]">
-            {searchQuery ? `"${searchQuery}"` : "Tìm kiếm..."}
-          </span>
-          <kbd className="hidden sm:inline ml-2 text-[10px] bg-white border border-[#D7D7D7] text-[#111827] px-1.5 py-0.2 rounded-full font-mono font-semibold">
+          <div className="flex items-center space-x-2.5 truncate">
+            <Search className="w-3.5 h-3.5 text-[#9B9B9B] group-hover:text-[#EE0033] transition-colors shrink-0" />
+            <span className="truncate">
+              {searchQuery ? `"${searchQuery}"` : "Tìm nhanh task, dự án, lệnh... (Ctrl + K)"}
+            </span>
+          </div>
+          <kbd className="hidden sm:inline-flex items-center text-[10px] bg-white border border-[#D7D7D7] text-[#111827] px-2 py-0.5 rounded-full font-mono font-semibold shrink-0">
             ⌘K
           </kbd>
         </button>
+      </div>
 
+      {/* Right: Actions, Notifications & Profile */}
+      <div className="flex items-center space-x-1.5 sm:space-x-2.5 shrink-0">
         {/* Project Members Button (Admin & Project Lead) */}
         {canManageProjects && onOpenProjectMembers && currentProject && (
           <button
@@ -352,14 +316,15 @@ export const Navbar: React.FC<NavbarProps> = ({
           </button>
         )}
 
-        {/* Create Issue Button */}
+        {/* Create Issue Button ("+ Thêm mới") */}
         {canCreateIssue ? (
           <button
             onClick={onCreateIssueClick}
-            className="flex items-center space-x-1.5 bg-[#EE0033] hover:bg-[#D6002E] active:bg-[#BD0029] focus:ring-3 focus:ring-[#EE0033]/20 text-white text-xs font-semibold px-3 sm:px-4 py-1.5 rounded-full transition shadow-xs shrink-0"
+            className="flex items-center space-x-1.5 bg-[#EE0033] hover:bg-[#D6002E] active:bg-[#BD0029] focus:ring-3 focus:ring-[#EE0033]/20 text-white text-xs font-semibold px-3.5 sm:px-4 py-1.5 rounded-full transition shadow-xs shrink-0"
+            title="Tạo mới công việc / task"
           >
             <Plus className="w-4 h-4 text-white shrink-0" />
-            <span className="hidden xs:inline">Tạo Công Việc</span>
+            <span>Thêm mới</span>
           </button>
         ) : (
           <div
@@ -369,15 +334,6 @@ export const Navbar: React.FC<NavbarProps> = ({
             <span>Chỉ xem</span>
           </div>
         )}
-
-        {/* Role Badge Indicator - Non-AI, Icon-based */}
-        <div
-          className={`flex items-center space-x-1 text-[11px] font-semibold px-2.5 py-0.5 rounded-full border ${roleConfig.color}`}
-          title={`Quyền hạn hiện tại: ${roleConfig.label}`}
-        >
-          <RoleIcon className="w-3 h-3" />
-          <span className="hidden md:inline">{roleConfig.label}</span>
-        </div>
 
         <button
           type="button"

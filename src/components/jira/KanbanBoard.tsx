@@ -64,6 +64,19 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   const [quickAddStatus, setQuickAddStatus] = useState<IssueStatus | null>(null);
   const [quickAddTitle, setQuickAddTitle] = useState("");
   const [showAssigneeOverflow, setShowAssigneeOverflow] = useState(false);
+  const [showMoreFilters, setShowMoreFilters] = useState(false);
+  const moreFiltersRef = React.useRef<HTMLDivElement>(null);
+
+  // Close more filters on click outside
+  React.useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (moreFiltersRef.current && !moreFiltersRef.current.contains(e.target as Node)) {
+        setShowMoreFilters(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   // Active sprint computation (Sprint with status === "ACTIVE")
   const activeSprint = useMemo(() => {
@@ -260,91 +273,81 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
 
   return (
     <div className="flex-1 flex flex-col h-full overflow-hidden bg-[#F5F6F8]">
-      {/* Tammi OA Dedicated Page Header */}
-      <div className="px-4 sm:px-6 pt-5 pb-3 bg-white border-b border-[#F0F2F5]">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center space-x-3">
-            <h1 className="text-xl sm:text-2xl font-extrabold text-[#111827] tracking-tight">
-              Bảng Công Việc Kanban
-            </h1>
-            <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full bg-[#E0F2FE] text-[#0284C7] border border-[#BAE6FD]">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#0284C7] animate-pulse" />
-              {activeSprint ? `${activeSprint.name} • Đang chạy` : "Chu Kỳ Đang Chạy"}
-            </span>
-          </div>
-
+      {/* Unified Glass Island Header */}
+      <div className="mx-3 sm:mx-6 mt-3 mb-1 px-3 sm:px-4 py-2.5 rounded-2xl bg-white/85 backdrop-blur-md border border-white/60 shadow-[0_4px_20px_rgba(0,0,0,0.03)] flex flex-wrap items-center justify-between gap-2.5 z-20 shrink-0">
+        {/* Left: Compact Title & Sprint Date Pill (MICI Principle) */}
+        <div className="flex items-center space-x-2.5 shrink-0">
+          <h1 className="text-base sm:text-lg font-extrabold text-[#111827] tracking-tight">
+            Bảng Công Việc
+          </h1>
           {activeSprint && (
-            <div className="text-xs text-[#6B7280] font-medium hidden sm:flex items-center gap-2">
-              <span>Thời gian:</span>
-              <span className="font-mono text-[#111827] bg-[#F8F9FA] px-2 py-0.5 rounded border border-[#E5E7EB]">
-                {activeSprint.startDate ? new Date(activeSprint.startDate).toLocaleDateString("vi-VN") : "2026-11-01"} - {activeSprint.endDate ? new Date(activeSprint.endDate).toLocaleDateString("vi-VN") : "2026-11-14"}
+            <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-0.5 rounded-full bg-[#E0F2FE] text-[#0284C7] border border-[#BAE6FD]">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#0284C7] animate-pulse" />
+              <span>{activeSprint.name}</span>
+              <span className="text-sky-600 font-mono text-[10px]">
+                ({activeSprint.startDate ? new Date(activeSprint.startDate).toLocaleDateString("vi-VN", { day: '2-digit', month: '2-digit' }) : "01/11"} - {activeSprint.endDate ? new Date(activeSprint.endDate).toLocaleDateString("vi-VN", { day: '2-digit', month: '2-digit' }) : "14/11"})
               </span>
-            </div>
+            </span>
           )}
         </div>
-        <p className="text-xs text-[#6B7280] mt-1">
-          Theo dõi, kéo thả và điều phối trạng thái công việc của đội ngũ kỹ sư theo thời gian thực
-        </p>
-      </div>
 
-      {/* Tammi OA Clean Filter & Action Bar */}
-      <div className="px-4 sm:px-6 py-2.5 bg-white border-b border-[#E5E7EB] flex flex-wrap items-center justify-between gap-3 shadow-2xs">
-        {/* Left: Quick Filters & Search */}
-        <div className="flex flex-wrap items-center gap-2">
-          {/* Only My Issues Button */}
+        {/* Center / Right: Streamlined Filters & Actions */}
+        <div className="flex items-center flex-wrap gap-1.5 sm:gap-2">
+          {/* My Issues Toggle */}
           <button
             onClick={() => onFilterChange({ ...filterState, onlyMyIssues: !filterState.onlyMyIssues })}
-            className={`text-xs px-3.5 py-1.5 rounded-full font-semibold transition flex items-center gap-1.5 ${
+            className={`text-xs px-3 py-1.5 rounded-full font-semibold transition flex items-center gap-1 ${
               filterState.onlyMyIssues
                 ? "bg-[#EE0033] text-white shadow-xs"
                 : "bg-white text-[#111827] border border-[#D7D7D7] hover:bg-slate-50"
             }`}
           >
             {filterState.onlyMyIssues && <Check className="w-3.5 h-3.5" />}
-            <span>Công việc của tôi</span>
+            <span>Của tôi</span>
           </button>
 
           {/* Quick Filter Pills */}
-          <div className="flex items-center space-x-1 border-l border-[#D7D7D7] pl-2">
-            <button
-              onClick={() => setQuickFilter((prev) => (prev === "BUGS" ? "ALL" : "BUGS"))}
-              className={`text-xs px-3 py-1.5 rounded-full font-medium transition flex items-center gap-1 ${
-                quickFilter === "BUGS"
-                  ? "bg-rose-50 text-rose-800 border border-rose-300 font-semibold"
-                  : "bg-white text-[#111827] border border-[#D7D7D7] hover:bg-slate-50"
-              }`}
-            >
-              <Bug className="w-3 h-3 text-rose-600" />
-              <span>Lỗi / Bugs</span>
-            </button>
+          <button
+            onClick={() => setQuickFilter((prev) => (prev === "BUGS" ? "ALL" : "BUGS"))}
+            className={`text-xs px-2.5 py-1.5 rounded-full font-medium transition flex items-center gap-1 ${
+              quickFilter === "BUGS"
+                ? "bg-rose-50 text-rose-800 border border-rose-300 font-semibold"
+                : "bg-white text-[#111827] border border-[#D7D7D7] hover:bg-slate-50"
+            }`}
+            title="Lọc các lỗi / Bugs và ưu tiên khẩn cấp"
+          >
+            <Bug className="w-3 h-3 text-rose-600" />
+            <span className="hidden sm:inline">Lỗi / Bugs</span>
+          </button>
 
-            <button
-              onClick={() => setQuickFilter((prev) => (prev === "RECENT" ? "ALL" : "RECENT"))}
-              className={`text-xs px-3 py-1.5 rounded-full font-medium transition flex items-center gap-1 ${
-                quickFilter === "RECENT"
-                  ? "bg-emerald-50 text-[#EE0033] border border-emerald-300 font-semibold"
-                  : "bg-white text-[#111827] border border-[#D7D7D7] hover:bg-slate-50"
-              }`}
-            >
-              <Clock className="w-3 h-3 text-[#EE0033]" />
-              <span>Mới cập nhật</span>
-            </button>
+          <button
+            onClick={() => setQuickFilter((prev) => (prev === "RECENT" ? "ALL" : "RECENT"))}
+            className={`text-xs px-2.5 py-1.5 rounded-full font-medium transition flex items-center gap-1 ${
+              quickFilter === "RECENT"
+                ? "bg-emerald-50 text-[#EE0033] border border-emerald-300 font-semibold"
+                : "bg-white text-[#111827] border border-[#D7D7D7] hover:bg-slate-50"
+            }`}
+            title="Lọc các công việc vừa cập nhật 24h qua"
+          >
+            <Clock className="w-3 h-3 text-[#EE0033]" />
+            <span className="hidden sm:inline">Mới cập nhật</span>
+          </button>
 
-            <button
-              onClick={() => setQuickFilter((prev) => (prev === "UNASSIGNED" ? "ALL" : "UNASSIGNED"))}
-              className={`text-xs px-3 py-1.5 rounded-full font-medium transition flex items-center gap-1 ${
-                quickFilter === "UNASSIGNED"
-                  ? "bg-amber-100 text-amber-800 border border-amber-300 font-semibold"
-                  : "bg-white text-[#111827] border border-[#D7D7D7] hover:bg-slate-50"
-              }`}
-            >
-              <UserCheck className="w-3 h-3 text-amber-600" />
-              <span>Chưa ai nhận</span>
-            </button>
-          </div>
+          <button
+            onClick={() => setQuickFilter((prev) => (prev === "UNASSIGNED" ? "ALL" : "UNASSIGNED"))}
+            className={`text-xs px-2.5 py-1.5 rounded-full font-medium transition flex items-center gap-1 ${
+              quickFilter === "UNASSIGNED"
+                ? "bg-amber-100 text-amber-800 border border-amber-300 font-semibold"
+                : "bg-white text-[#111827] border border-[#D7D7D7] hover:bg-slate-50"
+            }`}
+            title="Lọc các task chưa phân công ai"
+          >
+            <UserCheck className="w-3 h-3 text-amber-600" />
+            <span className="hidden md:inline">Chưa ai nhận</span>
+          </button>
 
           {/* Assignee Avatar Group with +N overflow */}
-          <div className="flex items-center -space-x-1 pl-2">
+          <div className="flex items-center -space-x-1 pl-1">
             {visibleUsers.map((user) => {
               const isSelected = filterState.assigneeIds.includes(user.id);
               return (
@@ -352,7 +355,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                   key={user.id}
                   onClick={() => toggleAssigneeFilter(user.id)}
                   title={`Lọc theo ${user.name}`}
-                  className={`w-7 h-7 rounded-full transition-transform relative ${
+                  className={`w-6 h-6 rounded-full transition-transform relative ${
                     isSelected ? "ring-2 ring-[#EE0033] scale-110 z-10" : "opacity-80 hover:opacity-100"
                   }`}
                 >
@@ -366,7 +369,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                 <button
                   type="button"
                   onClick={() => setShowAssigneeOverflow(!showAssigneeOverflow)}
-                  className="w-7 h-7 rounded-full bg-slate-100 hover:bg-slate-200 border border-[#D7D7D7] text-[11px] font-bold text-slate-700 flex items-center justify-center transition-transform hover:scale-105 ml-1"
+                  className="w-6 h-6 rounded-full bg-slate-100 hover:bg-slate-200 border border-[#D7D7D7] text-[10px] font-bold text-slate-700 flex items-center justify-center transition-transform hover:scale-105 ml-0.5"
                   title="Xem thêm nhân sự dự án"
                 >
                   +{overflowUsers.length}
@@ -403,168 +406,163 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
             )}
           </div>
 
-          {/* Sprint Filter Dropdown */}
-          <div className="relative flex items-center">
-            <div className="flex items-center gap-1.5 bg-white border border-[#D7D7D7] rounded-lg px-2.5 py-1.5 text-xs shadow-2xs hover:border-[#EE0033]/40 transition">
-              <Layers className="w-3.5 h-3.5 text-[#EE0033] shrink-0" />
-              <span className="font-bold text-slate-500 hidden sm:inline">Sprint:</span>
-              <select
-                value={effectiveSprintId}
-                onChange={(e) =>
-                  onFilterChange({
-                    ...filterState,
-                    sprintId: e.target.value,
-                  })
-                }
-                className="bg-transparent text-xs font-semibold text-[#111827] focus:outline-none cursor-pointer pr-1"
-              >
-                {/* Active Sprint (Highlighted / First) */}
-                {activeSprint && (
-                  <option value={activeSprint.id} className="font-bold text-[#EE0033]">
-                    🏃 {activeSprint.name} (Đang chạy)
-                  </option>
-                )}
+          <div className="h-4 w-px bg-[#D7D7D7] mx-0.5" />
 
-                {/* Planned Sprints */}
-                {sprints
-                  .filter((s) => s.status === "PLANNED" && s.id !== activeSprint?.id)
-                  .map((s) => (
-                    <option key={s.id} value={s.id}>
-                      📋 {s.name} (Kế hoạch)
-                    </option>
-                  ))}
-
-                {/* Completed Sprints */}
-                {sprints
-                  .filter((s) => s.status === "COMPLETED" && s.id !== activeSprint?.id)
-                  .map((s) => (
-                    <option key={s.id} value={s.id}>
-                      ✓ {s.name} (Đã hoàn thành)
-                    </option>
-                  ))}
-
-                {/* Other Options */}
-                <option value="ALL">🌐 Tất cả chu kỳ (Tất cả task)</option>
-                <option value="BACKLOG">📦 Chỉ Backlog (Chưa gán chu kỳ)</option>
-              </select>
-            </div>
-          </div>
-
-          {/* Selected Sprint Status Badge */}
-          {(() => {
-            const selectedSprint = sprints.find((s) => s.id === effectiveSprintId);
-            if (!selectedSprint) return null;
-            return (
-              <div className="hidden xl:flex items-center gap-1.5 text-[11px] font-medium">
-                {selectedSprint.status === "ACTIVE" ? (
-                  <span className="bg-rose-50 text-[#EE0033] border border-rose-200 px-2 py-0.5 rounded-md font-bold flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#EE0033] animate-pulse" />
-                    Đang chạy
-                  </span>
-                ) : selectedSprint.status === "COMPLETED" ? (
-                  <span className="bg-slate-100 text-slate-600 border border-slate-200 px-2 py-0.5 rounded-md font-semibold">
-                    ✓ Đã đóng
-                  </span>
-                ) : (
-                  <span className="bg-amber-50 text-amber-700 border border-amber-200 px-2 py-0.5 rounded-md font-semibold">
-                    Kế hoạch
-                  </span>
-                )}
-                {(selectedSprint.startDate || selectedSprint.endDate) && (
-                  <span className="text-slate-400">
-                    ({selectedSprint.startDate || "?"} ~ {selectedSprint.endDate || "?"})
-                  </span>
-                )}
-              </div>
-            );
-          })()}
-
-          {/* Epic Filter Dropdown */}
-          <div className="relative">
+          {/* Sprint Selector (Clean, no redundant duplicate dates) */}
+          <div className="flex items-center gap-1.5 bg-white border border-[#D7D7D7] rounded-full px-2.5 py-1 text-xs shadow-2xs">
+            <Layers className="w-3.5 h-3.5 text-[#EE0033] shrink-0" />
             <select
-              value={filterState.epicIds[0] || ""}
+              value={effectiveSprintId}
               onChange={(e) =>
                 onFilterChange({
                   ...filterState,
-                  epicIds: e.target.value ? [e.target.value] : [],
+                  sprintId: e.target.value,
                 })
               }
-              className="text-xs bg-white border border-[#D7D7D7] rounded-lg px-2.5 py-1.5 text-[#111827] font-medium focus:outline-none focus:ring-2 focus:ring-[#EE0033]/20 focus:border-[#EE0033]"
+              className="bg-transparent text-xs font-semibold text-[#111827] focus:outline-none cursor-pointer pr-1"
             >
-              <option value="">All Epics</option>
-              {epics.map((epic) => (
-                <option key={epic.id} value={epic.id}>
-                  {epic.name}
+              {sprints.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.name}
                 </option>
               ))}
+              <option value="ALL">Tất cả chu kỳ</option>
+              <option value="BACKLOG">Chỉ Backlog</option>
             </select>
           </div>
 
-          {/* Clear Filter Button */}
-          {(filterState.searchQuery ||
-            filterState.onlyMyIssues ||
-            quickFilter !== "ALL" ||
-            filterState.assigneeIds.length > 0 ||
-            filterState.epicIds.length > 0 ||
-            (filterState.sprintId && filterState.sprintId !== (activeSprint?.id || ""))) && (
+          {/* "Bộ lọc & Tuỳ chọn khác" Popover */}
+          <div className="relative" ref={moreFiltersRef}>
             <button
-              onClick={() => {
-                setQuickFilter("ALL");
-                onFilterChange({
-                  searchQuery: "",
-                  assigneeIds: [],
-                  epicIds: [],
-                  priorities: [],
-                  sprintId: activeSprint?.id || "",
-                  onlyMyIssues: false,
-                });
-              }}
-              className="text-xs text-[#9B9B9B] hover:text-[#EE0033] flex items-center gap-1 transition px-2 py-1"
+              type="button"
+              onClick={() => setShowMoreFilters(!showMoreFilters)}
+              className={`flex items-center space-x-1.5 text-xs font-semibold px-3 py-1 rounded-full border transition ${
+                showMoreFilters || swimlaneMode !== "NONE" || filterState.epicIds.length > 0
+                  ? "bg-rose-50 text-[#EE0033] border-rose-300 shadow-xs"
+                  : "bg-white text-[#111827] border-[#D7D7D7] hover:bg-[#F8F8F8]"
+              }`}
             >
-              <X className="w-3.5 h-3.5" />
-              <span>Xóa bộ lọc</span>
+              <Sliders className="w-3.5 h-3.5" />
+              <span>Tuỳ chọn</span>
+              <ChevronDown className="w-3 h-3 opacity-60" />
             </button>
-          )}
-        </div>
 
-        {/* Right side: Swimlane Switcher, Sprint Info & Workflow Customizer */}
-        <div className="flex items-center flex-wrap gap-2 sm:gap-3">
-          {/* Swimlane Mode Selector */}
-          <div className="flex items-center space-x-1.5 text-xs text-gray-600">
-            <span className="font-semibold text-gray-500">Phân làn:</span>
-            <select
-              value={swimlaneMode}
-              onChange={(e) => setSwimlaneMode(e.target.value as any)}
-              className="bg-white border border-[#D7D7D7] rounded-full px-3 py-1.5 font-medium text-[#111827] text-xs focus:outline-none focus:ring-2 focus:ring-[#EE0033]/20 focus:border-[#EE0033]"
-            >
-              <option value="NONE">Mặc định (Cột chuẩn)</option>
-              <option value="EPIC">Theo Epic</option>
-              <option value="ASSIGNEE">Theo Thành viên</option>
-              <option value="EXPEDITE">⚡ Khẩn cấp (Expedite)</option>
-            </select>
+            {showMoreFilters && (
+              <div className="absolute right-0 mt-2 w-72 bg-white/95 backdrop-blur-md border border-[#D7D7D7] rounded-2xl shadow-2xl p-3 z-50 animate-in fade-in zoom-in-95 space-y-3">
+                {/* Swimlane Options */}
+                <div>
+                  <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">
+                    Phân làn hiển thị (Swimlanes)
+                  </div>
+                  <div className="grid grid-cols-2 gap-1.5">
+                    {[
+                      { id: "NONE", label: "Mặc định" },
+                      { id: "EPIC", label: "Theo Epic" },
+                      { id: "ASSIGNEE", label: "Thành viên" },
+                      { id: "EXPEDITE", label: "⚡ Khẩn cấp" },
+                    ].map((mode) => (
+                      <button
+                        key={mode.id}
+                        onClick={() => setSwimlaneMode(mode.id as any)}
+                        className={`text-xs px-2.5 py-1.5 rounded-xl border text-center transition font-medium ${
+                          swimlaneMode === mode.id
+                            ? "bg-[#EE0033] text-white border-[#EE0033] shadow-xs"
+                            : "bg-[#FAFAFA] text-[#111827] border-[#D7D7D7] hover:bg-slate-100"
+                        }`}
+                      >
+                        {mode.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Epic Filter */}
+                <div>
+                  <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                    Lọc theo Epic
+                  </div>
+                  <select
+                    value={filterState.epicIds[0] || ""}
+                    onChange={(e) =>
+                      onFilterChange({
+                        ...filterState,
+                        epicIds: e.target.value ? [e.target.value] : [],
+                      })
+                    }
+                    className="w-full text-xs bg-[#FAFAFA] border border-[#D7D7D7] rounded-xl px-2.5 py-1.5 text-[#111827] font-medium focus:outline-none focus:ring-2 focus:ring-[#EE0033]/20"
+                  >
+                    <option value="">Tất cả Epics</option>
+                    {epics.map((epic) => (
+                      <option key={epic.id} value={epic.id}>
+                        {epic.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Settings Links */}
+                {canCustomizeWorkflow && (
+                  <div className="pt-2 border-t border-slate-100 space-y-1.5">
+                    <button
+                      onClick={() => {
+                        setShowMoreFilters(false);
+                        onOpenWorkflowSettings();
+                      }}
+                      className="w-full text-left text-xs font-medium text-slate-700 hover:text-[#EE0033] hover:bg-rose-50 px-2 py-1.5 rounded-lg flex items-center justify-between transition"
+                    >
+                      <span className="flex items-center gap-1.5">
+                        <Sliders className="w-3.5 h-3.5 text-slate-500" />
+                        <span>Cài đặt Quy trình (Workflow)</span>
+                      </span>
+                    </button>
+
+                    {onOpenEpicSettings && (
+                      <button
+                        onClick={() => {
+                          setShowMoreFilters(false);
+                          onOpenEpicSettings();
+                        }}
+                        className="w-full text-left text-xs font-medium text-slate-700 hover:text-[#EE0033] hover:bg-rose-50 px-2 py-1.5 rounded-lg flex items-center justify-between transition"
+                      >
+                        <span className="flex items-center gap-1.5">
+                          <FolderGit2 className="w-3.5 h-3.5 text-purple-600" />
+                          <span>Quản lý danh mục Epic</span>
+                        </span>
+                      </button>
+                    )}
+                  </div>
+                )}
+
+                {/* Clear Filter */}
+                {(filterState.searchQuery ||
+                  filterState.onlyMyIssues ||
+                  quickFilter !== "ALL" ||
+                  filterState.assigneeIds.length > 0 ||
+                  filterState.epicIds.length > 0) && (
+                  <div className="pt-2 border-t border-slate-100">
+                    <button
+                      onClick={() => {
+                        setQuickFilter("ALL");
+                        setSwimlaneMode("NONE");
+                        onFilterChange({
+                          searchQuery: "",
+                          assigneeIds: [],
+                          epicIds: [],
+                          priorities: [],
+                          sprintId: activeSprint?.id || "",
+                          onlyMyIssues: false,
+                        });
+                        setShowMoreFilters(false);
+                      }}
+                      className="w-full text-center text-xs font-semibold text-[#EE0033] hover:underline py-1"
+                    >
+                      Xóa toàn bộ bộ lọc
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
-
-          {canCustomizeWorkflow && (
-            <button
-              onClick={onOpenWorkflowSettings}
-              className="text-xs font-semibold bg-white border border-[#D7D7D7] hover:bg-[#F8F8F8] text-[#111827] px-3.5 py-1.5 rounded-full flex items-center gap-1.5 transition shadow-2xs"
-              title="Tùy biến các cột trạng thái Kanban"
-            >
-              <Sliders className="w-3.5 h-3.5 text-[#9B9B9B]" />
-              <span>Quy trình (Workflow)</span>
-            </button>
-          )}
-
-          {canCustomizeWorkflow && onOpenEpicSettings && (
-            <button
-              onClick={onOpenEpicSettings}
-              className="text-xs font-semibold bg-white border border-[#D7D7D7] hover:bg-[#F8F8F8] text-[#111827] px-3.5 py-1.5 rounded-full flex items-center gap-1.5 transition shadow-2xs"
-              title="Quản lý và cấu hình màu sắc Epic"
-            >
-              <FolderGit2 className="w-3.5 h-3.5 text-purple-600" />
-              <span>Quản lý Epic</span>
-            </button>
-          )}
         </div>
       </div>
 
@@ -708,7 +706,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                       </div>
 
                       {/* Column Cards List */}
-                      <div className="flex-1 p-2 pt-0 space-y-2.5 overflow-y-auto max-h-[calc(100vh-270px)]">
+                      <div className="flex-1 p-2 pt-0 space-y-2.5 overflow-y-auto max-h-[calc(100vh-180px)]">
                         {dragOverCol === col.id && (
                           <div className="h-16 border-2 border-dashed border-[#EE0033] bg-rose-50/80 rounded-lg flex items-center justify-center text-xs font-semibold text-[#EE0033] animate-pulse">
                             Thả thẻ vào cột {col.name}...

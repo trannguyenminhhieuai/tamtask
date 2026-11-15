@@ -96,50 +96,50 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
   }, [epics, issues]);
 
   return (
-    <div className="flex-1 flex flex-col h-full overflow-hidden bg-white">
-      {/* Timeline Header Bar */}
-      <div className="px-6 py-3 border-b border-gray-200 bg-[#FAFBFC] flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-            <Calendar className="w-5 h-5 text-[#0052CC]" />
-            <span>Timeline & Product Roadmap</span>
-          </h2>
-          <p className="text-xs text-gray-500 mt-0.5">
-            Lộ trình phát triển sản phẩm theo các cột mốc Epic và chu kỳ Sprint
-          </p>
+    <div className="flex-1 flex flex-col h-full overflow-hidden bg-[#F5F6F8]">
+      {/* Unified Glass Island Header */}
+      <div className="mx-3 sm:mx-6 mt-3 mb-2 px-3.5 sm:px-4 py-2.5 rounded-2xl bg-white/85 backdrop-blur-md border border-white/60 shadow-[0_4px_20px_rgba(0,0,0,0.03)] flex flex-wrap items-center justify-between gap-3 shrink-0">
+        <div className="flex items-center space-x-2.5">
+          <h1 className="text-base sm:text-lg font-extrabold text-[#111827] tracking-tight flex items-center gap-2">
+            <Calendar className="w-4 h-4 text-[#EE0033]" />
+            <span>Lộ Trình Tiến Độ (Timeline)</span>
+          </h1>
+          <span className="text-[11px] font-semibold text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded-full border border-slate-200">
+            {epics.length} Epics • {sprints.length} Sprints
+          </span>
         </div>
 
-        {/* Time Scale Switcher */}
-        <div className="flex items-center space-x-1 bg-gray-100 p-1 rounded-md border border-gray-200 text-xs">
+        {/* Time Scale Switcher Pills */}
+        <div className="flex items-center space-x-1 bg-slate-100/80 p-1 rounded-full border border-slate-200 text-xs">
           <button
             onClick={() => setScale("WEEKS")}
-            className={`px-3 py-1 rounded font-medium transition ${
+            className={`px-3 py-1 rounded-full font-semibold transition ${
               scale === "WEEKS"
-                ? "bg-white text-[#0052CC] font-bold shadow-xs"
-                : "text-gray-600 hover:text-gray-900"
+                ? "bg-[#EE0033] text-white shadow-xs"
+                : "text-slate-600 hover:text-slate-900"
             }`}
           >
-            Tuần (Weeks)
+            Tuần
           </button>
           <button
             onClick={() => setScale("MONTHS")}
-            className={`px-3 py-1 rounded font-medium transition ${
+            className={`px-3 py-1 rounded-full font-semibold transition ${
               scale === "MONTHS"
-                ? "bg-white text-[#0052CC] font-bold shadow-xs"
-                : "text-gray-600 hover:text-gray-900"
+                ? "bg-[#EE0033] text-white shadow-xs"
+                : "text-slate-600 hover:text-slate-900"
             }`}
           >
-            Tháng (Months)
+            Tháng
           </button>
           <button
             onClick={() => setScale("QUARTERS")}
-            className={`px-3 py-1 rounded font-medium transition ${
+            className={`px-3 py-1 rounded-full font-semibold transition ${
               scale === "QUARTERS"
-                ? "bg-white text-[#0052CC] font-bold shadow-xs"
-                : "text-gray-600 hover:text-gray-900"
+                ? "bg-[#EE0033] text-white shadow-xs"
+                : "text-slate-600 hover:text-slate-900"
             }`}
           >
-            Quý (Quarters)
+            Quý
           </button>
         </div>
       </div>

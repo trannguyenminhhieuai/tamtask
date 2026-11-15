@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Kanban,
   ListTodo,
@@ -9,9 +9,12 @@ import {
   Users,
   ChevronLeft,
   ChevronRight,
-  Sparkles,
   Calendar,
   Layers,
+  Sun,
+  Moon,
+  Pin,
+  PinOff,
 } from "lucide-react";
 import { User, Project } from "@/types/jira";
 
@@ -37,8 +40,33 @@ export const Sidebar: React.FC<SidebarProps> = ({
   activeSprintName,
 }) => {
   const role = currentUser.role || "DEVELOPER";
+  const [isHovered, setIsHovered] = useState(false);
+  const [isPinned, setIsPinned] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(false);
 
-  // Build navigation items based on strict RBAC - Clean, without unnecessary badges
+  // Check initial dark mode from DOM or localStorage
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const isDark = document.documentElement.classList.contains("dark");
+      setIsDarkMode(isDark);
+    }
+  }, []);
+
+  const toggleDarkMode = () => {
+    const nextDark = !isDarkMode;
+    setIsDarkMode(nextDark);
+    if (typeof window !== "undefined") {
+      if (nextDark) {
+        document.documentElement.classList.add("dark");
+        localStorage.setItem("theme", "dark");
+      } else {
+        document.documentElement.classList.remove("dark");
+        localStorage.setItem("theme", "light");
+      }
+    }
+  };
+
+  // Build navigation items based on strict RBAC
   const allNavItems = [
     { id: "BOARD" as NavView, label: "Bảng Công Việc", icon: Kanban, allowedRoles: ["ADMIN", "PROJECT_LEAD", "DEVELOPER", "QA", "VIEWER"] },
     { id: "BACKLOG" as NavView, label: "Kế Hoạch Chu Kỳ", icon: ListTodo, allowedRoles: ["ADMIN", "PROJECT_LEAD", "DEVELOPER", "QA", "VIEWER"] },
@@ -58,99 +86,140 @@ export const Sidebar: React.FC<SidebarProps> = ({
     }
   }, [role, currentView, visibleNavItems, onViewChange]);
 
+  // Sidebar is visually open if pinned, explicitly expanded, or currently hovered
+  const isExpanded = isPinned || (!isCollapsed && !isHovered) || isHovered;
+
   return (
-    <aside
-      className={`bg-white border-r border-[#D7D7D7] transition-all duration-200 flex flex-col justify-between select-none relative ${
-        isCollapsed ? "w-14" : "w-60"
-      }`}
-    >
-      <div>
-        {/* Project & Workspace Header Info */}
-        {!isCollapsed ? (
-          <div className="p-4 border-b border-[#F0F2F5]">
-            <div className="flex items-center space-x-2 text-[#EE0033]">
-              <Layers className="w-4 h-4 text-[#EE0033] shrink-0" />
-              <span className="text-xs font-bold text-[#111827] uppercase tracking-wider truncate">
-                {currentProject ? currentProject.name : "Không Gian Dự Án"}
-              </span>
-            </div>
-            <div className="text-[11px] text-[#6B7280] font-medium mt-1 flex items-center justify-between">
-              <span className="truncate">{activeSprintName || "Chu Kỳ Hiện Tại"}</span>
-              <span className="text-[9px] bg-rose-50 text-[#EE0033] border border-rose-200/80 font-bold px-1.5 py-0.2 rounded-full shrink-0">
-                ĐANG CHẠY
-              </span>
-            </div>
-          </div>
-        ) : (
-          <div className="h-4" />
-        )}
-
-        {/* Navigation Links - Tammi OA Hierarchical Tree Style */}
-        <div className="p-3">
-          {!isCollapsed && (
-            <div className="px-2 py-1.5 flex items-center justify-between text-[#EE0033] font-bold text-xs uppercase tracking-wider mb-1">
-              <div className="flex items-center space-x-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#EE0033]" />
-                <span>Quản Lý Công Việc</span>
+    <div className="h-full p-2 sm:p-2.5 flex flex-col shrink-0 select-none">
+      <aside
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        className={`h-full bg-white/90 dark:bg-zinc-900/90 backdrop-blur-md border border-[#E5E7EB] dark:border-zinc-800 rounded-2xl sm:rounded-3xl transition-all duration-300 ease-in-out flex flex-col justify-between shadow-xs ${
+          isExpanded ? "w-60 shadow-xl" : "w-16"
+        }`}
+      >
+        <div className="flex flex-col">
+          {/* Project & Workspace Header Info */}
+          <div className="p-3.5 border-b border-[#F0F2F5] dark:border-zinc-800">
+            {isExpanded ? (
+              <div className="animate-in fade-in duration-200">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2 text-[#EE0033]">
+                    <Layers className="w-4 h-4 text-[#EE0033] shrink-0" />
+                    <span className="text-xs font-bold text-[#111827] dark:text-zinc-100 uppercase tracking-wider truncate max-w-[130px]">
+                      {currentProject ? currentProject.name : "Không Gian Dự Án"}
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => setIsPinned(!isPinned)}
+                    className="p-1 text-slate-400 hover:text-slate-700 dark:hover:text-zinc-200 rounded transition"
+                    title={isPinned ? "Bỏ ghim thanh bên (Tự động thu gọn)" : "Ghim thanh bên luôn mở"}
+                  >
+                    {isPinned ? <PinOff className="w-3.5 h-3.5 text-[#EE0033]" /> : <Pin className="w-3.5 h-3.5" />}
+                  </button>
+                </div>
+                <div className="text-[11px] text-[#6B7280] dark:text-zinc-400 font-medium mt-1.5 flex items-center justify-between">
+                  <span className="truncate">{activeSprintName || "Sprint Hiện Tại"}</span>
+                  <span className="text-[9px] bg-rose-50 dark:bg-rose-950/50 text-[#EE0033] dark:text-rose-400 border border-rose-200/80 dark:border-rose-800 font-bold px-1.5 py-0.2 rounded-full shrink-0">
+                    ĐANG CHẠY
+                  </span>
+                </div>
               </div>
-            </div>
-          )}
-
-          <nav className="space-y-0.5">
-            {visibleNavItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = currentView === item.id;
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => {
-                    onViewChange(item.id);
-                    if (typeof window !== "undefined" && window.innerWidth < 768) {
-                      onToggleCollapse();
-                    }
-                  }}
-                  className={`w-full flex items-center ${
-                    isCollapsed ? "justify-center px-0 py-2.5" : "px-3 py-2"
-                  } text-xs transition-all relative group rounded-r-lg ${
-                    isActive
-                      ? "text-[#EE0033] font-bold bg-rose-50/60 border-l-2 border-[#EE0033]"
-                      : "text-[#4B5563] hover:text-[#111827] hover:bg-[#F8F9FA] font-medium border-l-2 border-transparent"
-                  }`}
-                  title={isCollapsed ? item.label : undefined}
-                >
-                  <Icon
-                    className={`w-4 h-4 shrink-0 transition-colors ${
-                      isActive ? "text-[#EE0033]" : "text-[#9B9B9B] group-hover:text-[#111827]"
-                    }`}
-                  />
-                  {!isCollapsed && (
-                    <span className="ml-3 truncate">{item.label}</span>
-                  )}
-                </button>
-              );
-            })}
-          </nav>
-        </div>
-      </div>
-
-      {/* Bottom: Theme Pill Toggle & Collapse Button */}
-      <div className="p-3 border-t border-[#F0F2F5] flex items-center justify-between">
-        {!isCollapsed && (
-          <div className="flex items-center space-x-2">
-            <div className="w-8 h-4 bg-gray-200 rounded-full p-0.5 flex items-center cursor-pointer">
-              <div className="w-3 h-3 bg-white rounded-full shadow-xs" />
-            </div>
-            <span className="text-[10px] text-gray-500 font-medium">Sáng</span>
+            ) : (
+              <div className="flex justify-center items-center py-0.5">
+                <div className="w-8 h-8 rounded-xl bg-rose-50 dark:bg-rose-950/40 text-[#EE0033] flex items-center justify-center font-bold text-xs shadow-2xs">
+                  {currentProject ? currentProject.key.slice(0, 2) : "TT"}
+                </div>
+              </div>
+            )}
           </div>
-        )}
-        <button
-          onClick={onToggleCollapse}
-          className="p-1.5 text-[#9B9B9B] hover:text-[#111827] hover:bg-slate-100 rounded-lg transition"
-          title={isCollapsed ? "Mở rộng thanh bên" : "Thu gọn thanh bên"}
-        >
-          {isCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
-        </button>
-      </div>
-    </aside>
+
+          {/* Navigation Links - Tammi OA Hierarchical Tree Style */}
+          <div className="p-2 space-y-1">
+            {isExpanded && (
+              <div className="px-2.5 py-1.5 flex items-center text-[#EE0033] font-bold text-[11px] uppercase tracking-wider animate-in fade-in duration-150">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#EE0033] mr-2 shrink-0" />
+                <span className="truncate">Quản Lý Công Việc</span>
+              </div>
+            )}
+
+            <nav className="space-y-1">
+              {visibleNavItems.map((item) => {
+                const Icon = item.icon;
+                const isActive = currentView === item.id;
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => {
+                      onViewChange(item.id);
+                      if (typeof window !== "undefined" && window.innerWidth < 768) {
+                        onToggleCollapse();
+                      }
+                    }}
+                    className={`w-full flex items-center ${
+                      !isExpanded ? "justify-center px-0 py-2.5 rounded-xl" : "px-3 py-2.5 rounded-xl"
+                    } text-xs transition-all relative group ${
+                      isActive
+                        ? "text-[#EE0033] dark:text-rose-400 font-bold bg-rose-50/80 dark:bg-rose-950/40 border-l-3 border-[#EE0033]"
+                        : "text-[#4B5563] dark:text-zinc-400 hover:text-[#111827] dark:hover:text-zinc-100 hover:bg-[#F8F9FA] dark:hover:bg-zinc-800/50 font-medium border-l-3 border-transparent"
+                    }`}
+                    title={!isExpanded ? item.label : undefined}
+                  >
+                    <Icon
+                      className={`w-4 h-4 shrink-0 transition-colors ${
+                        isActive
+                          ? "text-[#EE0033] dark:text-rose-400"
+                          : "text-[#9B9B9B] dark:text-zinc-400 group-hover:text-[#111827] dark:group-hover:text-zinc-100"
+                      }`}
+                    />
+                    {isExpanded && (
+                      <span className="ml-3 truncate animate-in fade-in duration-200">
+                        {item.label}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </nav>
+          </div>
+        </div>
+
+        {/* Bottom: Theme Pill Toggle & Collapse Button */}
+        <div className="p-3 border-t border-[#F0F2F5] dark:border-zinc-800 flex items-center justify-between">
+          {/* Light / Dark Mode Toggle Pill */}
+          <button
+            type="button"
+            onClick={toggleDarkMode}
+            className={`flex items-center rounded-full transition p-1 ${
+              isExpanded
+                ? "bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 px-2 py-1 space-x-1.5"
+                : "justify-center w-8 h-8 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+            }`}
+            title={isDarkMode ? "Chuyển sang giao diện Sáng (Light Mode)" : "Chuyển sang giao diện Tối (Dark Mode)"}
+          >
+            {isDarkMode ? (
+              <Moon className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+            ) : (
+              <Sun className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+            )}
+            {isExpanded && (
+              <span className="text-[11px] font-semibold text-zinc-600 dark:text-zinc-300">
+                {isDarkMode ? "Tối" : "Sáng"}
+              </span>
+            )}
+          </button>
+
+          {isExpanded && (
+            <button
+              onClick={onToggleCollapse}
+              className="p-1 text-[#9B9B9B] hover:text-[#111827] dark:hover:text-zinc-100 hover:bg-slate-100 dark:hover:bg-zinc-800 rounded-lg transition"
+              title="Thu gọn thanh bên"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+      </aside>
+    </div>
   );
 };

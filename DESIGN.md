@@ -138,3 +138,36 @@ Hệ thống lưới dựa trên cơ số **8px** (với bước bán nguyên 4p
 ### 3.5. Bảng Công Việc Kanban & Thẻ Công Việc
 - **Thùng chứa cột (`Kanban Column`)**: Bo góc `rounded-2xl` (16px), nền `#F8F8F8`, viền `border-[#D7D7D7]`.
 - **Thẻ công việc (`IssueCard`)**: Bo góc `rounded-xl` (12px), nền trắng `#FFFFFF`, viền `border-[#D7D7D7]`, đổ bóng mượt mà `shadow-xs hover:shadow-md hover:border-[#EE0033]/40`.
+
+---
+
+## 4. Quy Chuẩn Đảo Nổi Kính Mờ (Glassmorphic Island Architecture) & Nguyên Tắc MICI / MECE
+
+### 4.1. Kiến Trúc Đảo Nổi Kính Mờ (Glassmorphic Floating Island Headers)
+Để tạo cảm giác phân tầng thị giác cao cấp (High-Tech Spatial Elevation) tương tự macOS, iOS và Tammi OA, các thanh tiêu đề và bộ điều hướng của mọi phân hệ (`Kanban`, `Backlog`, `Timeline`, `Automations`, `Reports`, `Admin`) được thiết kế đồng bộ dưới dạng **Đảo Nổi Kính Mờ (Floating Glass Island)**:
+- **Khung chứa Đảo Nổi**: `mx-3 sm:mx-6 mt-3 mb-2 px-3.5 sm:px-4 py-2.5 rounded-2xl bg-white/85 dark:bg-zinc-900/85 backdrop-blur-md border border-white/60 dark:border-zinc-800 shadow-[0_4px_20px_rgba(0,0,0,0.03)] flex flex-wrap items-center justify-between gap-3`.
+- **Đặc tính**: Nổi trên bề mặt canvas xám trung tính `#F5F6F8`, không bị chìm xuống background, tạo đường phân tách rõ rệt giữa điều khiển (Controls) và không gian làm việc (Canvas).
+
+### 4.2. Nguyên Tắc Tổ Chức Thông Tin MICI / MECE (Mutually Exclusive, Collectively Exhaustive)
+- **Tuyệt đối không trùng lặp thông tin**:
+  - Tên chu kỳ và khoảng thời gian (`Sprint 1 • 01/11 - 14/11`) chỉ xuất hiện **duy nhất 1 lần** trên Badge chính tại Header Đảo nổi.
+  - Bộ chọn Sprint trong filter bar chỉ hiển thị tên ngắn gọn (`Sprint 1`, `Sprint 2`), không lặp lại chuỗi ngày tháng hay trạng thái "Đang chạy" đã có ở Header.
+  - Phân quyền người dùng chỉ xuất hiện trong Popover hồ sơ cá nhân, không hiển thị thêm badge trên Header chính.
+  - Bộ điều hướng phân hệ nằm duy nhất tại Sidebar bên trái, không lặp lại Dock trùng lặp ở Navbar.
+- **Tập trung hóa các bộ lọc thứ cấp (Secondary Filters Consolidation)**:
+  - Các tùy chọn ít sử dụng liên tục (Phân làn Swimlanes, Lọc Epic, Cài đặt Quy trình, Quản lý Epic) được gom gọn gàng vào menu popover `Tuỳ chọn & Phân làn`, giúp thanh điều khiển chính luôn thoáng đãng.
+
+### 4.3. Thanh Điều Hướng Bên Tự Động Thu Gọn (Auto-Collapsing Hover Sidebar)
+- **Trạng thái Mặc định (Compact Dock)**: Chiều rộng `64px` (`w-16`), chỉ hiển thị các biểu tượng căn giữa tinh tế và avatar dự án, tối đa hóa diện tích ngang cho bảng công việc.
+- **Trạng thái Tương tác (Hover Expansion)**: Khi rê chuột vào (`onMouseEnter`), thanh bên tự động bung mượt mà (`transition-all duration-300 ease-in-out`) ra `240px` (`w-60`), hiển thị đầy đủ nhãn phân hệ, thông tin dự án, và nút Ghim (`Pin`).
+- **Nút Ghim (Pin / Unpin)**: Cho phép người dùng cố định thanh bên luôn mở nếu làm việc trên màn hình lớn.
+- **Bao khung Bo Góc Tammi OA**: Thanh bên được bọc trong container bo góc mềm mại `rounded-2xl sm:rounded-3xl` kính mờ nổi tách biệt khỏi mép màn hình.
+
+### 4.4. Tối Ưu Hóa Chiều Dài Không Gian Hiển Thị Task (Vertical Space Maximization)
+- Bằng cách tích hợp Header và Bộ lọc thành một Đảo nổi duy nhất (chiều cao ~52px thay vì 140px cũ), không gian hiển thị cột Kanban được nới rộng thêm gần `90px`.
+- Chiều cao danh sách thẻ trong cột nâng lên `max-h-[calc(100vh-180px)]`, giúp người dùng quan sát được nhiều thẻ công việc nhất mà không phải cuộn trang liên tục.
+
+### 4.5. Chuẩn Hóa Màu Sắc Giao Diện Kép (Light & Dark System Tokens)
+- **Light Mode**: Nền Canvas `#F5F6F8`, Nền Đảo Nổi/Navbar `bg-white/85 backdrop-blur-md`, Viền `border-[#E5E7EB]`, Chữ chính `#111827`, Chữ phụ `#4B5563`.
+- **Dark Mode**: Nền Canvas `#09090B`, Nền Đảo Nổi/Navbar `dark:bg-zinc-900/85 dark:backdrop-blur-md`, Viền `dark:border-zinc-800`, Chữ chính `dark:text-zinc-100`, Chữ phụ `dark:text-zinc-400`.
+- **Thương hiệu**: Giữ vẹn nguyên Viettel Red `#EE0033` cho các hành động trọng yếu, active indicators, và hover highlights ở cả hai chế độ.

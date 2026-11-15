@@ -276,46 +276,44 @@ export const BacklogView: React.FC<BacklogViewProps> = ({
   };
 
   return (
-    <div className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8 bg-[#F4F5F7] space-y-4 sm:space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-            <span>Kế Hoạch Chu Kỳ</span>
-            <span className="text-xs bg-slate-900 text-white font-black px-2 py-0.5 rounded-md shadow-2xs">
-              TamTask
-            </span>
-          </h2>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Lập kế hoạch và phân bổ công việc theo các chu kỳ phát hành sản phẩm
-          </p>
+    <div className="flex-1 overflow-y-auto p-3 sm:p-6 bg-[#F5F6F8] space-y-4">
+      {/* Unified Glass Island Header */}
+      <div className="p-3.5 sm:p-4 rounded-2xl bg-white/85 backdrop-blur-md border border-white/60 shadow-[0_4px_20px_rgba(0,0,0,0.03)] flex flex-wrap items-center justify-between gap-3 shrink-0">
+        <div className="flex items-center space-x-2.5">
+          <h1 className="text-base sm:text-lg font-extrabold text-[#111827] tracking-tight">
+            Kế Hoạch Chu Kỳ (Backlog)
+          </h1>
+          <span className="text-[11px] font-semibold text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded-full border border-slate-200">
+            {activeAndPlannedSprints.length} chu kỳ • {backlogIssues.length} backlog tasks
+          </span>
         </div>
         <div className="flex items-center space-x-2">
           {completedSprints.length > 0 && (
             <button
               onClick={() => setShowClosedModal(true)}
-              className="bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 text-xs font-medium px-3 py-2 rounded-md flex items-center gap-1.5 transition shadow-xs"
+              className="bg-white border border-[#D7D7D7] hover:bg-slate-50 text-slate-700 text-xs font-semibold px-3 py-1.5 rounded-full flex items-center gap-1.5 transition shadow-2xs"
             >
-              <History className="w-4 h-4 text-slate-500" />
-              <span>Lịch sử Sprint đã đóng ({completedSprints.length})</span>
+              <History className="w-3.5 h-3.5 text-slate-500" />
+              <span>Đã đóng ({completedSprints.length})</span>
             </button>
           )}
 
           {canManageSprints && (
             <button
               onClick={() => setIsCreateSprintOpen(true)}
-              className="bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 text-xs font-medium px-3 py-2 rounded-md flex items-center gap-1.5 transition shadow-xs"
+              className="bg-white border border-[#D7D7D7] hover:bg-slate-50 text-[#111827] text-xs font-semibold px-3.5 py-1.5 rounded-full flex items-center gap-1.5 transition shadow-2xs"
             >
-              <Plus className="w-4 h-4 text-slate-500" />
+              <Plus className="w-3.5 h-3.5 text-[#EE0033]" />
               <span>Tạo Sprint</span>
             </button>
           )}
           {!isViewer && (
             <button
               onClick={onCreateIssueClick}
-              className="bg-[#EE0033] hover:bg-[#D6002E] text-white text-xs font-medium px-3 py-2 rounded-md flex items-center gap-1.5 transition shadow-xs"
+              className="bg-[#EE0033] hover:bg-[#D6002E] active:bg-[#BD0029] text-white text-xs font-semibold px-3.5 sm:px-4 py-1.5 rounded-full flex items-center gap-1.5 transition shadow-xs"
             >
-              <Plus className="w-4 h-4" />
-              <span>Tạo Issue</span>
+              <Plus className="w-3.5 h-3.5 text-white" />
+              <span>Thêm mới</span>
             </button>
           )}
         </div>

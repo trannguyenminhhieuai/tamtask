@@ -3913,3 +3913,22 @@ Dựa trên 2 ảnh chụp màn hình thực tế được người dùng đánh
 4. `src/components/jira/CreateIssueModal.tsx`: Tích hợp banner thông báo vàng nhạt `bg-[#FFFBEB]`, các nút bấm viên thuốc.
 5. `src/components/jira/Toast.tsx`: Chuyển vị trí hiển thị lên chính giữa mép trên màn hình với nền xanh Tammi Emerald `#079455`.
 6. `src/app/page.tsx`: Kết nối `currentView` và `onViewChange` đồng bộ giữa Navbar Dock và Sidebar.
+
+---
+
+## 35. Chuẩn Hóa Toàn Diện UI/UX Chuyên Nghiệp: Tinh Gọn MICI, Đảo Nổi Kính Mờ (Glassmorphism), Tối Ưu Chiều Dọc & Auto-Collapse Sidebar
+
+> **Mục tiêu**: Nâng tầm trải nghiệm người dùng (UX) và thẩm mỹ công nghệ cao (UI) đạt chuẩn các sản phẩm quốc tế (Linear, Apple macOS, Atlassian Jira modern). Loại bỏ triệt để tình trạng trùng lặp thông tin, tối ưu hóa công thái học (Ergonomics) và mở rộng tối đa vùng hiển thị tác vụ cốt lõi.
+
+### 35.1. Bảng Phân Tích & Giải Pháp Đột Phá UI/UX
+
+| Yêu Cầu / Vấn Đề UX | Phân Tích Chuyên Gia UI/UX | Giải Pháp Kiến Trúc Đã Triển Khai | Tệp Nguồn |
+| :--- | :--- | :--- | :--- |
+| **1. Thương hiệu Header (Brand Identity)** | Nhận diện thương hiệu cốt lõi của không gian làm việc dự án là `TamTask Space`. Việc đổi sang `Tammi OA` làm phân tán sự tập trung khỏi công cụ quản lý dự án Agile. | Khôi phục logo khối gradient đỏ Viettel `TT` kèm chữ `TamTask Space` và badge `Space` tinh tế bo tròn. | `Navbar.tsx` |
+| **2. Bỏ Center Dock trên Navbar & Cân đối Search Bar** | Việc bố trí các nút `Bảng việc / Kế hoạch / Báo cáo` ở cả Header lẫn Sidebar gây dư thừa điều hướng (Navigation Redundancy). Thanh search bị ép góc hoặc mất cân đối. | Loại bỏ Center Dock ở Navbar, chuyển thanh tìm kiếm nhanh sang dạng **Auto-layout co giãn ngang (`flex-1 max-w-xl mx-auto`)** cân đối tuyệt đối giữa Brand và Actions. | `Navbar.tsx` |
+| **3. Tinh gọn quyền hạn & Nút hành động chính** | Badge "Quản trị viên" hiển thị thô trên thanh điều hướng chiếm dụng thị giác không cần thiết khi đã có trong Profile popover. Nút `+` cần chữ rõ nghĩa. | Ẩn Role Badge khỏi Header (đặt trọn vẹn trong Menu hồ sơ cá nhân). Nút tạo mới đổi thành **`+ Thêm mới`** dạng viên thuốc đỏ Viettel bắt mắt. | `Navbar.tsx` |
+| **4. Sidebar Auto-collapse on Hover & Bo góc Tammi OA** | Thanh bên cố định chiếm 240px làm hẹp không gian hiển thị các cột Kanban. Cần mở rộng khi tương tác và thu gọn khi làm việc. | Thiết kế Sidebar dạng **Hộp nổi bo góc mềm `rounded-2xl/3xl`**, tự động thu gọn về `64px` và **tự động bung rộng (`w-60`) mượt mà khi rê chuột (`hover`)**, có nút Ghim (`Pin`) cố định tùy chọn. | `Sidebar.tsx` |
+| **5. Chuẩn màu Light & Dark Mode không bị lạc màu** | Dark mode cần tuân thủ bảng màu Zinc/Slate chuẩn (`#09090B` và `#18181B`) với vạch đỏ Viettel tương phản chuẩn WCAG AAA. | Tích hợp công tắc đổi màu Sáng/Tối dạng viên thuốc, đồng bộ class `dark` của Tailwind CSS và lưu vết `localStorage`. | `Sidebar.tsx` |
+| **6. Đảo Nổi Kính Mờ Đồng Bộ (Glassmorphic Island Headers)** | Các thanh Header của Kanban, Backlog, Timeline, Automation bị chìm xuống nền canvas, thiếu tính phân cấp không gian. | Chuyển đổi toàn bộ Header của 5 phân hệ thành **Đảo Nổi Kính Mờ (`bg-white/85 backdrop-blur-md border border-white/60 shadow-sm rounded-2xl`)** nổi bật trên canvas `#F5F6F8`. | `KanbanBoard.tsx`, `BacklogView.tsx`, `TimelineView.tsx`, `AutomationView.tsx`, `DashboardView.tsx`, `AdminView.tsx` |
+| **7. Tinh gọn MICI / MECE (Không trùng lặp dữ liệu)** | Thông tin ngày tháng và trạng thái Sprint bị lặp lại ở 3 nơi (Header, Filter Dropdown, Badges). Bộ lọc bị phân mảnh chiếm 2 dòng lớn. | Hợp nhất Header và Bộ lọc thành 1 hàng duy nhất: Badge `Sprint 1 • 01/11 - 14/11`, Dropdown Sprint tinh giản tên ngắn gọn. Gom các bộ lọc ít dùng (Phân làn, Epic, Cài đặt) vào popover `Tuỳ chọn & Phân làn`. | `KanbanBoard.tsx` |
+| **8. Tối ưu hóa tối đa chiều dài cột hiển thị Task** | Việc gom gọn Header giúp tiết kiệm gần 90px chiều dọc, mở rộng chiều cao danh sách thẻ lên `max-h-[calc(100vh-180px)]`, người dùng nhìn được nhiều task nhất có thể. | Mở rộng khung thẻ Kanban, loại bỏ padding thừa, cho phép cuộn mượt mà độc lập từng cột. | `KanbanBoard.tsx` |

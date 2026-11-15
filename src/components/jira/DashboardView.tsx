@@ -197,28 +197,26 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ issues, sprints, u
   const completionRate = totalIssues > 0 ? Math.round((doneIssues / totalIssues) * 100) : 0;
 
   return (
-    <div className="flex-1 overflow-y-auto p-8 bg-[#F4F5F7] space-y-6">
-      {/* Header & Export Button */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-            <span>Báo Cáo & Thống Kê Tiến Độ Chu Kỳ</span>
-            <span className="text-xs font-semibold bg-emerald-100 text-emerald-800 px-2.5 py-0.5 rounded-full">
-              Dữ Liệu Thực
-            </span>
-          </h2>
-          <p className="text-xs text-gray-500 mt-0.5">
-            Theo dõi tiến độ Burndown, Burnup, Luồng tích lũy (CFD) và năng suất bàn giao của {currentSprint.name}
-          </p>
+    <div className="flex-1 overflow-y-auto p-3 sm:p-6 bg-[#F5F6F8] space-y-4">
+      {/* Unified Glass Island Header */}
+      <div className="p-3.5 sm:p-4 rounded-2xl bg-white/85 backdrop-blur-md border border-white/60 shadow-[0_4px_20px_rgba(0,0,0,0.03)] flex flex-wrap items-center justify-between gap-3 shrink-0">
+        <div className="flex items-center space-x-2.5">
+          <h1 className="text-base sm:text-lg font-extrabold text-[#111827] tracking-tight flex items-center gap-2">
+            <TrendingUp className="w-4 h-4 text-[#EE0033]" />
+            <span>Báo Cáo & Thống Kê Tiến Độ</span>
+          </h1>
+          <span className="text-[11px] font-semibold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full">
+            {currentSprint.name} • {completionRate}% hoàn thành
+          </span>
         </div>
 
         <button
           onClick={handleExportCSV}
-          className="bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 text-xs font-semibold px-3.5 py-2 rounded-md flex items-center gap-1.5 transition shadow-xs"
+          className="bg-white border border-[#D7D7D7] hover:bg-slate-50 text-slate-700 text-xs font-semibold px-3.5 py-1.5 rounded-full flex items-center gap-1.5 transition shadow-2xs"
           title="Tải toàn bộ danh sách issues dạng CSV tương thích Excel"
         >
-          <Download className="w-4 h-4 text-[#EE0033]" />
-          <span>Xuất Báo Cáo CSV (Excel)</span>
+          <Download className="w-3.5 h-3.5 text-[#EE0033]" />
+          <span>Xuất CSV (Excel)</span>
         </button>
       </div>
 
