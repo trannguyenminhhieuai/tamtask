@@ -3868,3 +3868,20 @@ Dựa trên 2 ảnh chụp màn hình thực tế được người dùng đánh
 
 
 
+
+
+---
+
+## 33. Kế Hoạch Nâng Cấp Hệ Thống Theo Figma Master Design System ([APP] NEW - Design System)
+
+> **Căn cứ**: Thư viện Master Figma `[APP] NEW - Design System (Copy)` (`fileKey: eBWYpAsYo7tqaUWLwFGOeW`, Node `2017-579`), nâng cấp nhận diện component theo chuẩn App Design System: Pill buttons (`rounded-full`), Modals tròn mềm (`rounded-3xl`), Input fields bo tròn (`rounded-xl` / `rounded-2xl`) nền `#FAFAFA`, và bộ Tag viên thuốc chuẩn mực.
+
+### 33.1. Hạng Mục Nâng Cấp Chi Tiết
+
+| Thành Phần Giao Diện | Quy Cách Cũ | Quy Cách Mới (App Design System) | Tệp Nguồn |
+| :--- | :--- | :--- | :--- |
+| **Nút bấm chính & phụ (Buttons)** | Bo góc vuông nhẹ `rounded-lg` (8px) | **Viên thuốc hoàn chỉnh `rounded-full`** (`px-4 sm:px-5 py-2`, font-semibold) | `Navbar.tsx`, `CreateIssueModal.tsx`, `ProjectMembersModal.tsx`, `IssueDetailDrawer.tsx` |
+| **Ô nhập liệu Form (Input, Select)** | Nền trắng `#FFFFFF`, bo góc 8px | **Nền `#FAFAFA`, bo góc `rounded-xl` (12px - 16px)**, viền `#D7D7D7`, focus `#EE0033` ring | `CreateIssueModal.tsx`, `ProjectMembersModal.tsx`, `IssueDetailDrawer.tsx` |
+| **Hộp thoại Modal (Dialogs)** | Bo góc 12px `rounded-xl`, nút đóng `rounded-lg` | **Bo góc lớn `rounded-2xl sm:rounded-3xl` (24px - 32px)**, nút đóng tròn `rounded-full`, cặp nút viên thuốc ở footer | `CreateIssueModal.tsx`, `ProjectMembersModal.tsx` |
+| **Thẻ nhãn & Huy hiệu (Tags & Badges)** | Bo góc 4px `rounded-sm` | **Viên thuốc `rounded-full`**, chiều cao 20px / 24px, padding ngang `px-2.5` - `px-3` | `IssueCard.tsx`, `KanbanBoard.tsx`, `IssueDetailDrawer.tsx` |
+| **Thanh tìm kiếm nhanh (Search Input)** | Bo góc 8px | **Viên thuốc mềm mại `rounded-full`**, nền `#FAFAFA`, viền mảnh | `Navbar.tsx` |

@@ -225,11 +225,11 @@ export const CreateIssueModal: React.FC<CreateIssueModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-[80] flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 animate-in fade-in"
+      className="fixed inset-0 z-[80] flex items-center justify-center bg-[rgba(27,27,27,0.6)] backdrop-blur-xs p-4 animate-in fade-in"
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden border border-[#D7D7D7] animate-in fade-in zoom-in-95 duration-150"
+        className="bg-white rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden border border-[#D7D7D7] animate-in fade-in zoom-in-95 duration-150"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -237,12 +237,16 @@ export const CreateIssueModal: React.FC<CreateIssueModalProps> = ({
           <div className="flex items-center gap-2">
             <h3 className="text-base font-bold text-[#111827]">Tạo Công Việc</h3>
             {currentProject && (
-              <span className="text-xs bg-white text-[#111827] font-semibold px-2 py-0.5 rounded border border-[#D7D7D7]">
+              <span className="text-xs bg-white text-[#111827] font-semibold px-2.5 py-0.5 rounded-full border border-[#D7D7D7]">
                 {currentProject.key}
               </span>
             )}
           </div>
-          <button onClick={onClose} className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-slate-100 rounded-lg transition">
+          <button
+            onClick={onClose}
+            className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-700 hover:bg-black/5 rounded-full transition"
+            title="Đóng (Esc)"
+          >
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -257,7 +261,7 @@ export const CreateIssueModal: React.FC<CreateIssueModalProps> = ({
             <select
               value={type}
               onChange={(e) => setType(e.target.value as IssueType)}
-              className="w-full text-xs bg-white border border-[#D7D7D7] rounded-lg px-3 py-2 font-semibold text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#EE0033]/20 focus:border-[#EE0033] transition"
+              className="w-full text-xs bg-[#FAFAFA] border border-[#D7D7D7] rounded-xl px-3.5 py-2 font-semibold text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#EE0033]/20 focus:border-[#EE0033] transition"
             >
               <option value="STORY">📖 Story</option>
               <option value="TASK">☑️ Task</option>
@@ -271,13 +275,13 @@ export const CreateIssueModal: React.FC<CreateIssueModalProps> = ({
           <div>
             <div className="flex items-center justify-between mb-1">
               <label className="text-xs font-semibold text-slate-700 uppercase tracking-wider">
-                Tiêu đề công việc <span className="text-rose-600">*</span>
+                Tiêu đề công việc <span className="text-[#EE0033] font-bold">*</span>
               </label>
               <button
                 type="button"
                 onClick={handleMouse1AutoFill}
                 disabled={isAiSuggesting}
-                className="text-[11px] text-slate-600 hover:text-slate-900 font-medium flex items-center gap-1 transition disabled:opacity-50"
+                className="text-[11px] text-slate-600 hover:text-slate-900 font-semibold flex items-center gap-1 transition disabled:opacity-50"
               >
                 <Sparkles className="w-3.5 h-3.5 text-amber-600" />
                 <span>{isAiSuggesting ? "Đang gợi ý..." : "Gợi ý thông minh"}</span>
@@ -289,7 +293,7 @@ export const CreateIssueModal: React.FC<CreateIssueModalProps> = ({
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Ví dụ: Xây dựng giao diện đăng nhập Google SSO"
-              className="w-full text-xs bg-white border border-slate-300 rounded px-3 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#EE0033]/20 focus:border-[#EE0033] transition"
+              className="w-full text-xs bg-[#FAFAFA] border border-[#D7D7D7] rounded-xl px-3.5 py-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#EE0033]/20 focus:border-[#EE0033] transition"
             />
             {aiMessage && (
               <p className="mt-1 text-[11px] text-emerald-700 font-medium">{aiMessage}</p>
@@ -374,7 +378,7 @@ export const CreateIssueModal: React.FC<CreateIssueModalProps> = ({
               <select
                 value={assigneeId}
                 onChange={(e) => setAssigneeId(e.target.value)}
-                className="w-full text-xs bg-white border border-[#D7D7D7] rounded-lg px-3 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#EE0033]/20 focus:border-[#EE0033] transition"
+                className="w-full text-xs bg-[#FAFAFA] border border-[#D7D7D7] rounded-xl px-3.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#EE0033]/20 focus:border-[#EE0033] transition"
               >
                 <option value="">Chưa phân công</option>
                 {users.map((u) => (
@@ -393,7 +397,7 @@ export const CreateIssueModal: React.FC<CreateIssueModalProps> = ({
               <select
                 value={epicId}
                 onChange={(e) => setEpicId(e.target.value)}
-                className="w-full text-xs bg-white border border-[#D7D7D7] rounded-lg px-3 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#EE0033]/20 focus:border-[#EE0033] transition"
+                className="w-full text-xs bg-[#FAFAFA] border border-[#D7D7D7] rounded-xl px-3.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#EE0033]/20 focus:border-[#EE0033] transition"
               >
                 <option value="">Không có</option>
                 {epics.map((e) => (
@@ -412,7 +416,7 @@ export const CreateIssueModal: React.FC<CreateIssueModalProps> = ({
               <select
                 value={priority}
                 onChange={(e) => setPriority(e.target.value as IssuePriority)}
-                className="w-full text-xs bg-white border border-[#D7D7D7] rounded-lg px-3 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#EE0033]/20 focus:border-[#EE0033] transition"
+                className="w-full text-xs bg-[#FAFAFA] border border-[#D7D7D7] rounded-xl px-3.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#EE0033]/20 focus:border-[#EE0033] transition"
               >
                 <option value="HIGHEST">Rất cao (Highest)</option>
                 <option value="HIGH">Cao (High)</option>
@@ -431,7 +435,7 @@ export const CreateIssueModal: React.FC<CreateIssueModalProps> = ({
                 type="number"
                 value={storyPoints}
                 onChange={(e) => setStoryPoints(e.target.value)}
-                className="w-full text-xs bg-white border border-[#D7D7D7] rounded-lg px-3 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#EE0033]/20 focus:border-[#EE0033] transition"
+                className="w-full text-xs bg-[#FAFAFA] border border-[#D7D7D7] rounded-xl px-3.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#EE0033]/20 focus:border-[#EE0033] transition"
                 placeholder="Điểm ước tính (vd: 3, 5, 8)"
                 min="0"
               />
@@ -446,7 +450,7 @@ export const CreateIssueModal: React.FC<CreateIssueModalProps> = ({
             <select
               value={sprintId}
               onChange={(e) => setSprintId(e.target.value)}
-              className="w-full text-xs bg-white border border-[#D7D7D7] rounded-lg px-3 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#EE0033]/20 focus:border-[#EE0033] transition"
+              className="w-full text-xs bg-[#FAFAFA] border border-[#D7D7D7] rounded-xl px-3.5 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#EE0033]/20 focus:border-[#EE0033] transition"
             >
               <option value="">Hàng đợi công việc (Backlog)</option>
               {sprints.map((s) => (
@@ -457,18 +461,18 @@ export const CreateIssueModal: React.FC<CreateIssueModalProps> = ({
             </select>
           </div>
 
-          {/* Footer Buttons */}
+          {/* Footer Buttons - Dual Pill Variant */}
           <div className="pt-4 border-t border-[#D7D7D7] flex items-center justify-end space-x-3">
             <button
               type="button"
               onClick={onClose}
-              className="px-3 py-2 text-xs font-semibold text-gray-600 hover:bg-[#F8F8F8] rounded-lg border border-[#D7D7D7] transition"
+              className="px-5 py-2 text-xs font-semibold text-gray-700 bg-white hover:bg-[#F8F8F8] rounded-full border border-[#D7D7D7] transition shadow-2xs"
             >
               Hủy
             </button>
             <button
               type="submit"
-              className="px-4 py-2 text-xs font-bold bg-[#EE0033] hover:bg-[#D6002E] active:bg-[#BD0029] text-white rounded-lg transition shadow-xs"
+              className="px-6 py-2 text-xs font-bold bg-[#EE0033] hover:bg-[#D6002E] active:bg-[#BD0029] text-white rounded-full transition shadow-xs focus:ring-3 focus:ring-[#EE0033]/20"
             >
               Tạo Công Việc
             </button>

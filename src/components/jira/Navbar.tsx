@@ -272,7 +272,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         {canManageProjects && onOpenProjectMembers && currentProject && (
           <button
             onClick={onOpenProjectMembers}
-            className="flex items-center space-x-1.5 bg-[#F8F8F8] hover:bg-white text-[#111827] border border-[#D7D7D7] text-xs font-medium px-2.5 py-1.5 rounded-lg transition"
+            className="flex items-center space-x-1.5 bg-[#F8F8F8] hover:bg-white text-[#111827] border border-[#D7D7D7] text-xs font-semibold px-3 py-1.5 rounded-full transition shadow-2xs"
             title="Quản lý nhân sự và thành viên tham gia dự án này"
           >
             <Users className="w-3.5 h-3.5 text-[#9B9B9B]" />
@@ -284,14 +284,14 @@ export const Navbar: React.FC<NavbarProps> = ({
         {canCreateIssue ? (
           <button
             onClick={onCreateIssueClick}
-            className="flex items-center space-x-1.5 bg-[#EE0033] hover:bg-[#D6002E] active:bg-[#BD0029] focus:ring-3 focus:ring-[#EE0033]/20 text-white text-xs font-semibold px-2.5 sm:px-3 py-1.5 rounded-lg transition shadow-xs shrink-0"
+            className="flex items-center space-x-1.5 bg-[#EE0033] hover:bg-[#D6002E] active:bg-[#BD0029] focus:ring-3 focus:ring-[#EE0033]/20 text-white text-xs font-semibold px-3.5 sm:px-4 py-1.5 rounded-full transition shadow-xs shrink-0"
           >
             <Plus className="w-4 h-4 text-white shrink-0" />
             <span className="hidden sm:inline">Tạo Công Việc</span>
           </button>
         ) : (
           <div
-            className="flex items-center space-x-1 text-[#9B9B9B] text-xs px-2 sm:px-2.5 py-1 rounded-lg border border-[#D7D7D7] bg-[#F8F8F8] cursor-not-allowed shrink-0"
+            className="flex items-center space-x-1 text-[#9B9B9B] text-xs px-2.5 sm:px-3 py-1 rounded-full border border-[#D7D7D7] bg-[#F8F8F8] cursor-not-allowed shrink-0"
             title="Quyền chỉ được xem, không thể tạo task"
           >
             <span>Chỉ xem</span>
@@ -304,13 +304,13 @@ export const Navbar: React.FC<NavbarProps> = ({
         <button
           type="button"
           onClick={() => onOpenCommandPalette?.()}
-          className="w-full relative flex items-center bg-[#F8F8F8] hover:bg-white border border-[#D7D7D7] hover:border-[#EE0033] rounded-lg pl-9 pr-3 py-1.5 text-xs text-left text-[#9B9B9B] hover:text-[#111827] transition shadow-2xs group focus:ring-3 focus:ring-[#EE0033]/20"
+          className="w-full relative flex items-center bg-[#FAFAFA] hover:bg-white border border-[#D7D7D7] hover:border-[#EE0033] rounded-full pl-9 pr-3 py-1.5 text-xs text-left text-[#9B9B9B] hover:text-[#111827] transition shadow-2xs group focus:ring-3 focus:ring-[#EE0033]/20"
         >
           <Search className="w-4 h-4 text-[#9B9B9B] group-hover:text-[#EE0033] absolute left-3 top-1/2 -translate-y-1/2 transition-colors" />
           <span className="truncate">
             {searchQuery ? `Lọc: "${searchQuery}"` : `Tìm nhanh task, dự án, lệnh... (Ctrl + K)`}
           </span>
-          <kbd className="ml-auto text-[10px] bg-white border border-[#D7D7D7] text-[#111827] px-1.5 py-0.5 rounded font-mono font-semibold">
+          <kbd className="ml-auto text-[10px] bg-white border border-[#D7D7D7] text-[#111827] px-1.5 py-0.5 rounded-full font-mono font-semibold">
             ⌘K
           </kbd>
         </button>
@@ -320,7 +320,7 @@ export const Navbar: React.FC<NavbarProps> = ({
       <div className="flex items-center space-x-1.5 sm:space-x-2.5">
         {/* Role Badge Indicator - Non-AI, Icon-based */}
         <div
-          className={`flex items-center space-x-1 text-[11px] font-medium px-2 py-0.5 rounded-md border ${roleConfig.color}`}
+          className={`flex items-center space-x-1 text-[11px] font-semibold px-2.5 py-0.5 rounded-full border ${roleConfig.color}`}
           title={`Quyền hạn hiện tại: ${roleConfig.label}`}
         >
           <RoleIcon className="w-3 h-3" />
@@ -455,7 +455,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           <div className="pl-2 border-l border-[#D7D7D7]">
             <button
               onClick={() => setIsLoginModalOpen(true)}
-              className="flex items-center space-x-1.5 text-xs font-semibold bg-[#EE0033] hover:bg-[#D6002E] active:bg-[#BD0029] text-white px-3.5 py-1.5 rounded-lg transition shadow-xs focus:ring-3 focus:ring-[#EE0033]/20"
+              className="flex items-center space-x-1.5 text-xs font-semibold bg-[#EE0033] hover:bg-[#D6002E] active:bg-[#BD0029] text-white px-4 py-1.5 rounded-full transition shadow-xs focus:ring-3 focus:ring-[#EE0033]/20"
             >
               <span>Đăng Nhập</span>
             </button>

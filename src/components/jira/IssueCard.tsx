@@ -110,7 +110,7 @@ export const IssueCard: React.FC<IssueCardProps> = ({
       <div className="mb-1.5 flex items-center flex-wrap gap-1.5">
         {issue.epic && (
           <span
-            className="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded"
+            className="text-[10px] font-semibold uppercase tracking-wider px-2.5 py-0.5 rounded-full"
             style={{
               backgroundColor: `${issue.epic.color}15`,
               color: issue.epic.color,
@@ -123,7 +123,7 @@ export const IssueCard: React.FC<IssueCardProps> = ({
 
         {isBlocked && (
           <span
-            className="inline-flex items-center gap-1 text-[10px] font-medium text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200"
+            className="inline-flex items-center gap-1 text-[10px] font-medium text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200"
             title="Đang bị chặn bởi công việc chưa hoàn thành"
           >
             <Lock className="w-2.5 h-2.5 text-amber-600" />
@@ -133,7 +133,7 @@ export const IssueCard: React.FC<IssueCardProps> = ({
 
         {totalLinks > 0 && !isBlocked && (
           <span
-            className="inline-flex items-center gap-0.5 text-[10px] font-medium text-slate-500 bg-[#F8F8F8] px-1.5 py-0.5 rounded border border-[#D7D7D7]"
+            className="inline-flex items-center gap-0.5 text-[10px] font-medium text-slate-500 bg-[#F8F8F8] px-2 py-0.5 rounded-full border border-[#D7D7D7]"
             title={`${totalLinks} liên kết`}
           >
             <Link2 className="w-2.5 h-2.5 text-slate-400" />
