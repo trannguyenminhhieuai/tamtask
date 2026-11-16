@@ -112,11 +112,13 @@ export default function JiraApp() {
     return CURRENT_USER;
   }, [session]);
 
-  // Instant SWR Hydration: Render cached state instantly on mount (0ms latency feel)
+  // Instant SWR Hydration: Render cached state instantly on mount (0ms latency feel) scoped to user
   useEffect(() => {
     if (typeof window === "undefined") return;
     try {
-      const cached = localStorage.getItem("tamtask_swr_cache");
+      const uId = (session?.user as any)?.id || currentUser.id;
+      const userCacheKey = `tamtask_swr_cache_${uId}`;
+      const cached = localStorage.getItem(userCacheKey) || localStorage.getItem("tamtask_swr_cache");
       if (cached) {
         const parsed = JSON.parse(cached);
         if (Array.isArray(parsed.projects) && parsed.projects.length > 0) setProjects(parsed.projects);
@@ -127,7 +129,7 @@ export default function JiraApp() {
         setIsLoadingData(false);
       }
     } catch {}
-  }, []);
+  }, [session, currentUser.id]);
 
   // Load project workflow statuses from DB whenever currentProject changes
   useEffect(() => {
@@ -272,19 +274,20 @@ export default function JiraApp() {
         }
       }
 
-      // Persist to SWR cache for instant 0ms subsequent renders
+      // Persist to user-scoped SWR cache for instant 0ms subsequent renders
       if (typeof window !== "undefined") {
         try {
-          localStorage.setItem(
-            "tamtask_swr_cache",
-            JSON.stringify({
-              projects: freshProjects,
-              issues: freshIssues,
-              users: freshUsers,
-              epics: freshEpics,
-              sprints: freshSprints,
-            })
-          );
+          const uId = (session?.user as any)?.id || currentUser.id;
+          const userCacheKey = `tamtask_swr_cache_${uId}`;
+          const cacheData = JSON.stringify({
+            projects: freshProjects,
+            issues: freshIssues,
+            users: freshUsers,
+            epics: freshEpics,
+            sprints: freshSprints,
+          });
+          localStorage.setItem(userCacheKey, cacheData);
+          localStorage.setItem("tamtask_swr_cache", cacheData);
         } catch {}
       }
     } catch (err) {
@@ -292,13 +295,13 @@ export default function JiraApp() {
     } finally {
       setIsLoadingData(false);
     }
-  }, []);
+  }, [session, currentUser]);
 
   useEffect(() => {
     if (authStatus === "authenticated") {
       loadData();
     }
-  }, [authStatus, loadData]);
+  }, [authStatus, session?.user?.email, loadData]);
 
   // Auto-collapse sidebar on mobile screens on initial mount
   useEffect(() => {
