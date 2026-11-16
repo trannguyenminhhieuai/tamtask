@@ -264,6 +264,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
           { id: "PENDING_APPROVAL", label: `Chờ duyệt (${pendingUsers.length})` },
           { id: "ADMIN", label: "Quản trị viên" },
           { id: "PROJECT_LEAD", label: "Trưởng dự án" },
+          { id: "BA", label: "Phân tích (BA)" },
           { id: "DEVELOPER", label: "Kỹ sư phần mềm" },
           { id: "QA", label: "Kiểm thử QA" },
           { id: "VIEWER", label: "Người theo dõi" },
@@ -353,6 +354,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
                       >
                         <option value="ADMIN" className="dark:bg-zinc-800">Quản trị viên (Admin)</option>
                         <option value="PROJECT_LEAD" className="dark:bg-zinc-800">Trưởng dự án (Lead)</option>
+                        <option value="BA" className="dark:bg-zinc-800">Phân tích nghiệp vụ (BA)</option>
                         <option value="DEVELOPER" className="dark:bg-zinc-800">Kỹ sư phần mềm (Dev)</option>
                         <option value="QA" className="dark:bg-zinc-800">Kiểm thử QA (Tester)</option>
                         <option value="VIEWER" className="dark:bg-zinc-800">Người theo dõi (Viewer)</option>
@@ -483,6 +485,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
                   className="w-full bg-white dark:bg-zinc-800 border border-slate-300 dark:border-zinc-700 rounded-xl px-3.5 py-2 font-medium text-slate-800 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#EE0033]/20 focus:border-[#EE0033]"
                 >
                   <option value="PROJECT_LEAD" className="dark:bg-zinc-800">Trưởng dự án (Project Lead)</option>
+                  <option value="BA" className="dark:bg-zinc-800">Phân tích nghiệp vụ (BA)</option>
                   <option value="DEVELOPER" className="dark:bg-zinc-800">Kỹ sư phần mềm (Developer)</option>
                   <option value="QA" className="dark:bg-zinc-800">Kiểm thử viên (QA Tester)</option>
                   <option value="VIEWER" className="dark:bg-zinc-800">Chỉ xem (Viewer)</option>
@@ -646,6 +649,7 @@ export const AdminView: React.FC<AdminViewProps> = ({
                   className="w-full bg-white dark:bg-zinc-800 border border-slate-300 dark:border-zinc-700 rounded-xl px-3.5 py-2 font-medium text-slate-800 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#EE0033]/20 focus:border-[#EE0033]"
                 >
                   <option value="PROJECT_LEAD" className="dark:bg-zinc-800">Trưởng dự án (Project Lead)</option>
+                  <option value="BA" className="dark:bg-zinc-800">Phân tích nghiệp vụ (BA)</option>
                   <option value="DEVELOPER" className="dark:bg-zinc-800">Kỹ sư phần mềm (Developer)</option>
                   <option value="QA" className="dark:bg-zinc-800">Kiểm thử viên (QA Tester)</option>
                   <option value="VIEWER" className="dark:bg-zinc-800">Chỉ xem (Viewer)</option>

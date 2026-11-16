@@ -20,7 +20,7 @@ export interface ProjectMember {
   projectId: string;
   userId: string;
   user?: User;
-  role: "PROJECT_LEAD" | "DEVELOPER" | "QA" | "VIEWER";
+  role: "PROJECT_LEAD" | "BA" | "DEVELOPER" | "QA" | "VIEWER";
   joinedAt: string;
 }
 
@@ -46,7 +46,7 @@ export interface User {
   name: string;
   email: string;
   avatar: string;
-  role: "ADMIN" | "PROJECT_LEAD" | "DEVELOPER" | "QA" | "VIEWER" | "PENDING";
+  role: "ADMIN" | "PROJECT_LEAD" | "BA" | "DEVELOPER" | "QA" | "VIEWER" | "PENDING";
   status?: "ACTIVE" | "PENDING_APPROVAL" | "SUSPENDED";
   activeTasksCount: number;
   memberships?: ProjectMember[];

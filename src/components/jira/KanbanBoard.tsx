@@ -230,7 +230,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   };
 
   const isViewer = currentUser.role === "VIEWER";
-  const canCustomizeWorkflow = currentUser.role === "ADMIN" || currentUser.role === "PROJECT_LEAD";
+  const canCustomizeWorkflow = currentUser.role === "ADMIN" || currentUser.role === "PROJECT_LEAD" || currentUser.role === "BA";
 
   const handleDragStart = (e: React.DragEvent, issueId: string) => {
     if (isViewer) return;
@@ -291,7 +291,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
     <div className="flex-1 flex flex-col overflow-hidden bg-[#F5F6F8] dark:bg-[#09090B] transition-colors duration-200">
       {/* Unified Glass Island Header - Smoothly collapses up on scroll to optimize vertical workspace */}
       <div
-        className={`transition-all duration-300 ease-in-out shrink-0 overflow-hidden ${
+        className={`relative z-20 transition-all duration-300 ease-in-out shrink-0 overflow-visible ${
           isScrolledHeader
             ? "max-h-0 opacity-0 -translate-y-4 mb-0 pointer-events-none"
             : "max-h-60 opacity-100 translate-y-0 m-4 mb-0"
@@ -361,7 +361,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
           </button>
 
           {/* Assignee Avatar Group with +N overflow */}
-          <div className="flex items-center -space-x-1 pl-1">
+          <div className="flex items-center -space-x-1 pl-1 shrink-0">
             {visibleUsers.map((user) => {
               const isSelected = filterState.assigneeIds.includes(user.id);
               return (
@@ -597,7 +597,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
       {/* Board Columns & Swimlanes Container - Single unified vertical & bottom-pinned horizontal scroll */}
       <div
         onScroll={handleBoardScroll}
-        className={`flex-1 overflow-x-auto overflow-y-auto px-4 pb-4 space-y-4 bg-[#F5F6F8] dark:bg-[#09090B] touch-pan-x transition-all duration-300 ${
+        className={`flex-1 relative z-0 overflow-x-auto overflow-y-auto px-4 pb-4 space-y-4 bg-[#F5F6F8] dark:bg-[#09090B] touch-pan-x transition-all duration-300 ${
           isScrolledHeader ? "pt-0" : "pt-4"
         }`}
       >

@@ -36,23 +36,35 @@ export const ProjectMembersModal: React.FC<ProjectMembersModalProps> = ({
 }) => {
   const [members, setMembers] = useState<ProjectMember[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [mode, setMode] = useState<"existing" | "new">("existing");
+  const [mode, setMode] = useState<"existing" | "invite">("existing");
 
-  // Mode 1: Existing user assign
+  // Mode 1 (ADMIN only): Existing user assign from system
   const [selectedUserId, setSelectedUserId] = useState("");
-  const [selectedRole, setSelectedRole] = useState<"PROJECT_LEAD" | "DEVELOPER" | "QA" | "VIEWER">("DEVELOPER");
+  const [selectedRole, setSelectedRole] = useState<"PROJECT_LEAD" | "BA" | "DEVELOPER" | "QA" | "VIEWER">("DEVELOPER");
 
-  // Mode 2: Provision new user with password & 2FA
+  // Mode 2 (PROJECT_LEAD/BA): Invite by email → creates pending request for Admin to confirm
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteNote, setInviteNote] = useState("");
+
+  // Mode admin create + assign (ADMIN only - full provisioning)
   const [newUserName, setNewUserName] = useState("");
   const [newUserEmail, setNewUserEmail] = useState("");
   const [newUserPassword, setNewUserPassword] = useState("TamTask@2026!");
   const [showPassword, setShowPassword] = useState(false);
   const [enable2FA, setEnable2FA] = useState(true);
 
-  const [feedback, setFeedback] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<{ text: string; isError?: boolean } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const canManage = currentUser.role === "ADMIN" || currentUser.role === "PROJECT_LEAD";
+  // Permission scoping
+  const isAdmin = currentUser.role === "ADMIN";
+  const isProjectLead = currentUser.role === "PROJECT_LEAD" || currentUser.role === "BA";
+  const canManage = isAdmin || isProjectLead;
+
+  const showFeedback = (text: string, isError = false) => {
+    setFeedback({ text, isError });
+    setTimeout(() => setFeedback(null), 5000);
+  };
 
   const generateRandomPassword = () => {
     const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789!@#$%^&*";
@@ -122,17 +134,55 @@ export const ProjectMembersModal: React.FC<ProjectMembersModalProps> = ({
       });
 
       if (res.ok) {
-        setFeedback("Đã thêm nhân sự vào dự án thành công!");
+        showFeedback("Đã thêm nhân sự vào dự án thành công!");
         setSelectedUserId("");
         fetchMembers();
         onMembersUpdated?.();
-        setTimeout(() => setFeedback(null), 3000);
       } else {
         const err = await res.json();
-        setFeedback(`Lỗi: ${err.error || "Không thể thêm nhân sự"}`);
+        showFeedback(`Lỗi: ${err.error || "Không thể thêm nhân sự"}`, true);
       }
     } catch (err: any) {
-      setFeedback(`Lỗi: ${err.message}`);
+      showFeedback(`Lỗi: ${err.message}`, true);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // PROJECT_LEAD/BA: Invite by email (requires Admin confirmation)
+  const handleInviteByEmail = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!inviteEmail.trim()) return;
+
+    setIsSubmitting(true);
+    try {
+      // Check if user with this email exists in system
+      const res = await fetch(`/api/projects/${project.id}/members/invite`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: inviteEmail.trim(),
+          role: selectedRole,
+          projectId: project.id,
+          projectName: project.name,
+          requestedBy: currentUser.name,
+          note: inviteNote,
+        }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        showFeedback(data.message || `Yêu cầu mời ${inviteEmail} đã gửi đến Admin để phê duyệt!`);
+        setInviteEmail("");
+        setInviteNote("");
+        fetchMembers();
+        onMembersUpdated?.();
+      } else {
+        const err = await res.json();
+        showFeedback(`Lỗi: ${err.error || "Không thể gửi yêu cầu"}`, true);
+      }
+    } catch (err: any) {
+      showFeedback(`Lỗi: ${err.message}`, true);
     } finally {
       setIsSubmitting(false);
     }
@@ -175,7 +225,7 @@ export const ProjectMembersModal: React.FC<ProjectMembersModalProps> = ({
       });
 
       if (assignRes.ok) {
-        setFeedback(
+        showFeedback(
           `Đã tạo nhân sự ${newUserName.trim()} & gán vào dự án! Mật khẩu: ${newUserPassword} (2FA: ${
             enable2FA ? "Bật" : "Tắt"
           })`
@@ -185,13 +235,12 @@ export const ProjectMembersModal: React.FC<ProjectMembersModalProps> = ({
         setNewUserPassword("TamTask@2026!");
         fetchMembers();
         onMembersUpdated?.();
-        setTimeout(() => setFeedback(null), 6000);
       } else {
         const err = await assignRes.json();
-        setFeedback(`Lỗi gán dự án: ${err.error || "Không thể gán vào dự án"}`);
+        showFeedback(`Lỗi gán dự án: ${err.error || "Không thể gán vào dự án"}`, true);
       }
     } catch (err: any) {
-      setFeedback(`Lỗi: ${err.message}`);
+      showFeedback(`Lỗi: ${err.message}`, true);
     } finally {
       setIsSubmitting(false);
     }
@@ -205,13 +254,12 @@ export const ProjectMembersModal: React.FC<ProjectMembersModalProps> = ({
         body: JSON.stringify({ userId, role: newRole }),
       });
       if (res.ok) {
-        setFeedback("Đã cập nhật vai trò nhân sự trong dự án.");
+        showFeedback("Đã cập nhật vai trò nhân sự trong dự án.");
         fetchMembers();
         onMembersUpdated?.();
-        setTimeout(() => setFeedback(null), 3000);
       }
     } catch (err: any) {
-      setFeedback(`Lỗi: ${err.message}`);
+      showFeedback(`Lỗi: ${err.message}`, true);
     }
   };
 
@@ -223,13 +271,12 @@ export const ProjectMembersModal: React.FC<ProjectMembersModalProps> = ({
         method: "DELETE",
       });
       if (res.ok) {
-        setFeedback("Đã rút nhân sự khỏi dự án.");
+        showFeedback("Đã rút nhân sự khỏi dự án.");
         fetchMembers();
         onMembersUpdated?.();
-        setTimeout(() => setFeedback(null), 3000);
       }
     } catch (err: any) {
-      setFeedback(`Lỗi: ${err.message}`);
+      showFeedback(`Lỗi: ${err.message}`, true);
     }
   };
 
@@ -270,9 +317,15 @@ export const ProjectMembersModal: React.FC<ProjectMembersModalProps> = ({
         {/* Body */}
         <div className="p-6 space-y-6 overflow-y-auto flex-1 bg-white dark:bg-zinc-900">
           {feedback && (
-            <div className="p-3 bg-rose-50 border border-rose-200 text-[#EE0033] text-xs font-medium rounded-lg flex items-center gap-2 animate-in fade-in">
-              <Check className="w-4 h-4 text-[#EE0033] shrink-0" />
-              <span>{feedback}</span>
+            <div className={`p-3 text-xs font-medium rounded-lg flex items-center gap-2 animate-in fade-in ${
+              feedback.isError
+                ? "bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300"
+                : "bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300"
+            }`}>
+              {feedback.isError
+                ? <AlertCircle className="w-4 h-4 shrink-0" />
+                : <Check className="w-4 h-4 shrink-0" />}
+              <span>{feedback.text}</span>
             </div>
           )}
 
@@ -294,9 +347,9 @@ export const ProjectMembersModal: React.FC<ProjectMembersModalProps> = ({
                   </button>
                   <button
                     type="button"
-                    onClick={() => setMode("new")}
+                    onClick={() => setMode("invite")}
                     className={`text-xs font-semibold px-3.5 py-1.5 rounded-full transition flex items-center gap-1 ${
-                      mode === "new"
+                      mode === "invite"
                         ? "bg-[#EE0033] text-white shadow-xs"
                         : "text-slate-600 dark:text-zinc-400 hover:bg-slate-200/60 dark:hover:bg-zinc-700/60"
                     }`}

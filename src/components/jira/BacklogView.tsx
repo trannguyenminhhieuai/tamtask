@@ -193,7 +193,7 @@ export const BacklogView: React.FC<BacklogViewProps> = ({
   };
 
   const isViewer = currentUser.role === "VIEWER";
-  const canManageSprints = currentUser.role === "ADMIN" || currentUser.role === "PROJECT_LEAD";
+  const canManageSprints = currentUser.role === "ADMIN" || currentUser.role === "PROJECT_LEAD" || currentUser.role === "BA";
 
   // Filter Backlog Issues (Issues not attached to any registered Sprint)
   const sprintIds = new Set(sprints.map((s) => s.id));

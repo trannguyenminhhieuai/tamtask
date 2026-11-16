@@ -58,6 +58,11 @@ const ROLE_CONFIG: Record<
     icon: Briefcase,
     color: "bg-sky-50 text-sky-800 border-sky-200/80",
   },
+  BA: {
+    label: "Phân tích nghiệp vụ (BA)",
+    icon: Briefcase,
+    color: "bg-indigo-50 text-indigo-800 border-indigo-200/80",
+  },
   DEVELOPER: {
     label: "Kỹ sư phần mềm",
     icon: Code2,
@@ -126,7 +131,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   const currentRole = displayUser.role || "DEVELOPER";
   const roleConfig = ROLE_CONFIG[currentRole] || ROLE_CONFIG.DEVELOPER;
   const RoleIcon = roleConfig.icon;
-  const canManageProjects = currentRole === "ADMIN" || currentRole === "PROJECT_LEAD";
+  const canManageProjects = currentRole === "ADMIN" || currentRole === "PROJECT_LEAD" || currentRole === "BA";
   const canCreateIssue = currentRole !== "VIEWER" && currentRole !== "PENDING";
   const unreadCount = notifications.filter((n) => !n.isRead).length;
 

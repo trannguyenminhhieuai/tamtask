@@ -69,11 +69,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   // Build navigation items based on strict RBAC
   const allNavItems = [
-    { id: "BOARD" as NavView, label: "Bảng Công Việc", icon: LayoutDashboard, allowedRoles: ["ADMIN", "PROJECT_LEAD", "DEVELOPER", "QA", "VIEWER"] },
-    { id: "BACKLOG" as NavView, label: "Kế Hoạch Chu Kỳ", icon: ClipboardList, allowedRoles: ["ADMIN", "PROJECT_LEAD", "DEVELOPER", "QA", "VIEWER"] },
-    { id: "TIMELINE" as NavView, label: "Lộ Trình Tiến Độ", icon: GitBranch, allowedRoles: ["ADMIN", "PROJECT_LEAD", "DEVELOPER", "QA", "VIEWER"] },
-    { id: "DASHBOARD" as NavView, label: "Báo Cáo & Thống Kê", icon: BarChart3, allowedRoles: ["ADMIN", "PROJECT_LEAD", "DEVELOPER", "QA", "VIEWER"] },
-    { id: "AUTOMATION" as NavView, label: "Quy Tắc Tự Động", icon: Zap, allowedRoles: ["ADMIN", "PROJECT_LEAD"] },
+    { id: "BOARD" as NavView, label: "Bảng Công Việc", icon: LayoutDashboard, allowedRoles: ["ADMIN", "PROJECT_LEAD", "BA", "DEVELOPER", "QA", "VIEWER"] },
+    { id: "BACKLOG" as NavView, label: "Kế Hoạch Chu Kỳ", icon: ClipboardList, allowedRoles: ["ADMIN", "PROJECT_LEAD", "BA", "DEVELOPER", "QA", "VIEWER"] },
+    { id: "TIMELINE" as NavView, label: "Lộ Trình Tiến Độ", icon: GitBranch, allowedRoles: ["ADMIN", "PROJECT_LEAD", "BA", "DEVELOPER", "QA", "VIEWER"] },
+    { id: "DASHBOARD" as NavView, label: "Báo Cáo & Thống Kê", icon: BarChart3, allowedRoles: ["ADMIN", "PROJECT_LEAD", "BA", "DEVELOPER", "QA", "VIEWER"] },
+    { id: "AUTOMATION" as NavView, label: "Quy Tắc Tự Động", icon: Zap, allowedRoles: ["ADMIN", "PROJECT_LEAD", "BA"] },
     { id: "ADMIN" as NavView, label: "Quản Trị Hệ Thống", icon: Users, allowedRoles: ["ADMIN"] },
   ];
 

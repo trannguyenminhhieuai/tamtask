@@ -68,7 +68,7 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const [isViewer, setIsViewer] = useState(currentUser.role === "VIEWER");
-  const canDelete = currentUser.role === "ADMIN" || currentUser.role === "PROJECT_LEAD" || currentUser.id === issue.reporter?.id;
+  const canDelete = currentUser.role === "ADMIN" || currentUser.role === "PROJECT_LEAD" || currentUser.role === "BA" || currentUser.id === issue.reporter?.id;
 
   // Sync state on issue prop change
   React.useEffect(() => {
@@ -676,7 +676,7 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
 
                       {/* Subtask Details & Editor */}
                       {isExpanded && (
-                        <div className="px-3.5 pb-3.5 pt-2.5 border-t border-gray-200/60 dark:border-zinc-700/60 bg-white/60 dark:bg-zinc-900/40 space-y-3 animate-in fade-in duration-150 w-full max-w-full min-w-0 overflow-hidden">
+                        <div className="px-3.5 pb-3.5 pt-2.5 border-t border-gray-200/60 dark:border-zinc-700/60 bg-white/60 dark:bg-zinc-900/40 space-y-3 animate-in fade-in duration-150" style={{boxSizing:'border-box', width:'100%', maxWidth:'100%', minWidth:0, overflow:'hidden'}}>
                           <div className="flex items-center justify-between gap-2">
                             <label className="block text-[11px] font-bold text-slate-700 dark:text-zinc-300 uppercase tracking-wider shrink-0">
                               Tên công việc phụ:
@@ -697,7 +697,7 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
                               value={subtaskTitleInput}
                               onChange={(e) => setSubtaskTitleInput(e.target.value)}
                               placeholder="Nhập tên công việc phụ..."
-                              className="w-full max-w-full min-w-0 text-xs px-3 py-2 bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-slate-900 dark:text-zinc-100 placeholder:text-slate-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-[#EE0033]/20 focus:border-[#EE0033] transition font-semibold"
+                              className="w-full max-w-full min-w-0 text-xs px-3 py-2 bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-slate-900 dark:text-zinc-100 placeholder:text-slate-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-[#EE0033]/20 focus:border-[#EE0033] transition font-semibold overflow-hidden text-ellipsis"
                             />
                           </div>
 
@@ -711,7 +711,8 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
                               value={subtaskDescInput}
                               onChange={(e) => setSubtaskDescInput(e.target.value)}
                               placeholder="Nhập mô tả chi tiết, hướng dẫn hoặc tiêu chí..."
-                              className="w-full max-w-full min-w-0 text-xs p-2.5 bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-slate-900 dark:text-zinc-100 placeholder:text-slate-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-[#EE0033]/20 focus:border-[#EE0033] transition break-all resize-y"
+                              className="w-full max-w-full min-w-0 text-xs p-2.5 bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-slate-900 dark:text-zinc-100 placeholder:text-slate-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-[#EE0033]/20 focus:border-[#EE0033] transition resize-y overflow-hidden"
+                              style={{wordBreak:'break-word', overflowWrap:'anywhere'}}
                             />
                           </div>
 
