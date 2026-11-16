@@ -298,8 +298,8 @@ export const AuthBackgroundIllustration: React.FC = () => {
             </g>
           </g>
 
-          {/* Floating Metric Card: VELOCITY (Positioned to the upper-right of SPRINT 1) */}
-          <g transform="translate(215, 15)">
+          {/* Floating Metric Card: VELOCITY (Positioned to the upper-right of SPRINT 1, shifted slightly right) */}
+          <g transform="translate(242, 18)">
             <g className="anim-float-1">
               <rect x="0" y="0" width="88" height="46" rx="10" fill="#FFFFFF" stroke="#FECDD3" strokeWidth="1.5" filter="drop-shadow(0 6px 14px rgba(238,0,51,0.12))" />
               <text x="8" y="14" fill="#9CA3AF" fontSize="8" fontWeight="700" fontFamily="sans-serif">
@@ -392,8 +392,8 @@ export const AuthBackgroundIllustration: React.FC = () => {
             <circle cx="32" cy="195" r="4" fill="#EE0033" fillOpacity="0.4" />
           </g>
 
-          {/* Huge 3D Magnifying Glass Hovering Over Document (Shifted further left — not covering anything) */}
-          <g transform="translate(140, 10)">
+          {/* Huge 3D Magnifying Glass Hovering Over Document (Shifted further left to completely clear document) */}
+          <g transform="translate(85, 10)">
             <g className="anim-float-2">
               {/* Long Handle */}
               <line x1="55" y1="65" x2="115" y2="135" stroke="#BE123C" strokeWidth="12" strokeLinecap="round" />

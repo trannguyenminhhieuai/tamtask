@@ -65,16 +65,21 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   const [quickAddTitle, setQuickAddTitle] = useState("");
   const [showAssigneeOverflow, setShowAssigneeOverflow] = useState(false);
   const [showMoreFilters, setShowMoreFilters] = useState(false);
-  const [headerOpacity, setHeaderOpacity] = useState(1);
+  const [isScrolledHeader, setIsScrolledHeader] = useState(false);
   const moreFiltersRef = React.useRef<HTMLDivElement>(null);
 
   const handleBoardScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const top = e.currentTarget.scrollTop;
-    if (top <= 10) {
-      if (headerOpacity !== 1) setHeaderOpacity(1);
-    } else {
-      const nextOpacity = Math.max(0, Math.min(1, 1 - (top - 10) / 120));
-      setHeaderOpacity(nextOpacity);
+    if (top > 40) {
+      if (!isScrolledHeader) {
+        setIsScrolledHeader(true);
+        setShowMoreFilters(false);
+        setShowAssigneeOverflow(false);
+      }
+    } else if (top <= 10) {
+      if (isScrolledHeader) {
+        setIsScrolledHeader(false);
+      }
     }
   };
 
@@ -284,15 +289,15 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden bg-[#F5F6F8] dark:bg-[#09090B] transition-colors duration-200">
-      {/* Unified Glass Island Header - Sticky at top with smooth scroll fade-out */}
+      {/* Unified Glass Island Header - Smoothly collapses up on scroll to optimize vertical workspace */}
       <div
-        style={{
-          opacity: headerOpacity,
-          transform: `translateY(-${(1 - headerOpacity) * 16}px)`,
-          pointerEvents: headerOpacity < 0.2 ? "none" : "auto",
-        }}
-        className="m-4 mb-0 p-4 rounded-2xl bg-white/75 dark:bg-zinc-900/75 backdrop-blur-xl border border-white/80 dark:border-white/10 shadow-[0_8px_32px_0_rgba(31,38,135,0.05)] flex flex-wrap items-center justify-between gap-4 z-20 shrink-0 sticky top-4 transition-[opacity,transform] duration-200 ease-out"
+        className={`transition-all duration-300 ease-in-out shrink-0 overflow-hidden ${
+          isScrolledHeader
+            ? "max-h-0 opacity-0 -translate-y-4 mb-0 pointer-events-none"
+            : "max-h-60 opacity-100 translate-y-0 m-4 mb-0"
+        }`}
       >
+        <div className="p-4 rounded-2xl bg-white/75 dark:bg-zinc-900/75 backdrop-blur-xl border border-white/80 dark:border-white/10 shadow-[0_8px_32px_0_rgba(31,38,135,0.05)] flex flex-wrap items-center justify-between gap-4">
         {/* Left: Compact Title only (MICI: no duplicate sprint badge here) */}
         <div className="flex items-center space-x-3 shrink-0">
           <h1 className="text-base sm:text-lg font-extrabold text-[#111827] dark:text-zinc-100 tracking-tight">
@@ -573,6 +578,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
             )}
           </div>
         </div>
+        </div>
       </div>
 
       {/* Rule Validation Warning Toast */}
@@ -591,7 +597,9 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
       {/* Board Columns & Swimlanes Container - Single unified vertical & bottom-pinned horizontal scroll */}
       <div
         onScroll={handleBoardScroll}
-        className="flex-1 overflow-x-auto overflow-y-auto p-4 space-y-4 bg-[#F5F6F8] dark:bg-[#09090B] touch-pan-x"
+        className={`flex-1 overflow-x-auto overflow-y-auto px-4 pb-4 space-y-4 bg-[#F5F6F8] dark:bg-[#09090B] touch-pan-x transition-all duration-300 ${
+          isScrolledHeader ? "pt-0" : "pt-4"
+        }`}
       >
         {isLoading ? (
           <div className="grid grid-flow-col auto-cols-[300px] gap-4 min-h-[500px]">
@@ -676,7 +684,9 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                       key={col.id}
                       onDragOver={(e) => handleDragOver(e, col.id)}
                       onDrop={(e) => handleDrop(e, col.id)}
-                      className={`w-80 flex-shrink-0 rounded-2xl transition-all border ${
+                      className={`w-80 flex-shrink-0 transition-all border ${
+                        isScrolledHeader ? "rounded-b-2xl rounded-t-none" : "rounded-2xl"
+                      } ${
                         isOver
                           ? "bg-rose-50/60 dark:bg-rose-950/20 border-2 border-dashed border-[#EE0033]"
                           : isWipExceeded
@@ -685,7 +695,11 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                       }`}
                     >
                       {/* Column Header - Pinned at top when scrolling vertically */}
-                      <div className="p-4 pb-3 flex items-center justify-between sticky top-0 rounded-t-2xl bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md z-10 border-b border-[#E5E7EB] dark:border-zinc-800">
+                      <div className={`p-4 pb-3 flex items-center justify-between sticky top-0 transition-all duration-200 z-10 border-b border-[#E5E7EB] dark:border-zinc-800 ${
+                        isScrolledHeader
+                          ? "rounded-t-none bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md shadow-xs"
+                          : "rounded-t-2xl bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md"
+                      }`}>
                         <div className="flex items-center space-x-2">
                           <span
                             className="w-2.5 h-2.5 rounded-full flex-shrink-0"

@@ -4208,3 +4208,13 @@ bg-white dark:bg-zinc-800/90 border-[#EE0033]/50 dark:border-[#EE0033]/30
 | :- | :--- | :--- | :--- | :--- |
 | **1** | **Chuyển Velocity sang bên trái màn hình kế trên phải Sprint** | Thẻ Velocity ở góc phải màn hình đăng nhập che khối nền | Dời thẻ Velocity sang SVG bên trái, đặt tại tọa độ `translate(215, 15)` ngay phía trên bên phải của viên con nhộng SPRINT 1 `translate(130, 45)`; gỡ bỏ hoàn toàn khỏi khối bên phải | `AuthBackgroundIllustration.tsx` |
 | **2** | **Tự động mở dự án được assign khi login** | Khi đăng nhập, hệ thống luôn ưu tiên mở dự án mặc định (HCC) hoặc cache cũ thay vì dự án mà user thực sự được phân công | Viết hàm `isUserAssignedToProject` (kiểm tra `leadId`, `lead.email`, `members.userId`, `members.user.email`); trong `loadData` và hook đăng nhập tự động quét và kích hoạt ngay dự án user được gán (`assigned[0]`) thay vì mở dự án mặc định; lưu cache riêng theo ID/email user | `src/app/page.tsx`, `Navbar.tsx` |
+
+
+## 48. Chương 48: Tinh Chỉnh Motion Graphics Login & Header Trạng Thái Kanban Ghim Sát Mép Trên Khi Cuộn
+
+> **Thời điểm**: 2026-11-16 | **Trạng thái**: ✅ Hoàn thành | **TypeScript**: ✅ 0 errors | **Build**: ✅ Production Ready
+
+| # | Hạng Mục Yêu Cầu | Thực Trạng & Nguyên Nhân | Giải Pháp Triển Khai | Tệp Nguồn |
+| :- | :--- | :--- | :--- | :--- |
+| **1** | **Màn login: VELOCITY dịch sang phải xíu, Kính lúp dời sang trái thêm** | Cần khoảng cách cân đối hơn giữa SPRINT 1 và VELOCITY; kính lúp cần cách xa tài liệu hơn | Dời thẻ VELOCITY sang tọa độ `translate(242, 18)` (cách SPRINT 1 hơn 30px); dời Kính lúp từ `translate(140, 10)` sang `translate(85, 10)` hoàn toàn thông thoáng ở góc trái | `AuthBackgroundIllustration.tsx` |
+| **2** | **Kanban: Ghim header trạng thái (todo, inprogress, ...) sát line trên cùng khi scroll xuống** | Trước đây header bộ lọc chỉ fade opacity nhưng vẫn chiếm chiều cao, khiến các cột trạng thái khi ghim bị hở một khoảng lớn so với mép trên | Bọc header bộ lọc với hiệu ứng thu gọn mượt `max-h-0 opacity-0 -translate-y-4` khi cuộn xuống (`scrollTop > 40px`); container bảng tự động mở rộng và chuyển `pt-0`, giúp các header cột ghim thẳng sát mép trên cùng tối ưu 100% diện tích làm việc; khi cuộn ngược lên đầu (`scrollTop <= 10px`), header mở rộng lại bình thường | `KanbanBoard.tsx` |
