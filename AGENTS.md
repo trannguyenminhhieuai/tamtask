@@ -46,7 +46,7 @@ This workspace is integrated with **Mouse-1 Safeguards** via Antigravity lifecyc
   - Tài khoản thông thường (`PROJECT_LEAD`, `DEVELOPER`, `QA`, `VIEWER`): **Chỉ** được hiển thị và truy cập các dự án mà mình là Thành viên (`project.members`) hoặc Trưởng dự án (`project.leadId`). Tuyệt đối không để lộ dự án khác trong bộ chọn dự án.
 - **Phân công & Lọc công việc (Task Assignment & Kanban Filtering)**:
   - Danh sách phân công người thực hiện (`CreateIssueModal`, `IssueDetailDrawer`, bulk assign trong `BacklogView`) **chỉ** được chứa nhân sự thuộc dự án hiện tại (`currentProject.members` + `currentProject.lead`). Tuyệt đối không tự ý thêm người dùng ngoài dự án.
-  - Bộ lọc Avatar và Swimlane trên Kanban **chỉ** hiển thị các nhân sự thuộc dự án hiện hành.
+  - **Bộ lọc Avatar và Swimlane trên Kanban**: **Chỉ** hiển thị và lọc những nhân sự thực tế đã được giao việc (assignee của ít nhất 1 task) trong dự án hiện hành. Tuyệt đối không hiển thị toàn bộ thành viên dự án nếu họ chưa có task nào, giúp tối ưu diện tích bảng và tập trung trực quan vào các nhân sự đang có công việc đang chạy.
 
 #### D. Quy tắc Chuẩn hóa Nhận diện Thương hiệu & Trải nghiệm Người Dùng (UI/UX Excellence):
 - Giữ vững màu đỏ chuẩn Viettel `#EE0033` cho các nút hành động chính, active tabs, và điểm nhấn quan trọng.

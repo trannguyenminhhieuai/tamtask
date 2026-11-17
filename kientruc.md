@@ -97,7 +97,20 @@ Qua phân tích sâu luồng thực thi trong `src/app/page.tsx` và cơ sở d�
 
 ## 5. BỘ QUY TẮC BẢO MẬT & PHÂN QUYỀN (ENTERPRISE RBAC MATRIX)
 
-- **ADMIN**: Toàn quyền cấu hình Workflow, thêm/xóa thành viên, xem mọi dự án, can thiệp quy trình chất lượng Mouse-1.
-- **PROJECT_LEAD**: Quản trị dự án được chỉ định, cấu hình Sprint, gán nhãn, điều phối thành viên nội bộ dự án.
+- **ADMIN**: Toàn quyền cấu hình Workflow, thêm/xóa thành viên trực tiếp từ hệ thống, xem mọi dự án, can thiệp quy trình chất lượng Mouse-1.
+- **PROJECT_LEAD**: Quản trị dự án được chỉ định, cấu hình Sprint, gán nhãn, mời thành viên qua email (chờ Admin xác nhận), điều phối công việc nội bộ dự án.
+- **BA (Business Analyst)**: Vai trò tương đương `PROJECT_LEAD` trong quản trị tiến độ (Sprint, Workflow, nhãn, phân bổ task); có quyền mời nhân sự qua email (chờ Admin duyệt).
 - **DEVELOPER / QA**: Tạo issue, kéo thả thẻ, cập nhật subtask, bình luận, commit link PR, xem công việc trong dự án của mình.
 - **VIEWER**: Chế độ chỉ đọc (Read-only), vô hiệu hóa mọi thao tác chỉnh sửa, form nhập và nút xóa.
+
+---
+
+## 6. QUY TẮC HIỂN THỊ & LỌC CÔNG VIỆC TRÊN KANBAN BOARD (KANBAN FILTERING STANDARD)
+
+### 6.1 Lọc Avatar Người Thực Hiện (Assigned Users Only)
+- **Nguyên tắc cốt lõi**: Bộ lọc nhanh Avatar (`visibleUsers` & `overflowUsers`) và Phân làn hiển thị (Swimlanes theo Assignee) trên Bảng Công Việc (Kanban Board) **chỉ hiển thị những nhân sự thực tế đã được phân công (assignee) vào ít nhất 1 task trong dự án hiện hành**.
+- **Cơ chế triển khai**:
+  1. **Tính toán động (`assignedUsers`)**: Duyệt qua danh sách `issues` của dự án đang mở, trích xuất tập hợp duy nhất các User đang được gán task (`issue.assignee`), đối chiếu với danh sách thông tin nhân sự để lấy Avatar và Tên đầy đủ.
+  2. **Tối ưu không gian**: Loại bỏ các thành viên dự án có 0 task khỏi thanh Avatar, tránh gây loãng bộ lọc và chiếm dụng không gian thanh công cụ.
+  3. **Tự động ẩn/hiện**: Nếu dự án mới chưa có task hoặc các task chưa ai nhận (`UNASSIGNED`), thanh Avatar tự động ẩn gọn gàng.
+  4. **Phân làn Swimlanes sạch sẽ**: Khi chuyển chế độ hiển thị Swimlane theo Người thực hiện, hệ thống chỉ tạo làn cho các nhân sự thực tế có công việc, không tạo các làn trống gây rối mắt.

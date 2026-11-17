@@ -188,15 +188,17 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
 
     if (swimlaneMode === "ASSIGNEE") {
       const groups: Array<{ id: string; title: string; avatar?: string; role?: string; issues: Issue[] }> = [];
-      users.forEach((user) => {
+      assignedUsers.forEach((user) => {
         const userIssues = filteredIssues.filter((i) => i.assignee?.id === user.id);
-        groups.push({ id: user.id, title: user.name, avatar: user.avatar, role: user.role, issues: userIssues });
+        if (userIssues.length > 0) {
+          groups.push({ id: user.id, title: user.name, avatar: user.avatar, role: user.role, issues: userIssues });
+        }
       });
       const unassignedIssues = filteredIssues.filter((i) => !i.assignee);
       if (unassignedIssues.length > 0) {
-        groups.push({ id: "unassigned", title: "Unassigned Tasks", issues: unassignedIssues });
+        groups.push({ id: "unassigned", title: "Chưa phân công (Unassigned)", issues: unassignedIssues });
       }
-      return groups;
+      return groups.length > 0 ? groups : [{ id: "default", title: "", issues: filteredIssues }];
     }
 
     if (swimlaneMode === "EXPEDITE") {
@@ -215,11 +217,22 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
     return [{ id: "default", title: "", issues: filteredIssues }];
   }, [swimlaneMode, filteredIssues, epics, users]);
 
-  // Scoped project users for assignee filter (strictly scoped to project members)
-  const projectUsers = useMemo(() => users, [users]);
+  // Only users who are actually assigned to at least one task in this project
+  const assignedUsers = useMemo(() => {
+    const userMap = new Map<string, User>();
+    issues.forEach((issue) => {
+      if (issue.assignee && issue.assignee.id) {
+        if (!userMap.has(issue.assignee.id)) {
+          const fullUser = users.find((u) => u.id === issue.assignee?.id) || issue.assignee;
+          userMap.set(issue.assignee.id, fullUser);
+        }
+      }
+    });
+    return Array.from(userMap.values());
+  }, [issues, users]);
 
-  const visibleUsers = useMemo(() => projectUsers.slice(0, 4), [projectUsers]);
-  const overflowUsers = useMemo(() => projectUsers.slice(4), [projectUsers]);
+  const visibleUsers = useMemo(() => assignedUsers.slice(0, 4), [assignedUsers]);
+  const overflowUsers = useMemo(() => assignedUsers.slice(4), [assignedUsers]);
 
   const toggleAssigneeFilter = (userId: string) => {
     const exists = filterState.assigneeIds.includes(userId);
@@ -360,67 +373,71 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
             <span className="hidden md:inline">Chưa ai nhận</span>
           </button>
 
-          {/* Assignee Avatar Group with +N overflow */}
-          <div className="flex items-center -space-x-1 pl-1 shrink-0">
-            {visibleUsers.map((user) => {
-              const isSelected = filterState.assigneeIds.includes(user.id);
-              return (
-                <button
-                  key={user.id}
-                  onClick={() => toggleAssigneeFilter(user.id)}
-                  title={`Lọc theo ${user.name}`}
-                  className={`w-7 h-7 rounded-full transition-transform relative ${
-                    isSelected ? "ring-2 ring-[#EE0033] scale-110 z-10" : "opacity-80 hover:opacity-100"
-                  }`}
-                >
-                  <img src={user.avatar} alt={user.name} className="w-full h-full rounded-full object-cover" />
-                </button>
-              );
-            })}
+          {/* Assignee Avatar Group with +N overflow (strictly users assigned to tasks in this project) */}
+          {assignedUsers.length > 0 && (
+            <div className="flex items-center -space-x-1 pl-1 shrink-0">
+              {visibleUsers.map((user) => {
+                const isSelected = filterState.assigneeIds.includes(user.id);
+                return (
+                  <button
+                    key={user.id}
+                    onClick={() => toggleAssigneeFilter(user.id)}
+                    title={`Lọc theo người thực hiện: ${user.name}`}
+                    className={`w-7 h-7 rounded-full transition-transform relative ${
+                      isSelected ? "ring-2 ring-[#EE0033] scale-110 z-10" : "opacity-80 hover:opacity-100"
+                    }`}
+                  >
+                    <img src={user.avatar} alt={user.name} className="w-full h-full rounded-full object-cover" />
+                  </button>
+                );
+              })}
 
-            {overflowUsers.length > 0 && (
-              <div className="relative">
-                <button
-                  type="button"
-                  onClick={() => setShowAssigneeOverflow(!showAssigneeOverflow)}
-                  className="w-7 h-7 rounded-full bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 dark:hover:bg-zinc-700 border border-[#D7D7D7] dark:border-zinc-700 text-[10px] font-bold text-slate-700 dark:text-zinc-200 flex items-center justify-center transition-transform hover:scale-105 ml-0.5"
-                  title="Xem thêm nhân sự dự án"
-                >
-                  +{overflowUsers.length}
-                </button>
+              {overflowUsers.length > 0 && (
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setShowAssigneeOverflow(!showAssigneeOverflow)}
+                    className="w-7 h-7 rounded-full bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 dark:hover:bg-zinc-700 border border-[#D7D7D7] dark:border-zinc-700 text-[10px] font-bold text-slate-700 dark:text-zinc-200 flex items-center justify-center transition-transform hover:scale-105 ml-0.5"
+                    title="Xem thêm người thực hiện trong dự án"
+                  >
+                    +{overflowUsers.length}
+                  </button>
 
-                {showAssigneeOverflow && (
-                  <div className="absolute left-0 mt-2 w-48 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-xl border border-slate-200 dark:border-zinc-800 rounded-2xl shadow-xl py-2 z-50 animate-in fade-in zoom-in-95">
-                    <div className="px-3.5 py-1 text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-wider border-b border-slate-100 dark:border-zinc-800">
-                      Nhân sự dự án
+                  {showAssigneeOverflow && (
+                    <div className="absolute left-0 mt-2 w-48 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-xl border border-slate-200 dark:border-zinc-800 rounded-2xl shadow-xl py-2 z-50 animate-in fade-in zoom-in-95">
+                      <div className="px-3.5 py-1 text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-wider border-b border-slate-100 dark:border-zinc-800">
+                        Người được giao việc ({assignedUsers.length})
+                      </div>
+                      <div className="max-h-48 overflow-y-auto py-1">
+                        {overflowUsers.map((u) => {
+                          const isSelected = filterState.assigneeIds.includes(u.id);
+                          return (
+                            <button
+                              key={u.id}
+                              onClick={() => toggleAssigneeFilter(u.id)}
+                              className={`w-full text-left px-3.5 py-1.5 flex items-center justify-between text-xs transition ${
+                                isSelected ? "bg-slate-100 dark:bg-zinc-800 text-slate-900 dark:text-zinc-100 font-semibold" : "text-slate-600 dark:text-zinc-300 hover:bg-slate-50 dark:hover:bg-zinc-800/50"
+                              }`}
+                            >
+                              <div className="flex items-center gap-2 truncate">
+                                <img src={u.avatar} alt={u.name} className="w-4 h-4 rounded-full object-cover shrink-0" />
+                                <span className="truncate">{u.name}</span>
+                              </div>
+                              {isSelected && <Check className="w-3.5 h-3.5 text-[#EE0033] shrink-0" />}
+                            </button>
+                          );
+                        })}
+                      </div>
                     </div>
-                    <div className="max-h-48 overflow-y-auto py-1">
-                      {overflowUsers.map((u) => {
-                        const isSelected = filterState.assigneeIds.includes(u.id);
-                        return (
-                          <button
-                            key={u.id}
-                            onClick={() => toggleAssigneeFilter(u.id)}
-                            className={`w-full text-left px-3.5 py-1.5 flex items-center justify-between text-xs transition ${
-                              isSelected ? "bg-slate-100 dark:bg-zinc-800 text-slate-900 dark:text-zinc-100 font-semibold" : "text-slate-600 dark:text-zinc-300 hover:bg-slate-50 dark:hover:bg-zinc-800/50"
-                            }`}
-                          >
-                            <div className="flex items-center gap-2 truncate">
-                              <img src={u.avatar} alt={u.name} className="w-4 h-4 rounded-full object-cover shrink-0" />
-                              <span className="truncate">{u.name}</span>
-                            </div>
-                            {isSelected && <Check className="w-3.5 h-3.5 text-[#EE0033] shrink-0" />}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
 
-          <div className="h-4 w-px bg-slate-200 dark:bg-zinc-800 mx-1" />
+          {assignedUsers.length > 0 && (
+            <div className="h-4 w-px bg-slate-200 dark:bg-zinc-800 mx-1" />
+          )}
 
           {/* Sprint Selector (Clean, no redundant duplicate dates) */}
           <div className="flex items-center gap-1.5 bg-white/80 dark:bg-zinc-800/80 backdrop-blur-md border border-white/80 dark:border-zinc-700/80 rounded-full px-3 py-1.5 text-xs shadow-2xs">
