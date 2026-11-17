@@ -561,9 +561,23 @@ export default function JiraApp() {
     }
   };
 
+  // Update Local Issue State without network PATCH (used for atomic subtasks & 0ms client UI)
+  const handleUpdateIssueLocal = (updated: Issue) => {
+    setIssues((prev) => {
+      const next = prev.map((i) => (i.id === updated.id ? updated : i));
+      updateIssuesCache(next);
+      return next;
+    });
+    setSelectedIssue(updated);
+  };
+
   // Update Issue Details
   const handleUpdateIssue = async (updated: Issue) => {
-    setIssues((prev) => prev.map((i) => (i.id === updated.id ? updated : i)));
+    setIssues((prev) => {
+      const next = prev.map((i) => (i.id === updated.id ? updated : i));
+      updateIssuesCache(next);
+      return next;
+    });
     setSelectedIssue(updated);
 
     try {
@@ -581,7 +595,6 @@ export default function JiraApp() {
           epicId: updated.epic?.id,
           sprintId: updated.sprintId,
           prLink: updated.prLink,
-          subtasks: updated.subtasks,
           labels: updated.labels,
           attachments: updated.attachments,
           originalEstimate: updated.originalEstimate,
@@ -591,9 +604,11 @@ export default function JiraApp() {
       });
       if (res.ok) {
         const data = await res.json();
-        setIssues((prev) =>
-          prev.map((i) => (i.id === updated.id ? { ...i, ...data } : i))
-        );
+        setIssues((prev) => {
+          const next = prev.map((i) => (i.id === updated.id ? { ...i, ...data } : i));
+          updateIssuesCache(next);
+          return next;
+        });
         if (selectedIssue && selectedIssue.id === updated.id) {
           setSelectedIssue((prev) => (prev ? { ...prev, ...data } : null));
         }
@@ -1228,6 +1243,7 @@ export default function JiraApp() {
         currentUser={currentUser}
         onClose={() => setSelectedIssue(null)}
         onUpdateIssue={handleUpdateIssue}
+        onUpdateIssueLocal={handleUpdateIssueLocal}
         onDeleteIssue={handleDeleteIssue}
         onSelectIssue={(iss) => setSelectedIssue(iss)}
       />

@@ -114,3 +114,26 @@ Qua phân tích sâu luồng thực thi trong `src/app/page.tsx` và cơ sở d�
   2. **Tối ưu không gian**: Loại bỏ các thành viên dự án có 0 task khỏi thanh Avatar, tránh gây loãng bộ lọc và chiếm dụng không gian thanh công cụ.
   3. **Tự động ẩn/hiện**: Nếu dự án mới chưa có task hoặc các task chưa ai nhận (`UNASSIGNED`), thanh Avatar tự động ẩn gọn gàng.
   4. **Phân làn Swimlanes sạch sẽ**: Khi chuyển chế độ hiển thị Swimlane theo Người thực hiện, hệ thống chỉ tạo làn cho các nhân sự thực tế có công việc, không tạo các làn trống gây rối mắt.
+
+---
+
+## 7. KIẾN TRÚC SUBTASK NGUYÊN TỬ & CHUẨN HÓA GIAO DIỆN ĐĂNG NHẬP (ATOMIC SUBTASKS & AUTH UI STANDARDS)
+
+### 7.1 Kiến trúc Atomic Subtasks (Triệt tiêu Race Condition & Mất dữ liệu)
+- **Nguyên nhân gốc rễ**: Khi tạo subtask, hệ thống từng kích hoạt đồng thời `onUpdateIssue` (`PATCH /api/issues/[id]`) và `POST /api/issues/[id]/subtasks`. Sự xung đột bất đồng bộ khiến `PATCH` ghi đè mảng rỗng cũ lên `selectedIssue`, làm subtask vừa tạo lập tức bị xóa mất.
+- **Giải pháp**:
+  1. **Tách biệt luồng dữ liệu**: Thao tác cập nhật tổng thể Issue (`PATCH /api/issues/[id]`) không gửi hoặc can thiệp mảng `subtasks`.
+  2. **Endpoint nguyên tử độc lập**: Mọi thao tác CRUD cho công việc phụ được thực thi trực tiếp qua `/api/issues/[id]/subtasks` (`POST`, `PATCH`, `DELETE`).
+  3. **0ms Optimistic UI & Local Sync**: Drawer quản lý `subtasks` qua local state và hàm `onUpdateIssueLocal`, đồng bộ tức thời giao diện và SWR cache mà không gây nghẽn mạng hay gián đoạn trải nghiệm người dùng.
+
+### 7.2 Chuẩn hóa Kích thước Giao diện Đăng nhập (Auth Form Standards)
+- **Quy chuẩn 16px Spacing**: Form đăng nhập tuân thủ nghiêm ngặt hệ số khoảng cách 16px:
+  - Khung thẻ (Card container): padding chuẩn 16px (`p-4`), khoảng cách giữa các phần tử 16px (`space-y-4`).
+  - Form controls & Inputs: padding ngang `px-4`, padding dọc `py-3`, bo góc hiện đại `rounded-xl`.
+  - Hộp xác thực 2FA (OTP container): padding 16px (`p-4`), khoảng cách giữa các nút 16px (`gap-4`).
+
+### 7.3 Bộ nhận diện Thương hiệu & Tab Browser (Favicon Brand Identity)
+- **Logo TamTask Favicon**:
+  - Định dạng chuẩn vector SVG 32x32 (`public/favicon.svg` và `src/app/icon.svg`).
+  - Dải màu Viettel Red gradient chuẩn `#EE0033` sang `#C7002B`.
+  - Bo góc squircle `rx="8"`, chữ hoa "TT" trắng đậm nét, tương thích sắc nét trên mọi tab trình duyệt ở cả Dark Mode và Light Mode.

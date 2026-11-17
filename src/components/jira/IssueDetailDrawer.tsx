@@ -38,6 +38,7 @@ interface IssueDetailDrawerProps {
   currentUser: User;
   onClose: () => void;
   onUpdateIssue: (updated: Issue) => void;
+  onUpdateIssueLocal?: (updated: Issue) => void;
   onDeleteIssue: (issueId: string) => void;
   onSelectIssue?: (issue: Issue) => void;
 }
@@ -51,6 +52,7 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
   currentUser,
   onClose,
   onUpdateIssue,
+  onUpdateIssueLocal,
   onDeleteIssue,
   onSelectIssue,
 }) => {
@@ -58,6 +60,7 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
 
   const [title, setTitle] = useState(issue.title);
   const [description, setDescription] = useState(issue.description);
+  const [subtasks, setSubtasks] = useState<Subtask[]>(issue.subtasks || []);
   const [newSubtaskTitle, setNewSubtaskTitle] = useState("");
   const [newComment, setNewComment] = useState("");
   const [activeTab, setActiveTab] = useState<"COMMENTS" | "HISTORY">("COMMENTS");
@@ -74,6 +77,7 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
   React.useEffect(() => {
     setTitle(issue.title);
     setDescription(issue.description);
+    setSubtasks(issue.subtasks || []);
     setNewSubtaskTitle("");
     setNewComment("");
     setIsLinkingOpen(false);
@@ -328,8 +332,8 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
       issueKey: issue.key,
       fromStatus: issue.status,
       toStatus: newStatus,
-      hasSubtasks: issue.subtasks.length > 0,
-      allSubtasksDone: issue.subtasks.every((s) => s.isCompleted),
+      hasSubtasks: subtasks.length > 0,
+      allSubtasksDone: subtasks.every((s) => s.isCompleted),
       hasPrLink: !!issue.prLink,
       descriptionLength: issue.description?.length || 0,
     });
@@ -350,8 +354,11 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
 
   const deleteSubtask = async (subId: string) => {
     if (isViewer) return;
-    const updatedSubtasks = issue.subtasks.filter((s) => s.id !== subId);
-    onUpdateIssue({ ...issue, subtasks: updatedSubtasks });
+    const nextList = subtasks.filter((s) => s.id !== subId);
+    setSubtasks(nextList);
+    if (onUpdateIssueLocal) {
+      onUpdateIssueLocal({ ...issue, subtasks: nextList });
+    }
     if (expandedSubtaskId === subId) {
       setExpandedSubtaskId(null);
     }
@@ -371,7 +378,7 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
     if (isViewer) return;
     const newTitle = subtaskTitleInput.trim() || "";
     const newDesc = subtaskDescInput;
-    const updatedSubtasks = issue.subtasks.map((s) =>
+    const nextList = subtasks.map((s) =>
       s.id === subId
         ? {
             ...s,
@@ -380,7 +387,10 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
           }
         : s
     );
-    onUpdateIssue({ ...issue, subtasks: updatedSubtasks });
+    setSubtasks(nextList);
+    if (onUpdateIssueLocal) {
+      onUpdateIssueLocal({ ...issue, subtasks: nextList });
+    }
     notify.success("Đã lưu công việc phụ", "Cập nhật thành công.");
 
     if (!subId.startsWith("sub-") && !subId.startsWith("temp-")) {
@@ -401,14 +411,18 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
   };
 
   const toggleSubtask = async (subtaskId: string) => {
-    const target = issue.subtasks.find((s) => s.id === subtaskId);
+    if (isViewer) return;
+    const target = subtasks.find((s) => s.id === subtaskId);
     if (!target) return;
     const nextCompleted = !target.isCompleted;
 
-    const updatedSubtasks = issue.subtasks.map((s) =>
+    const nextList = subtasks.map((s) =>
       s.id === subtaskId ? { ...s, isCompleted: nextCompleted } : s
     );
-    onUpdateIssue({ ...issue, subtasks: updatedSubtasks });
+    setSubtasks(nextList);
+    if (onUpdateIssueLocal) {
+      onUpdateIssueLocal({ ...issue, subtasks: nextList });
+    }
 
     if (!subtaskId.startsWith("sub-") && !subtaskId.startsWith("temp-")) {
       try {
@@ -427,7 +441,7 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
   };
 
   const addSubtask = async () => {
-    if (!newSubtaskTitle.trim()) return;
+    if (!newSubtaskTitle.trim() || isViewer) return;
     const titleToAdd = newSubtaskTitle.trim();
     setNewSubtaskTitle("");
 
@@ -440,8 +454,11 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
     };
 
     // 1. Optimistic UI: Add immediately so user sees it in 0ms!
-    const optimisticList = [...issue.subtasks, newSub];
-    onUpdateIssue({ ...issue, subtasks: optimisticList });
+    const nextList = [...subtasks, newSub];
+    setSubtasks(nextList);
+    if (onUpdateIssueLocal) {
+      onUpdateIssueLocal({ ...issue, subtasks: nextList });
+    }
 
     // 2. Persist atomically to database
     try {
@@ -457,13 +474,33 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
       if (res.ok) {
         const savedSub: Subtask = await res.json();
         // Replace temp subtask with the real DB subtask (persisting UUID)
-        const finalizedList = issue.subtasks
-          .filter((s) => s.id !== tempSubId)
-          .concat(savedSub);
-        onUpdateIssue({ ...issue, subtasks: finalizedList });
+        setSubtasks((prev) => {
+          const replaced = prev.map((s) => (s.id === tempSubId ? savedSub : s));
+          if (onUpdateIssueLocal) {
+            onUpdateIssueLocal({ ...issue, subtasks: replaced });
+          }
+          return replaced;
+        });
+      } else {
+        // Rollback on server failure
+        setSubtasks((prev) => {
+          const filtered = prev.filter((s) => s.id !== tempSubId);
+          if (onUpdateIssueLocal) {
+            onUpdateIssueLocal({ ...issue, subtasks: filtered });
+          }
+          return filtered;
+        });
+        notify.error("Không thể tạo công việc phụ", "Vui lòng thử lại!");
       }
     } catch (err) {
       console.error("Failed to create subtask in DB:", err);
+      setSubtasks((prev) => {
+        const filtered = prev.filter((s) => s.id !== tempSubId);
+        if (onUpdateIssueLocal) {
+          onUpdateIssueLocal({ ...issue, subtasks: filtered });
+        }
+        return filtered;
+      });
       notify.error("Không thể tạo công việc phụ", "Vui lòng thử lại!");
     }
   };
@@ -677,12 +714,12 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
             <div className="w-full max-w-full min-w-0 overflow-hidden">
               <div className="flex items-center justify-between mb-2">
                 <label className="text-xs font-bold text-gray-700 dark:text-zinc-300 uppercase tracking-wider">
-                  Subtasks ({issue.subtasks.filter((s) => s.isCompleted).length}/{issue.subtasks.length})
+                  Subtasks ({subtasks.filter((s) => s.isCompleted).length}/{subtasks.length})
                 </label>
               </div>
 
               <div className="space-y-2 mb-3 w-full max-w-full min-w-0 overflow-hidden">
-                {issue.subtasks.map((sub) => {
+                {subtasks.map((sub) => {
                   const isExpanded = expandedSubtaskId === sub.id;
                   return (
                     <div

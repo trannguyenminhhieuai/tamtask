@@ -65,5 +65,14 @@ This workspace is integrated with **Mouse-1 Safeguards** via Antigravity lifecyc
   - Cạnh trên của Island Header của mỗi View phải thẳng hàng tuyệt đối với cạnh trên của Sidebar (`pt-4 = 16px`).
   - Logo thương hiệu TamTask trong Navbar căn thẳng hàng theo trục đứng với icon trong Sidebar khi Sidebar thu gọn (`w-16`).
 
+#### F. Quy tắc Xử lý Công việc phụ Nguyên tử (Atomic Subtask Architecture & Race Condition Prevention):
+- **Tách biệt luồng dữ liệu**: Tuyệt đối không gửi mảng `subtasks` qua `PATCH /api/issues/[id]` khi cập nhật thông tin chung của Issue.
+- **Endpoint nguyên tử độc lập**: Sử dụng endpoint `/api/issues/[id]/subtasks` cho toàn bộ thao tác thêm (`POST`), sửa/toggle (`PATCH`), xóa (`DELETE`).
+- **Client 0ms Optimistic UI**: Drawer quản lý `subtasks` qua React local state và cập nhật cache qua `onUpdateIssueLocal` ngay lập tức, tự động rollback khi API có lỗi mạng.
+
+#### G. Quy chuẩn Kích thước Màn hình Đăng nhập & Biểu tượng Tab Trình duyệt (Auth Layout & Favicon Standards):
+- **Form đăng nhập chuẩn hóa 16px**: Khung thẻ (Card container) `p-4 space-y-4`, form inputs `px-4 py-3`, OTP 2FA container `p-4`, nút bấm phân bổ khoảng cách `gap-4`.
+- **Favicon & Logo Tab Trình duyệt**: File vector SVG 32x32 (`public/favicon.svg` và `src/app/icon.svg`) với nền gradient Viettel Red `#EE0033` $\rightarrow$ `#C7002B`, bo góc `rx="8"`, chữ hoa "TT" trắng đậm nét chuẩn hiển thị rõ ràng trên mọi tab trình duyệt.
+
 
 

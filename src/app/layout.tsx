@@ -5,6 +5,13 @@ import { SessionWrapper } from "@/components/jira/SessionWrapper";
 export const metadata: Metadata = {
   title: "TamTask - Quản Trị Công Việc & Dự Án Thông Minh",
   description: "Nền tảng quản lý dự án hiện đại, mượt mà và bảo mật cao - Kiến tạo bởi Tammi",
+  icons: {
+    icon: [
+      { url: "/favicon.svg", type: "image/svg+xml" },
+    ],
+    shortcut: "/favicon.svg",
+    apple: "/favicon.svg",
+  },
 };
 
 export default function RootLayout({

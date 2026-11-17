@@ -175,11 +175,11 @@ export const AuthLandingScreen: React.FC = () => {
       </div>
 
       {/* Main Centered Login Section - Clean Jira Style with TamTask Red */}
-      <main className="flex-1 flex items-center justify-center px-4 py-8 sm:py-12 relative z-10">
-        <div className="w-full max-w-[420px] bg-white/95 dark:bg-zinc-900/95 backdrop-blur-2xl rounded-3xl shadow-[0_20px_60px_-15px_rgba(238,0,51,0.12)] dark:shadow-[0_20px_60px_-15px_rgba(0,0,0,0.6)] border border-slate-200/90 dark:border-zinc-800 p-7 sm:p-9 space-y-5 animate-in fade-in zoom-in-95 duration-200">
+      <main className="flex-1 flex items-center justify-center p-4 relative z-10">
+        <div className="w-full max-w-[420px] bg-white/95 dark:bg-zinc-900/95 backdrop-blur-2xl rounded-2xl shadow-[0_20px_60px_-15px_rgba(238,0,51,0.12)] dark:shadow-[0_20px_60px_-15px_rgba(0,0,0,0.6)] border border-slate-200/90 dark:border-zinc-800 p-4 space-y-4 animate-in fade-in zoom-in-95 duration-200">
           {/* Card Top Brand - Logo & System Wording */}
           <div className="text-center space-y-1">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#EE0033] to-[#C7002B] flex items-center justify-center text-white text-base font-black shadow-lg shadow-[#EE0033]/25 mx-auto mb-2.5">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#EE0033] to-[#C7002B] flex items-center justify-center text-white text-base font-black shadow-lg shadow-[#EE0033]/25 mx-auto mb-2">
               TT
             </div>
             <h2 className="text-xl sm:text-2xl font-extrabold text-[#111827] dark:text-zinc-100 tracking-tight">
@@ -191,7 +191,7 @@ export const AuthLandingScreen: React.FC = () => {
           </div>
 
           {errorMessage && (
-            <div className="p-3 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-[#EE0033] dark:text-rose-300 text-xs rounded-xl font-medium animate-in fade-in">
+            <div className="p-4 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-[#EE0033] dark:text-rose-300 text-xs rounded-xl font-medium animate-in fade-in">
               {errorMessage}
             </div>
           )}
@@ -203,7 +203,7 @@ export const AuthLandingScreen: React.FC = () => {
                 type="button"
                 onClick={handleGoogleLogin}
                 disabled={isLoading}
-                className="w-full flex items-center justify-center space-x-2.5 bg-white dark:bg-zinc-800 hover:bg-slate-50 dark:hover:bg-zinc-700/80 text-slate-800 dark:text-zinc-100 border border-slate-200 dark:border-zinc-700 py-2.5 rounded-xl text-xs font-semibold transition shadow-2xs disabled:opacity-50"
+                className="w-full flex items-center justify-center space-x-2.5 bg-white dark:bg-zinc-800 hover:bg-slate-50 dark:hover:bg-zinc-700/80 text-slate-800 dark:text-zinc-100 border border-slate-200 dark:border-zinc-700 py-3 px-4 rounded-xl text-xs font-semibold transition shadow-2xs disabled:opacity-50"
               >
                 <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
                   <path
@@ -236,7 +236,7 @@ export const AuthLandingScreen: React.FC = () => {
               </div>
 
               {/* Email & Password Form */}
-              <form onSubmit={handlePasswordSubmit} className="space-y-3.5">
+              <form onSubmit={handlePasswordSubmit} className="space-y-4">
                 <div>
                   <label className="block text-[11px] font-bold text-slate-700 dark:text-zinc-300 uppercase tracking-wider mb-1">
                     Email *
@@ -249,7 +249,7 @@ export const AuthLandingScreen: React.FC = () => {
                       value={emailInput}
                       onChange={(e) => setEmailInput(e.target.value)}
                       placeholder="Nhập email của bạn..."
-                      className="w-full text-xs pl-10 pr-3.5 py-2.5 bg-slate-50 dark:bg-zinc-800/80 border border-slate-200 dark:border-zinc-700 rounded-xl text-slate-900 dark:text-zinc-100 placeholder:text-slate-400 focus:bg-white dark:focus:bg-zinc-800 focus:outline-none focus:border-[#EE0033] focus:ring-3 focus:ring-[#EE0033]/15 transition font-medium"
+                      className="w-full text-xs pl-10 pr-4 py-3 bg-slate-50 dark:bg-zinc-800/80 border border-slate-200 dark:border-zinc-700 rounded-xl text-slate-900 dark:text-zinc-100 placeholder:text-slate-400 focus:bg-white dark:focus:bg-zinc-800 focus:outline-none focus:border-[#EE0033] focus:ring-2 focus:ring-[#EE0033]/15 transition font-medium"
                     />
                   </div>
                 </div>
@@ -266,12 +266,12 @@ export const AuthLandingScreen: React.FC = () => {
                       value={passwordInput}
                       onChange={(e) => setPasswordInput(e.target.value)}
                       placeholder="Nhập mật khẩu..."
-                      className="w-full text-xs pl-10 pr-10 py-2.5 bg-slate-50 dark:bg-zinc-800/80 border border-slate-200 dark:border-zinc-700 rounded-xl text-slate-900 dark:text-zinc-100 placeholder:text-slate-400 focus:bg-white dark:focus:bg-zinc-800 focus:outline-none focus:border-[#EE0033] focus:ring-3 focus:ring-[#EE0033]/15 transition font-medium"
+                      className="w-full text-xs pl-10 pr-10 py-3 bg-slate-50 dark:bg-zinc-800/80 border border-slate-200 dark:border-zinc-700 rounded-xl text-slate-900 dark:text-zinc-100 placeholder:text-slate-400 focus:bg-white dark:focus:bg-zinc-800 focus:outline-none focus:border-[#EE0033] focus:ring-2 focus:ring-[#EE0033]/15 transition font-medium"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 dark:hover:text-zinc-200 transition"
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 dark:hover:text-zinc-200 transition"
                       title={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
                     >
                       {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -295,7 +295,7 @@ export const AuthLandingScreen: React.FC = () => {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full flex items-center justify-center space-x-2 bg-[#EE0033] hover:bg-[#D6002E] active:bg-[#BD0029] text-white py-2.5 rounded-xl text-xs font-bold transition shadow-md shadow-[#EE0033]/25 disabled:opacity-50 mt-1 focus:ring-3 focus:ring-[#EE0033]/25"
+                  className="w-full flex items-center justify-center space-x-2 bg-[#EE0033] hover:bg-[#D6002E] active:bg-[#BD0029] text-white py-3 px-4 rounded-xl text-xs font-bold transition shadow-md shadow-[#EE0033]/25 disabled:opacity-50 mt-1 focus:ring-2 focus:ring-[#EE0033]/25"
                 >
                   <span>{isLoading ? "Đang xác thực..." : "Tiếp tục"}</span>
                   <ArrowRight className="w-4 h-4" />
@@ -304,7 +304,7 @@ export const AuthLandingScreen: React.FC = () => {
             </>
           ) : (
             <form onSubmit={handleOtpVerify} className="space-y-4 animate-in fade-in">
-              <div className="p-3.5 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 rounded-2xl space-y-1.5">
+              <div className="p-4 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 rounded-2xl space-y-2">
                 <div className="flex items-center justify-between text-xs font-bold text-[#EE0033]">
                   <div className="flex items-center gap-1.5">
                     <ShieldCheck className="w-4 h-4 text-[#EE0033]" />
@@ -338,23 +338,23 @@ export const AuthLandingScreen: React.FC = () => {
                     value={otpCode}
                     onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ""))}
                     placeholder="••••••"
-                    className="w-full text-center text-lg tracking-[0.35em] font-mono font-bold bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl py-2.5 text-slate-900 dark:text-zinc-100 focus:bg-white dark:focus:bg-zinc-800 focus:outline-none focus:border-[#EE0033] focus:ring-3 focus:ring-[#EE0033]/20 transition"
+                    className="w-full text-center text-lg tracking-[0.35em] font-mono font-bold bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl py-3 px-4 text-slate-900 dark:text-zinc-100 focus:bg-white dark:focus:bg-zinc-800 focus:outline-none focus:border-[#EE0033] focus:ring-2 focus:ring-[#EE0033]/20 transition"
                   />
                 </div>
               </div>
 
-              <div className="flex gap-2 pt-1">
+              <div className="flex gap-4 pt-1">
                 <button
                   type="button"
                   onClick={() => setStep("credentials")}
-                  className="w-1/3 bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 dark:hover:bg-zinc-700 text-slate-700 dark:text-zinc-200 text-xs font-semibold py-2.5 rounded-xl border border-slate-200 dark:border-zinc-700 transition"
+                  className="w-1/3 bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 dark:hover:bg-zinc-700 text-slate-700 dark:text-zinc-200 text-xs font-semibold py-3 px-4 rounded-xl border border-slate-200 dark:border-zinc-700 transition"
                 >
                   Quay lại
                 </button>
                 <button
                   type="submit"
                   disabled={isLoading || otpCode.length !== 6}
-                  className="w-2/3 bg-[#EE0033] hover:bg-[#D6002E] active:bg-[#BD0029] text-white text-xs font-bold py-2.5 rounded-xl transition shadow-xs flex items-center justify-center gap-1.5 disabled:opacity-50"
+                  className="w-2/3 bg-[#EE0033] hover:bg-[#D6002E] active:bg-[#BD0029] text-white text-xs font-bold py-3 px-4 rounded-xl transition shadow-xs flex items-center justify-center gap-1.5 disabled:opacity-50"
                 >
                   <CheckCircle2 className="w-4 h-4" />
                   <span>{isLoading ? "Đang xác minh..." : "Xác nhận"}</span>
@@ -364,7 +364,7 @@ export const AuthLandingScreen: React.FC = () => {
           )}
 
           {/* Footer Card Links (Like Jira) */}
-          <div className="pt-2 border-t border-slate-100 dark:border-zinc-800/80 text-center">
+          <div className="pt-3 border-t border-slate-100 dark:border-zinc-800/80 text-center">
             <span className="text-[11px] text-slate-400 dark:text-zinc-500">
               Bạn không đăng nhập được? Liên hệ Quản trị viên
             </span>
