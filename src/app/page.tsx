@@ -112,6 +112,21 @@ export default function JiraApp() {
     return CURRENT_USER;
   }, [session]);
 
+  // Helper: Persist issues list to localStorage SWR cache immediately (called after every write op)
+  const updateIssuesCache = useCallback((updatedIssues: Issue[]) => {
+    if (typeof window === "undefined") return;
+    try {
+      const uId = (session?.user as any)?.id || currentUser.id;
+      const userCacheKey = `tamtask_swr_cache_${uId}`;
+      // Read existing cache to preserve other keys (projects, users, epics, sprints)
+      const existing = localStorage.getItem(userCacheKey) || localStorage.getItem("tamtask_swr_cache");
+      const base = existing ? JSON.parse(existing) : {};
+      const updated = JSON.stringify({ ...base, issues: updatedIssues });
+      localStorage.setItem(userCacheKey, updated);
+      localStorage.setItem("tamtask_swr_cache", updated);
+    } catch {}
+  }, [session, currentUser.id]);
+
   // Instant SWR Hydration: Render cached state instantly on mount (0ms latency feel) scoped to user
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -275,16 +290,17 @@ export default function JiraApp() {
       }
 
       // Persist to user-scoped SWR cache for instant 0ms subsequent renders
+      // Always write valid arrays — never undefined — to prevent stale cache on F5
       if (typeof window !== "undefined") {
         try {
           const uId = (session?.user as any)?.id || currentUser.id;
           const userCacheKey = `tamtask_swr_cache_${uId}`;
           const cacheData = JSON.stringify({
-            projects: freshProjects,
-            issues: freshIssues,
-            users: freshUsers,
-            epics: freshEpics,
-            sprints: freshSprints,
+            projects: freshProjects ?? projects,
+            issues: freshIssues ?? issues,
+            users: freshUsers ?? users,
+            epics: freshEpics ?? epics,
+            sprints: freshSprints ?? sprints,
           });
           localStorage.setItem(userCacheKey, cacheData);
           localStorage.setItem("tamtask_swr_cache", cacheData);
@@ -487,17 +503,20 @@ export default function JiraApp() {
     const existing = issues.find((i) => i.id === issueId);
     const oldStatus = existing?.status;
 
-    setIssues((prev) =>
-      prev.map((i) =>
-        i.id === issueId
-          ? {
-              ...i,
-              status: newStatus,
-              updatedAt: new Date().toISOString().split("T")[0],
-            }
-          : i
-      )
+    // Optimistic update — apply immediately to UI
+    const updatedIssues = issues.map((i) =>
+      i.id === issueId
+        ? {
+            ...i,
+            status: newStatus,
+            updatedAt: new Date().toISOString().split("T")[0],
+          }
+        : i
     );
+    setIssues(updatedIssues);
+    // ✅ FIX Bug 2: Sync cache immediately so F5 shows new status, not old one
+    updateIssuesCache(updatedIssues);
+
     if (selectedIssue && selectedIssue.id === issueId) {
       setSelectedIssue((prev) => (prev ? { ...prev, status: newStatus } : null));
     }
@@ -581,7 +600,12 @@ export default function JiraApp() {
   // Delete Issue
   const handleDeleteIssue = async (issueId: string) => {
     const issueToDelete = issues.find((i) => i.id === issueId);
-    setIssues((prev) => prev.filter((i) => i.id !== issueId));
+    // ✅ FIX: Update cache immediately on delete so F5 doesn't show deleted item
+    setIssues((prev) => {
+      const updated = prev.filter((i) => i.id !== issueId);
+      updateIssuesCache(updated);
+      return updated;
+    });
     if (selectedIssue && selectedIssue.id === issueId) {
       setSelectedIssue(null);
     }
@@ -627,14 +651,19 @@ export default function JiraApp() {
 
       if (res.ok) {
         const created = await res.json();
-        setIssues((prev) => [created, ...prev]);
+        // ✅ FIX Bug 1: Add to state AND immediately sync to cache so F5 preserves the new task
+        setIssues((prev) => {
+          const updated = [created, ...prev];
+          updateIssuesCache(updated);
+          return updated;
+        });
         return;
       }
     } catch (err) {
       console.error("Failed to create issue in DB:", err);
     }
 
-    // Fallback local create
+    // Fallback local create (only when API fails)
     const projectPrefix = currentProject?.key || "JIRA";
     const nextIndex = issues.length + 101;
     const fallbackIssue: Issue = {

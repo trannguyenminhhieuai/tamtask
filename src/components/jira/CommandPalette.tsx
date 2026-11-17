@@ -247,16 +247,14 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                   key={item.id}
                   onClick={item.onSelect}
                   onMouseEnter={() => setSelectedIndex(idx)}
-                  className={`flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer transition-all ${
-                    isSelected
-                      ? "bg-rose-50 dark:bg-rose-950/30 text-slate-900 dark:text-zinc-100 shadow-xs"
-                      : "text-slate-700 dark:text-zinc-300 hover:bg-slate-50 dark:hover:bg-zinc-800/50"
-                  }`}
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer transition-all ${isSelected
+                    ? "bg-rose-50 dark:bg-rose-950/30 text-slate-900 dark:text-zinc-100 shadow-xs"
+                    : "text-slate-700 dark:text-zinc-300 hover:bg-slate-50 dark:hover:bg-zinc-800/50"
+                    }`}/*  */
                 >
                   <div
-                    className={`p-2 rounded-lg shrink-0 ${
-                      isSelected ? "bg-white dark:bg-zinc-800 shadow-xs" : "bg-slate-100 dark:bg-zinc-800 text-slate-500 dark:text-zinc-400"
-                    }`}
+                    className={`p-2 rounded-lg shrink-0 ${isSelected ? "bg-white dark:bg-zinc-800 shadow-xs" : "bg-slate-100 dark:bg-zinc-800 text-slate-500 dark:text-zinc-400"
+                      }`}
                   >
                     {item.icon}
                   </div>
