@@ -92,36 +92,94 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
+    if (!body.title || !body.title.trim()) {
+      return NextResponse.json({ error: "Tiêu đề công việc không được để trống." }, { status: 400 });
+    }
 
-    // Auto-generate next key e.g. JIRA-106 or PROJ-101
+    // 1. Resolve and validate Project
     let projectKey = "JIRA";
+    let projectId: string | null = null;
     if (body.projectId) {
       const proj = await prisma.project.findUnique({ where: { id: body.projectId } });
-      if (proj) projectKey = proj.key;
+      if (proj) {
+        projectId = proj.id;
+        projectKey = proj.key;
+      }
     }
-    const count = await prisma.issue.count({
-      where: body.projectId ? { projectId: body.projectId } : undefined,
+
+    // 2. Generate unique key safely (guaranteeing no unique key collision)
+    let count = await prisma.issue.count({
+      where: projectId ? { projectId } : undefined,
     });
-    const key = `${projectKey}-${101 + count}`;
+    let key = `${projectKey}-${101 + count}`;
+    while (await prisma.issue.findUnique({ where: { key } })) {
+      count++;
+      key = `${projectKey}-${101 + count}`;
+    }
+
+    // 3. Resolve valid Reporter (prioritize logged-in session user to prevent foreign-key failure)
+    let reporterId: string | null = null;
+    if (session?.user?.email) {
+      const dbSessionUser = await prisma.user.findUnique({
+        where: { email: session.user.email.toLowerCase().trim() },
+      });
+      if (dbSessionUser) reporterId = dbSessionUser.id;
+    }
+    if (!reporterId && body.reporterId) {
+      const checkReporter = await prisma.user.findUnique({ where: { id: body.reporterId } });
+      if (checkReporter) reporterId = checkReporter.id;
+    }
+    if (!reporterId) {
+      const fallbackUser = await prisma.user.findFirst();
+      if (fallbackUser) reporterId = fallbackUser.id;
+    }
+
+    // 4. Validate Assignee against DB to prevent foreign-key violation
+    let assigneeId: string | null = null;
+    if (body.assigneeId) {
+      const checkAssignee = await prisma.user.findUnique({ where: { id: body.assigneeId } });
+      if (checkAssignee) assigneeId = checkAssignee.id;
+    }
+
+    // 5. Validate Epic against DB
+    let epicId: string | null = null;
+    if (body.epicId) {
+      const checkEpic = await prisma.epic.findUnique({ where: { id: body.epicId } });
+      if (checkEpic) epicId = checkEpic.id;
+    }
+
+    // 6. Validate Sprint against DB
+    let sprintId: string | null = null;
+    if (body.sprintId) {
+      const checkSprint = await prisma.sprint.findUnique({ where: { id: body.sprintId } });
+      if (checkSprint) sprintId = checkSprint.id;
+    }
+
+    // Safe story points parsing
+    let storyPoints: number | null = null;
+    if (body.storyPoints !== undefined && body.storyPoints !== null && body.storyPoints !== "") {
+      const parsed = parseInt(String(body.storyPoints), 10);
+      if (!isNaN(parsed)) storyPoints = parsed;
+    }
 
     const newIssue = await prisma.issue.create({
       data: {
         key,
-        projectId: body.projectId || null,
+        projectId,
         type: body.type || "TASK",
-        title: body.title,
+        title: body.title.trim(),
         description: body.description || "",
         status: body.status || "TODO",
         priority: body.priority || "MEDIUM",
-        storyPoints: body.storyPoints ? parseInt(body.storyPoints) : null,
-        dueDate: body.dueDate,
-        prLink: body.prLink,
-        assigneeId: body.assigneeId || null,
-        reporterId: body.reporterId || null,
-        epicId: body.epicId || null,
-        sprintId: body.sprintId || null,
-        labels: body.labels || null,
-        originalEstimate: body.originalEstimate ? parseInt(body.originalEstimate) : null,
+        storyPoints,
+        dueDate: body.dueDate || null,
+        prLink: body.prLink || null,
+        assigneeId,
+        reporterId,
+        epicId,
+        sprintId,
+        labels: body.labels || "",
+        originalEstimate: body.originalEstimate ? parseInt(String(body.originalEstimate), 10) : null,
       },
       include: {
         assignee: true,
@@ -152,8 +210,8 @@ export async function POST(request: Request) {
     // Trigger Live Automation Dispatcher for newly created issue
     await dispatchAutomationEvent("ISSUE_CREATED", {
       issueId: newIssue.id,
-      actorId: body.reporterId || "u1",
-    });
+      actorId: reporterId || "u1",
+    }).catch(() => {});
 
     const finalCreated = await prisma.issue.findUnique({
       where: { id: newIssue.id },
@@ -191,9 +249,12 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json(finalCreated || newIssue, { status: 201 });
-  } catch (error) {
+  } catch (error: any) {
     console.error("POST /api/issues error:", error);
-    return NextResponse.json({ error: "Failed to create issue" }, { status: 500 });
+    return NextResponse.json(
+      { error: error?.message || "Failed to create issue" },
+      { status: 500 }
+    );
   }
 }
 

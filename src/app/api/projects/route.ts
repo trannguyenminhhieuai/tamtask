@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { seedDatabaseIfEmpty } from "@/lib/seed";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -34,6 +36,7 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
+    const session = await getServerSession(authOptions);
     const body = await request.json();
     if (!body.name || !body.key) {
       return NextResponse.json({ error: "Name and Key are required" }, { status: 400 });
@@ -50,25 +53,54 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: `Project key '${cleanKey}' đã tồn tại!` }, { status: 409 });
     }
 
+    // Resolve creator from session if available
+    let sessionUser = null;
+    if (session?.user?.email) {
+      sessionUser = await prisma.user.findUnique({
+        where: { email: session.user.email.toLowerCase().trim() },
+      });
+    }
+
+    // Resolve effective lead: priority to explicitly selected body.leadId, fallback to logged-in session user
+    let effectiveLeadId: string | null = null;
+    if (body.leadId) {
+      const checkLead = await prisma.user.findUnique({ where: { id: body.leadId } });
+      if (checkLead) effectiveLeadId = checkLead.id;
+    }
+    if (!effectiveLeadId && sessionUser) {
+      effectiveLeadId = sessionUser.id;
+    }
+
     // 1. Create Project
     const project = await prisma.project.create({
       data: {
         key: cleanKey,
         name: body.name.trim(),
         description: body.description || "",
-        leadId: body.leadId || null,
+        leadId: effectiveLeadId,
       },
     });
 
-    // 2. If leadId provided, assign as PROJECT_LEAD member
-    if (body.leadId) {
+    // 2. Assign lead as PROJECT_LEAD member
+    if (effectiveLeadId) {
       await prisma.projectMember.create({
         data: {
           projectId: project.id,
-          userId: body.leadId,
+          userId: effectiveLeadId,
           role: "PROJECT_LEAD",
         },
-      });
+      }).catch(() => {});
+    }
+
+    // Also ensure creator is a member if different from lead
+    if (sessionUser && sessionUser.id !== effectiveLeadId) {
+      await prisma.projectMember.create({
+        data: {
+          projectId: project.id,
+          userId: sessionUser.id,
+          role: "PROJECT_LEAD",
+        },
+      }).catch(() => {});
     }
 
     // 3. Auto-initialize default Epics with Viettel colors
@@ -121,7 +153,27 @@ export async function POST(request: Request) {
       },
     });
 
-    return NextResponse.json(project, { status: 201 });
+    // 6. Fetch complete created project with relations so frontend immediately receives full state
+    const finalProject = await prisma.project.findUnique({
+      where: { id: project.id },
+      include: {
+        lead: {
+          select: { id: true, name: true, email: true, avatar: true },
+        },
+        members: {
+          include: {
+            user: {
+              select: { id: true, name: true, email: true, avatar: true, role: true },
+            },
+          },
+        },
+        _count: {
+          select: { issues: true, sprints: true, members: true },
+        },
+      },
+    });
+
+    return NextResponse.json(finalProject || project, { status: 201 });
   } catch (error) {
     console.error("POST /api/projects error:", error);
     return NextResponse.json({ error: "Failed to create project" }, { status: 500 });

@@ -326,7 +326,7 @@ export default function JiraApp() {
     }
   }, []);
 
-  // Save current project to localStorage whenever it changes
+  // Save current project to localStorage and reset project-scoped filters whenever currentProject changes
   useEffect(() => {
     if (currentProject?.id && typeof window !== "undefined") {
       try {
@@ -340,6 +340,14 @@ export default function JiraApp() {
           localStorage.setItem(`tamtask_last_project_id_${uEmail}`, currentProject.id);
         }
       } catch {}
+
+      // Clear project-scoped sprint/epic/assignee filters to avoid hiding tasks in the new project
+      setFilterState((prev) => ({
+        ...prev,
+        sprintId: "",
+        epicIds: [],
+        assigneeIds: [],
+      }));
     }
   }, [currentProject?.id, session?.user, currentUser.id, currentUser.email]);
 
@@ -631,12 +639,13 @@ export default function JiraApp() {
   // Create Issue
   const handleCreateIssue = async (newIssueData: Partial<Issue>) => {
     try {
+      const targetProjectId = newIssueData.projectId || currentProject?.id || null;
       const res = await fetch("/api/issues", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           type: newIssueData.type || "TASK",
-          projectId: currentProject?.id || null,
+          projectId: targetProjectId,
           title: newIssueData.title,
           description: newIssueData.description,
           status: newIssueData.status || "TODO",
@@ -650,43 +659,26 @@ export default function JiraApp() {
       });
 
       if (res.ok) {
-        const created = await res.json();
-        // ✅ FIX Bug 1: Add to state AND immediately sync to cache so F5 preserves the new task
+        const created: Issue = await res.json();
+        // Add to state AND immediately sync to cache so F5 preserves the new task
         setIssues((prev) => {
           const updated = [created, ...prev];
           updateIssuesCache(updated);
           return updated;
         });
+        notify.success("Đã tạo công việc", `[${created.key}] ${created.title} đã được lưu thành công.`);
+        return;
+      } else {
+        const errJson = await res.json().catch(() => ({}));
+        console.error("Failed to create issue in DB:", res.status, errJson);
+        notify.error("Không thể tạo công việc", errJson.error || `Lỗi máy chủ (${res.status})`);
         return;
       }
     } catch (err) {
       console.error("Failed to create issue in DB:", err);
+      notify.error("Không thể tạo công việc", "Vui lòng kiểm tra lại kết nối mạng.");
+      return;
     }
-
-    // Fallback local create (only when API fails)
-    const projectPrefix = currentProject?.key || "JIRA";
-    const nextIndex = issues.length + 101;
-    const fallbackIssue: Issue = {
-      id: `iss-${Date.now()}`,
-      key: `${projectPrefix}-${nextIndex}`,
-      projectId: currentProject?.id,
-      type: newIssueData.type || "TASK",
-      title: newIssueData.title || "Untitled Issue",
-      description: newIssueData.description || "",
-      status: newIssueData.status || "TODO",
-      priority: newIssueData.priority || "MEDIUM",
-      assignee: newIssueData.assignee,
-      reporter: currentUser,
-      epic: newIssueData.epic,
-      sprintId: newIssueData.sprintId || activeSprint?.id,
-      storyPoints: newIssueData.storyPoints || 0,
-      subtasks: [],
-      attachments: [],
-      comments: [],
-      createdAt: new Date().toISOString().split("T")[0],
-      updatedAt: new Date().toISOString().split("T")[0],
-    };
-    setIssues((prev) => [fallbackIssue, ...prev]);
   };
 
   // Create Project
@@ -694,21 +686,49 @@ export default function JiraApp() {
     name: string;
     key: string;
     description: string;
+    leadId?: string;
   }) => {
     const res = await fetch("/api/projects", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
+      body: JSON.stringify({
+        ...data,
+        leadId: data.leadId || currentUser.id,
+      }),
     });
 
     if (!res.ok) {
-      const err = await res.json();
+      const err = await res.json().catch(() => ({}));
       throw new Error(err.error || "Không thể tạo dự án");
     }
 
     const createdProject: Project = await res.json();
+
+    // 1. Immediately persist user's last project to localStorage
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.setItem("tamtask_last_project_id", createdProject.id);
+        const uId = (session?.user as any)?.id || currentUser.id;
+        const uEmail = session?.user?.email || currentUser.email;
+        if (uId) localStorage.setItem(`tamtask_last_project_id_${uId}`, createdProject.id);
+        if (uEmail) localStorage.setItem(`tamtask_last_project_id_${uEmail}`, createdProject.id);
+      } catch {}
+    }
+
+    // 2. Clear filters so the new project starts clean
+    setFilterState({
+      searchQuery: "",
+      assigneeIds: [],
+      epicIds: [],
+      priorities: [],
+      sprintId: "",
+      onlyMyIssues: false,
+    });
+
+    // 3. Set newly created project and reload data
     setProjects((prev) => [...prev, createdProject]);
     setCurrentProject(createdProject);
+    notify.success("Đã tạo dự án mới", `Dự án [${createdProject.name}] (${createdProject.key}) đã được khởi tạo.`);
     await loadData();
   };
 

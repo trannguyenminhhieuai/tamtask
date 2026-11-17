@@ -43,6 +43,21 @@ export const CreateIssueModal: React.FC<CreateIssueModalProps> = ({
   const [isGeneratingCriteria, setIsGeneratingCriteria] = useState(false);
   const [aiMessage, setAiMessage] = useState<string | null>(null);
 
+  // Synchronize form fields to current project and its active sprint whenever opened
+  useEffect(() => {
+    if (isOpen) {
+      setTitle("");
+      setDescription("");
+      setAssigneeId("");
+      setEpicId("");
+      setStoryPoints("");
+      const activeSprint = sprints.find((s) => s.status === "ACTIVE");
+      setSprintId(activeSprint?.id || sprints[0]?.id || "");
+      setDuplicateMatches([]);
+      setAiMessage(null);
+    }
+  }, [isOpen, sprints, currentProject?.id]);
+
   // Mouse-1 Duplicate Detection state
   const [duplicateMatches, setDuplicateMatches] = useState<Array<{
     id: string;
