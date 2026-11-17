@@ -348,46 +348,124 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
   const [subtaskTitleInput, setSubtaskTitleInput] = useState<string>("");
   const [subtaskDescInput, setSubtaskDescInput] = useState<string>("");
 
-  const deleteSubtask = (subId: string) => {
+  const deleteSubtask = async (subId: string) => {
     if (isViewer) return;
     const updatedSubtasks = issue.subtasks.filter((s) => s.id !== subId);
     onUpdateIssue({ ...issue, subtasks: updatedSubtasks });
     if (expandedSubtaskId === subId) {
       setExpandedSubtaskId(null);
     }
+    // If it's a real subtask saved in DB, delete it atomically
+    if (!subId.startsWith("sub-") && !subId.startsWith("temp-")) {
+      try {
+        await fetch(`/api/issues/${issue.id}/subtasks?subtaskId=${subId}`, {
+          method: "DELETE",
+        });
+      } catch (err) {
+        console.error("Failed to delete subtask:", err);
+      }
+    }
   };
 
-  const saveSubtask = (subId: string) => {
+  const saveSubtask = async (subId: string) => {
     if (isViewer) return;
+    const newTitle = subtaskTitleInput.trim() || "";
+    const newDesc = subtaskDescInput;
     const updatedSubtasks = issue.subtasks.map((s) =>
       s.id === subId
         ? {
             ...s,
-            title: subtaskTitleInput.trim() || s.title,
-            description: subtaskDescInput,
+            title: newTitle || s.title,
+            description: newDesc,
           }
         : s
     );
     onUpdateIssue({ ...issue, subtasks: updatedSubtasks });
     notify.success("Đã lưu công việc phụ", "Cập nhật thành công.");
+
+    if (!subId.startsWith("sub-") && !subId.startsWith("temp-")) {
+      try {
+        await fetch(`/api/issues/${issue.id}/subtasks`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            subtaskId: subId,
+            title: newTitle,
+            description: newDesc,
+          }),
+        });
+      } catch (err) {
+        console.error("Failed to save subtask details:", err);
+      }
+    }
   };
 
-  const toggleSubtask = (subtaskId: string) => {
+  const toggleSubtask = async (subtaskId: string) => {
+    const target = issue.subtasks.find((s) => s.id === subtaskId);
+    if (!target) return;
+    const nextCompleted = !target.isCompleted;
+
     const updatedSubtasks = issue.subtasks.map((s) =>
-      s.id === subtaskId ? { ...s, isCompleted: !s.isCompleted } : s
+      s.id === subtaskId ? { ...s, isCompleted: nextCompleted } : s
     );
     onUpdateIssue({ ...issue, subtasks: updatedSubtasks });
+
+    if (!subtaskId.startsWith("sub-") && !subtaskId.startsWith("temp-")) {
+      try {
+        await fetch(`/api/issues/${issue.id}/subtasks`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            subtaskId,
+            isCompleted: nextCompleted,
+          }),
+        });
+      } catch (err) {
+        console.error("Failed to toggle subtask status:", err);
+      }
+    }
   };
 
-  const addSubtask = () => {
+  const addSubtask = async () => {
     if (!newSubtaskTitle.trim()) return;
+    const titleToAdd = newSubtaskTitle.trim();
+    setNewSubtaskTitle("");
+
+    const tempSubId = `sub-${Date.now()}`;
     const newSub: Subtask = {
-      id: `sub-${Date.now()}`,
-      title: newSubtaskTitle.trim(),
+      id: tempSubId,
+      title: titleToAdd,
+      description: "",
       isCompleted: false,
     };
-    onUpdateIssue({ ...issue, subtasks: [...issue.subtasks, newSub] });
-    setNewSubtaskTitle("");
+
+    // 1. Optimistic UI: Add immediately so user sees it in 0ms!
+    const optimisticList = [...issue.subtasks, newSub];
+    onUpdateIssue({ ...issue, subtasks: optimisticList });
+
+    // 2. Persist atomically to database
+    try {
+      const res = await fetch(`/api/issues/${issue.id}/subtasks`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: titleToAdd,
+          isCompleted: false,
+        }),
+      });
+
+      if (res.ok) {
+        const savedSub: Subtask = await res.json();
+        // Replace temp subtask with the real DB subtask (persisting UUID)
+        const finalizedList = issue.subtasks
+          .filter((s) => s.id !== tempSubId)
+          .concat(savedSub);
+        onUpdateIssue({ ...issue, subtasks: finalizedList });
+      }
+    } catch (err) {
+      console.error("Failed to create subtask in DB:", err);
+      notify.error("Không thể tạo công việc phụ", "Vui lòng thử lại!");
+    }
   };
 
   const addComment = async () => {

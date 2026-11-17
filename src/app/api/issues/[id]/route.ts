@@ -214,22 +214,24 @@ export async function PATCH(
       }).catch(() => {});
     }
 
-    // 3. Update subtasks if provided (Sync deletions, edits, and descriptions)
+    // 3. Update subtasks if provided (Safely sync deletions, edits, and creations without dropping parallel subtasks)
     if (body.subtasks && Array.isArray(body.subtasks)) {
-      const presentIds = body.subtasks
+      const presentRealIds = body.subtasks
         .map((st: any) => st.id)
-        .filter((id: string) => id && !id.startsWith("sub-"));
+        .filter((id: string) => id && !id.startsWith("sub-") && !id.startsWith("temp-"));
 
-      // Delete subtasks that were removed
-      await prisma.subtask.deleteMany({
-        where: {
-          issueId: params.id,
-          id: { notIn: presentIds },
-        },
-      }).catch(() => {});
+      // Only delete if client explicitly provided known existing IDs (prevents wiping out subtasks when adding new temp items)
+      if (presentRealIds.length > 0) {
+        await prisma.subtask.deleteMany({
+          where: {
+            issueId: params.id,
+            id: { notIn: presentRealIds },
+          },
+        }).catch(() => {});
+      }
 
       for (const st of body.subtasks) {
-        if (st.id && !st.id.startsWith("sub-")) {
+        if (st.id && !st.id.startsWith("sub-") && !st.id.startsWith("temp-")) {
           await prisma.subtask
             .update({
               where: { id: st.id },
@@ -240,11 +242,11 @@ export async function PATCH(
               },
             })
             .catch(() => {});
-        } else if (st.title) {
+        } else if (st.title && st.title.trim()) {
           await prisma.subtask
             .create({
               data: {
-                title: st.title,
+                title: st.title.trim(),
                 description: st.description || "",
                 isCompleted: Boolean(st.isCompleted),
                 issueId: params.id,

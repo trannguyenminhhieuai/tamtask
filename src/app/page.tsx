@@ -638,8 +638,41 @@ export default function JiraApp() {
 
   // Create Issue
   const handleCreateIssue = async (newIssueData: Partial<Issue>) => {
+    const targetProjectId = newIssueData.projectId || currentProject?.id || null;
+    const projectPrefix = currentProject?.key || "TASK";
+    const tempId = `temp-${Date.now()}`;
+    const nextIndex = issues.length + 101;
+    const tempKey = `${projectPrefix}-${nextIndex}`;
+
+    // 1. Optimistic task insertion for 0ms instant UI feedback
+    const optimisticIssue: Issue = {
+      id: tempId,
+      key: tempKey,
+      projectId: targetProjectId || undefined,
+      type: newIssueData.type || "TASK",
+      title: newIssueData.title || "Untitled Issue",
+      description: newIssueData.description || "",
+      status: newIssueData.status || "TODO",
+      priority: newIssueData.priority || "MEDIUM",
+      storyPoints: newIssueData.storyPoints || 0,
+      assignee: newIssueData.assignee || undefined,
+      reporter: currentUser,
+      epic: newIssueData.epic || undefined,
+      sprintId: newIssueData.sprintId || activeSprint?.id || undefined,
+      subtasks: [],
+      attachments: [],
+      comments: [],
+      createdAt: new Date().toISOString().split("T")[0],
+      updatedAt: new Date().toISOString().split("T")[0],
+    };
+
+    setIssues((prev) => {
+      const updated = [optimisticIssue, ...prev];
+      updateIssuesCache(updated);
+      return updated;
+    });
+
     try {
-      const targetProjectId = newIssueData.projectId || currentProject?.id || null;
       const res = await fetch("/api/issues", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -660,9 +693,9 @@ export default function JiraApp() {
 
       if (res.ok) {
         const created: Issue = await res.json();
-        // Add to state AND immediately sync to cache so F5 preserves the new task
+        // Replace optimistic task with the real DB task
         setIssues((prev) => {
-          const updated = [created, ...prev];
+          const updated = prev.map((i) => (i.id === tempId ? created : i));
           updateIssuesCache(updated);
           return updated;
         });
@@ -670,11 +703,23 @@ export default function JiraApp() {
         return;
       } else {
         const errJson = await res.json().catch(() => ({}));
+        // Rollback optimistic task on server error
+        setIssues((prev) => {
+          const updated = prev.filter((i) => i.id !== tempId);
+          updateIssuesCache(updated);
+          return updated;
+        });
         console.error("Failed to create issue in DB:", res.status, errJson);
         notify.error("Không thể tạo công việc", errJson.error || `Lỗi máy chủ (${res.status})`);
         return;
       }
     } catch (err) {
+      // Rollback optimistic task on network error
+      setIssues((prev) => {
+        const updated = prev.filter((i) => i.id !== tempId);
+        updateIssuesCache(updated);
+        return updated;
+      });
       console.error("Failed to create issue in DB:", err);
       notify.error("Không thể tạo công việc", "Vui lòng kiểm tra lại kết nối mạng.");
       return;
