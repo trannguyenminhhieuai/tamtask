@@ -410,7 +410,8 @@ export const CreateIssueModal: React.FC<CreateIssueModalProps> = ({
               </select>
             </div>
 
-            {/* Epic Link */}
+            {/* Epic Link — ẩn khi tạo EPIC vì Epic không thuộc Epic khác */}
+            {type !== "EPIC" && (
             <div>
               <label className="block text-xs font-bold text-gray-700 dark:text-zinc-300 uppercase tracking-wider mb-1">
                 Thuộc Epic
@@ -428,6 +429,7 @@ export const CreateIssueModal: React.FC<CreateIssueModalProps> = ({
                 ))}
               </select>
             </div>
+            )}
 
             {/* Priority */}
             <div>

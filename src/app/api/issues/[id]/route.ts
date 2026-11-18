@@ -188,8 +188,8 @@ export async function PATCH(
       }).catch(() => {});
     }
 
-    // Trigger notification if assigned to someone new
-    if (body.assigneeId && body.assigneeId !== existing.assigneeId) {
+    // Trigger notification if assigned to someone new (and not to actor themselves)
+    if (body.assigneeId && body.assigneeId !== existing.assigneeId && body.assigneeId !== actorId) {
       await prisma.notification.create({
         data: {
           userId: body.assigneeId,
@@ -201,8 +201,8 @@ export async function PATCH(
       }).catch(() => {});
     }
 
-    // Trigger notification if status changed to DONE
-    if (body.status === "DONE" && existing.status !== "DONE" && existing.reporterId) {
+    // Trigger notification if status changed to DONE (and not if actor is the reporter)
+    if (body.status === "DONE" && existing.status !== "DONE" && existing.reporterId && existing.reporterId !== actorId) {
       await prisma.notification.create({
         data: {
           userId: existing.reporterId,
@@ -258,6 +258,16 @@ export async function PATCH(
     }
 
     // 4. Update issue in Database
+    if (existing.type === "EPIC" && existing.epicId) {
+      await prisma.epic.update({
+        where: { id: existing.epicId },
+        data: {
+          ...(body.title !== undefined && { name: body.title.trim() }),
+          ...(body.description !== undefined && { summary: body.description }),
+        },
+      }).catch(() => {});
+    }
+
     const updated = await prisma.issue.update({
       where: { id: params.id },
       data,
@@ -378,6 +388,17 @@ export async function DELETE(
         { error: "Tài khoản Khách (VIEWER) không có quyền xóa công việc." },
         { status: 403 }
       );
+    }
+
+    const existing = await prisma.issue.findUnique({
+      where: { id: params.id },
+      select: { id: true, type: true, epicId: true },
+    });
+
+    if (existing?.type === "EPIC" && existing.epicId) {
+      await prisma.epic.delete({
+        where: { id: existing.epicId },
+      }).catch(() => {});
     }
 
     await prisma.issue.delete({

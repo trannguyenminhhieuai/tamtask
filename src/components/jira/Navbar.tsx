@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useEffect, useMemo } from "react";
+import React, { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import {
   Search,
   Plus,
@@ -110,23 +110,36 @@ export const Navbar: React.FC<NavbarProps> = ({
   const projectMenuRef = useRef<HTMLDivElement>(null);
   const notifMenuRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    fetch("/api/notifications")
-      .then((res) => res.json())
-      .then((data) => {
-        if (Array.isArray(data)) setNotifications(data);
-      })
-      .catch(() => {});
-  }, []);
-
   const displayUser = session?.user
     ? {
+        id: (session.user as any).id || currentUser.id,
         name: session.user.name || currentUser.name,
         email: session.user.email || currentUser.email,
         avatar: session.user.image || currentUser.avatar,
         role: (session.user as any).role || currentUser.role,
       }
     : currentUser;
+
+  const targetUserId = displayUser?.id;
+  const targetProjectId = currentProject?.id;
+
+  const fetchNotifications = useCallback(() => {
+    if (!targetUserId) return;
+    const url = targetProjectId
+      ? `/api/notifications?userId=${encodeURIComponent(targetUserId)}&projectId=${encodeURIComponent(targetProjectId)}`
+      : `/api/notifications?userId=${encodeURIComponent(targetUserId)}`;
+
+    fetch(url)
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data)) setNotifications(data);
+      })
+      .catch(() => {});
+  }, [targetUserId, targetProjectId]);
+
+  useEffect(() => {
+    fetchNotifications();
+  }, [fetchNotifications]);
 
   const currentRole = displayUser.role || "DEVELOPER";
   const roleConfig = ROLE_CONFIG[currentRole] || ROLE_CONFIG.DEVELOPER;
@@ -164,9 +177,22 @@ export const Navbar: React.FC<NavbarProps> = ({
       await fetch("/api/notifications", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ markAllAsRead: true }),
+        body: JSON.stringify({ markAllAsRead: true, userId: targetUserId }),
       });
     } catch {}
+  };
+
+  const handleNotificationClick = async (notif: NotificationItem) => {
+    if (!notif.isRead) {
+      setNotifications((prev) =>
+        prev.map((n) => (n.id === notif.id ? { ...n, isRead: true } : n))
+      );
+      fetch("/api/notifications", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: notif.id, userId: targetUserId }),
+      }).catch(() => {});
+    }
   };
 
   const [isDarkMode, setIsDarkMode] = useState(false);
@@ -420,6 +446,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   notifications.map((n) => (
                     <div
                       key={n.id}
+                      onClick={() => handleNotificationClick(n)}
                       className={`p-3 hover:bg-slate-50 dark:hover:bg-zinc-800/60 transition cursor-pointer flex items-start space-x-2.5 ${
                         !n.isRead ? "bg-rose-50/40 dark:bg-rose-950/20" : ""
                       }`}

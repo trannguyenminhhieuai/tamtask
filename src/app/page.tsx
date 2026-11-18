@@ -127,6 +127,20 @@ export default function JiraApp() {
     } catch {}
   }, [session, currentUser.id]);
 
+  // Helper: Persist epics list to localStorage SWR cache immediately
+  const updateEpicsCache = useCallback((updatedEpics: Epic[]) => {
+    if (typeof window === "undefined") return;
+    try {
+      const uId = (session?.user as any)?.id || currentUser.id;
+      const userCacheKey = `tamtask_swr_cache_${uId}`;
+      const existing = localStorage.getItem(userCacheKey) || localStorage.getItem("tamtask_swr_cache");
+      const base = existing ? JSON.parse(existing) : {};
+      const updated = JSON.stringify({ ...base, epics: updatedEpics });
+      localStorage.setItem(userCacheKey, updated);
+      localStorage.setItem("tamtask_swr_cache", updated);
+    } catch {}
+  }, [session, currentUser.id]);
+
   // Instant SWR Hydration: Render cached state instantly on mount (0ms latency feel) scoped to user
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -629,6 +643,20 @@ export default function JiraApp() {
       updateIssuesCache(updated);
       return updated;
     });
+
+    // If an Epic issue was deleted, also clean up the epics list and cache
+    if (issueToDelete?.type === "EPIC") {
+      setEpics((prev) => {
+        const next = prev.filter(
+          (e) =>
+            e.id !== issueToDelete.epic?.id &&
+            e.name.toLowerCase() !== issueToDelete.title.toLowerCase()
+        );
+        updateEpicsCache(next);
+        return next;
+      });
+    }
+
     if (selectedIssue && selectedIssue.id === issueId) {
       setSelectedIssue(null);
     }
@@ -659,6 +687,23 @@ export default function JiraApp() {
     const nextIndex = issues.length + 101;
     const tempKey = `${projectPrefix}-${nextIndex}`;
 
+    // Optimistic epic creation if creating an EPIC
+    let createdTempEpic: Epic | null = null;
+    if (newIssueData.type === "EPIC") {
+      createdTempEpic = {
+        id: `epic-${Date.now()}`,
+        name: newIssueData.title || "Untitled Epic",
+        summary: newIssueData.description || "",
+        color: "#6554C0",
+        projectId: targetProjectId || undefined,
+      };
+      setEpics((prev) => {
+        const next = [createdTempEpic!, ...prev];
+        updateEpicsCache(next);
+        return next;
+      });
+    }
+
     // 1. Optimistic task insertion for 0ms instant UI feedback
     const optimisticIssue: Issue = {
       id: tempId,
@@ -672,7 +717,7 @@ export default function JiraApp() {
       storyPoints: newIssueData.storyPoints || 0,
       assignee: newIssueData.assignee || undefined,
       reporter: currentUser,
-      epic: newIssueData.epic || undefined,
+      epic: createdTempEpic || newIssueData.epic || undefined,
       sprintId: newIssueData.sprintId || activeSprint?.id || undefined,
       subtasks: [],
       attachments: [],
@@ -714,6 +759,23 @@ export default function JiraApp() {
           updateIssuesCache(updated);
           return updated;
         });
+
+        // If an Epic was created, synchronize epics list with real DB record
+        if (created.type === "EPIC" && created.epic) {
+          setEpics((prev) => {
+            const next = [
+              created.epic!,
+              ...prev.filter(
+                (e) =>
+                  e.id !== created.epic!.id &&
+                  (!createdTempEpic || e.id !== createdTempEpic.id)
+              ),
+            ];
+            updateEpicsCache(next);
+            return next;
+          });
+        }
+
         notify.success("Đã tạo công việc", `[${created.key}] ${created.title} đã được lưu thành công.`);
         return;
       } else {
@@ -724,6 +786,13 @@ export default function JiraApp() {
           updateIssuesCache(updated);
           return updated;
         });
+        if (createdTempEpic) {
+          setEpics((prev) => {
+            const next = prev.filter((e) => e.id !== createdTempEpic!.id);
+            updateEpicsCache(next);
+            return next;
+          });
+        }
         console.error("Failed to create issue in DB:", res.status, errJson);
         notify.error("Không thể tạo công việc", errJson.error || `Lỗi máy chủ (${res.status})`);
         return;
@@ -735,6 +804,13 @@ export default function JiraApp() {
         updateIssuesCache(updated);
         return updated;
       });
+      if (createdTempEpic) {
+        setEpics((prev) => {
+          const next = prev.filter((e) => e.id !== createdTempEpic!.id);
+          updateEpicsCache(next);
+          return next;
+        });
+      }
       console.error("Failed to create issue in DB:", err);
       notify.error("Không thể tạo công việc", "Vui lòng kiểm tra lại kết nối mạng.");
       return;

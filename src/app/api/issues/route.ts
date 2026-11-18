@@ -141,9 +141,30 @@ export async function POST(request: Request) {
       if (checkAssignee) assigneeId = checkAssignee.id;
     }
 
-    // 5. Validate Epic against DB
+    // 5. Validate Epic against DB (or auto-create Epic record if issue type is EPIC)
     let epicId: string | null = null;
-    if (body.epicId) {
+    if (body.type === "EPIC") {
+      const epicColors = [
+        "#0052CC", // Blue
+        "#6554C0", // Purple
+        "#00875A", // Forest Green
+        "#FF5630", // Red Coral
+        "#FFAB00", // Amber
+        "#36B37E", // Emerald
+        "#00B8D9", // Teal
+        "#E56910", // Warm Orange
+      ];
+      const randomColor = epicColors[Math.floor(Math.random() * epicColors.length)];
+      const createdEpic = await prisma.epic.create({
+        data: {
+          name: body.title.trim(),
+          summary: body.description || "",
+          color: randomColor,
+          projectId: projectId || null,
+        },
+      });
+      epicId = createdEpic.id;
+    } else if (body.epicId) {
       const checkEpic = await prisma.epic.findUnique({ where: { id: body.epicId } });
       if (checkEpic) epicId = checkEpic.id;
     }
@@ -194,8 +215,8 @@ export async function POST(request: Request) {
       },
     });
 
-    // If assigned, create a notification
-    if (newIssue.assigneeId) {
+    // If assigned to another user, create a notification
+    if (newIssue.assigneeId && newIssue.assigneeId !== reporterId) {
       await prisma.notification.create({
         data: {
           userId: newIssue.assigneeId,
