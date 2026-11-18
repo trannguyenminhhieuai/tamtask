@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { Navbar } from "@/components/jira/Navbar";
 import { Sidebar, NavView } from "@/components/jira/Sidebar";
@@ -72,6 +72,10 @@ export default function JiraApp() {
   const [sprints, setSprints] = useState<Sprint[]>(MOCK_SPRINTS);
   const [statuses, setStatuses] = useState<WorkflowStatus[]>(DEFAULT_STATUSES);
   const [isLoadingData, setIsLoadingData] = useState(true);
+
+  // Ref to prevent auto-switching to default project after user has logged in once
+  // Prevents loadData() re-runs (triggered by issue/project updates) from resetting currentProject
+  const hasAutoSwitchedOnLoginRef = useRef(false);
 
   // Modals & Drawers State
   const [selectedIssue, setSelectedIssue] = useState<Issue | null>(null);
@@ -204,6 +208,18 @@ export default function JiraApp() {
             // Prioritize projects actively assigned to this logged-in user
             const assigned = projectsData.filter((p) => isUserAssignedToProject(p, uId, uEmail));
 
+            // === CRITICAL FIX: If user already has a valid project selected, just refresh its reference ===
+            // This prevents every loadData() call from switching projects back to the default.
+            if (prev) {
+              const refreshedPrev = projectsData.find((p) => p.id === prev.id);
+              if (refreshedPrev) {
+                // Only keep this project if user is still assigned (or is ADMIN)
+                const stillAssigned =
+                  currentUser.role === "ADMIN" || isUserAssignedToProject(refreshedPrev, uId, uEmail);
+                if (stillAssigned) return refreshedPrev;
+              }
+            }
+
             // Load user-specific last accessed project from localStorage
             let userLastId: string | null = null;
             if (typeof window !== "undefined") {
@@ -219,11 +235,6 @@ export default function JiraApp() {
                 const matchedLast = assigned.find((p) => p.id === userLastId || p.key === userLastId);
                 if (matchedLast) return matchedLast;
               }
-              if (prev && assigned.some((p) => p.id === prev.id)) {
-                const matchedPrev = assigned.find((p) => p.id === prev.id);
-                if (matchedPrev) return matchedPrev;
-              }
-              // Automatically switch to user's assigned project immediately!
               return assigned[0];
             }
 
@@ -235,10 +246,6 @@ export default function JiraApp() {
 
             const candidateList = accessible.length > 0 ? accessible : projectsData;
 
-            if (prev) {
-              const matched = candidateList.find((p) => p.id === prev.id);
-              if (matched) return matched;
-            }
             if (typeof window !== "undefined") {
               try {
                 const lastId = localStorage.getItem("tamtask_last_project_id");
@@ -365,17 +372,22 @@ export default function JiraApp() {
     }
   }, [currentProject?.id, session?.user, currentUser.id, currentUser.email]);
 
-  // Automatically switch to user's assigned project immediately upon login
+  // Automatically switch to user's assigned project ONCE upon login (not on every data refresh)
   useEffect(() => {
     if (authStatus === "authenticated" && session?.user && projects.length > 0) {
+      // === CRITICAL FIX: Only run this logic once per login session ===
+      // After the first successful auto-switch, never re-run to avoid overriding user's project choice
+      if (hasAutoSwitchedOnLoginRef.current) return;
+
       const uId = (session.user as any).id || currentUser.id;
       const uEmail = session.user.email || currentUser.email;
 
       const myAssigned = projects.filter((p) => isUserAssignedToProject(p, uId, uEmail));
 
       if (myAssigned.length > 0) {
-        // If current project is already one of the user's assigned projects, don't interrupt
+        // If current project is already one of the user's assigned projects, mark done and stop
         if (currentProject && myAssigned.some((p) => p.id === currentProject.id)) {
+          hasAutoSwitchedOnLoginRef.current = true;
           return;
         }
 
@@ -391,27 +403,43 @@ export default function JiraApp() {
           const match = myAssigned.find((p) => p.id === userLastId || p.key === userLastId);
           if (match) {
             setCurrentProject(match);
+            hasAutoSwitchedOnLoginRef.current = true;
             return;
           }
         }
 
-        // Otherwise switch directly to their assigned project!
+        // Otherwise switch directly to their first assigned project
         setCurrentProject(myAssigned[0]);
+        hasAutoSwitchedOnLoginRef.current = true;
       }
     }
   }, [authStatus, session, projects]);
 
   // Guard project access: Ensure non-admin users cannot stay on an inaccessible project
+  // === CRITICAL FIX: Check by ID in the REFRESHED projects list, not stale currentProject reference ===
   useEffect(() => {
     if (currentUser.role !== "ADMIN" && currentProject && projects.length > 0) {
-      const isAssigned = isUserAssignedToProject(currentProject, currentUser.id, currentUser.email);
-      if (!isAssigned) {
-        const accessible = projects.filter((p) =>
-          isUserAssignedToProject(p, currentUser.id, currentUser.email)
-        );
-        if (accessible.length > 0) {
-          setCurrentProject(accessible[0]);
+      // Find the refreshed version of the current project by ID in the new projects list
+      const refreshedCurrentProject = projects.find((p) => p.id === currentProject.id);
+
+      if (refreshedCurrentProject) {
+        // Project still exists — check if user is still assigned to it
+        const isAssigned = isUserAssignedToProject(refreshedCurrentProject, currentUser.id, currentUser.email);
+        if (isAssigned) {
+          // User is still assigned — update reference to fresh data WITHOUT switching project
+          if (refreshedCurrentProject !== currentProject) {
+            setCurrentProject(refreshedCurrentProject);
+          }
+          return;
         }
+      }
+
+      // User is truly no longer assigned to current project (or project was deleted) — switch to fallback
+      const accessible = projects.filter((p) =>
+        isUserAssignedToProject(p, currentUser.id, currentUser.email)
+      );
+      if (accessible.length > 0) {
+        setCurrentProject(accessible[0]);
       }
     }
   }, [currentUser, currentProject, projects]);
