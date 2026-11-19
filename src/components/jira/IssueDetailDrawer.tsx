@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Issue, IssueStatus, IssuePriority, User, Epic, Subtask, WorkflowStatus, IssueLink, IssueLinkType, Worklog } from "@/types/jira";
+import { Issue, IssueStatus, IssuePriority, User, Epic, Sprint, Subtask, WorkflowStatus, IssueLink, IssueLinkType, Worklog } from "@/types/jira";
 import {
   X,
   Plus,
@@ -34,6 +34,7 @@ interface IssueDetailDrawerProps {
   allIssues?: Issue[];
   users: User[];
   epics: Epic[];
+  sprints?: Sprint[];
   statuses?: WorkflowStatus[];
   currentUser: User;
   onClose: () => void;
@@ -48,6 +49,7 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
   allIssues = [],
   users,
   epics,
+  sprints = [],
   statuses,
   currentUser,
   onClose,
@@ -1528,6 +1530,35 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
                 placeholder="0"
                 min="0"
               />
+            </div>
+
+            {/* Sprint Selector */}
+            <div>
+              <label className="block text-[11px] font-bold text-slate-600 dark:text-zinc-400 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                <Calendar className="w-3.5 h-3.5 text-slate-400 dark:text-zinc-500" />
+                Chu kỳ phát triển (Sprint)
+              </label>
+              <select
+                value={issue.sprintId || ""}
+                disabled={isViewer}
+                onChange={(e) =>
+                  onUpdateIssue({
+                    ...issue,
+                    sprintId: e.target.value || undefined,
+                  })
+                }
+                className={`w-full text-xs font-medium border rounded-xl px-3.5 py-2 transition focus:outline-none focus:ring-2 focus:ring-[#EE0033]/20 focus:border-[#EE0033] ${isViewer
+                  ? "bg-gray-100 dark:bg-zinc-800 text-gray-500 dark:text-zinc-500 cursor-not-allowed border-slate-200 dark:border-zinc-700"
+                  : "bg-white dark:bg-zinc-800 text-slate-900 dark:text-zinc-100 border-slate-200 dark:border-zinc-700 shadow-2xs"
+                  }`}
+              >
+                <option value="" className="dark:bg-zinc-800">Hàng đợi công việc (Backlog)</option>
+                {sprints.map((s) => (
+                  <option key={s.id} value={s.id} className="dark:bg-zinc-800">
+                    {s.name} ({s.status === "ACTIVE" ? "Đang chạy" : s.status === "PLANNED" ? "Kế hoạch" : s.status})
+                  </option>
+                ))}
+              </select>
             </div>
 
             {/* Labels (Nhãn) */}

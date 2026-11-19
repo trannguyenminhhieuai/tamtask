@@ -32,6 +32,7 @@ import {
 import {
   Issue,
   IssueStatus,
+  IssueType,
   FilterState,
   User,
   Epic,
@@ -87,6 +88,8 @@ export default function JiraApp() {
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const [isShortcutsModalOpen, setIsShortcutsModalOpen] = useState(false);
   const [createInitialStatus, setCreateInitialStatus] = useState<IssueStatus>("TODO");
+  const [createInitialType, setCreateInitialType] = useState<IssueType>("TASK");
+  const [createInitialSprintId, setCreateInitialSprintId] = useState<string>("");
 
   // Filtering State
   const [filterState, setFilterState] = useState<FilterState>({
@@ -466,6 +469,8 @@ export default function JiraApp() {
       // 2. Quick Create: 'c'
       if (e.key === "c" || e.key === "C") {
         e.preventDefault();
+        setCreateInitialType(currentView === "BACKLOG" ? "STORY" : "TASK");
+        setCreateInitialSprintId(currentView === "BACKLOG" ? "" : (activeSprint?.id || ""));
         setIsCreateModalOpen(true);
       }
 
@@ -635,7 +640,7 @@ export default function JiraApp() {
           assigneeId: updated.assignee?.id,
           assigneeName: updated.assignee?.name,
           epicId: updated.epic?.id,
-          sprintId: updated.sprintId,
+          sprintId: updated.sprintId ? updated.sprintId : null,
           prLink: updated.prLink,
           labels: updated.labels,
           attachments: updated.attachments,
@@ -732,6 +737,13 @@ export default function JiraApp() {
       });
     }
 
+    // Explicit sprint handling: if sprintId was set (even to "" or null for Backlog), respect it;
+    // only fallback to activeSprint when sprintId is undefined AND on Kanban BOARD view
+    const targetSprintId =
+      newIssueData.sprintId !== undefined
+        ? (newIssueData.sprintId || null)
+        : (currentView === "BOARD" ? activeSprint?.id || null : null);
+
     // 1. Optimistic task insertion for 0ms instant UI feedback
     const optimisticIssue: Issue = {
       id: tempId,
@@ -746,7 +758,7 @@ export default function JiraApp() {
       assignee: newIssueData.assignee || undefined,
       reporter: currentUser,
       epic: createdTempEpic || newIssueData.epic || undefined,
-      sprintId: newIssueData.sprintId || activeSprint?.id || undefined,
+      sprintId: targetSprintId || undefined,
       subtasks: [],
       attachments: [],
       comments: [],
@@ -775,7 +787,7 @@ export default function JiraApp() {
           assigneeId: newIssueData.assignee?.id,
           reporterId: currentUser.id,
           epicId: newIssueData.epic?.id,
-          sprintId: newIssueData.sprintId || activeSprint?.id || null,
+          sprintId: targetSprintId,
         }),
       });
 
@@ -898,6 +910,8 @@ export default function JiraApp() {
 
   const handleOpenCreateInStatus = (status: IssueStatus) => {
     setCreateInitialStatus(status);
+    setCreateInitialType("TASK");
+    setCreateInitialSprintId(activeSprint?.id || "");
     setIsCreateModalOpen(true);
   };
 
@@ -1221,7 +1235,11 @@ export default function JiraApp() {
           }}
           onOpenCreateProject={() => setIsCreateProjectModalOpen(true)}
           onOpenProjectMembers={() => setIsProjectMembersModalOpen(true)}
-          onCreateIssueClick={() => setIsCreateModalOpen(true)}
+          onCreateIssueClick={() => {
+            setCreateInitialType(currentView === "BACKLOG" ? "STORY" : "TASK");
+            setCreateInitialSprintId(currentView === "BACKLOG" ? "" : (activeSprint?.id || ""));
+            setIsCreateModalOpen(true);
+          }}
           searchQuery={filterState.searchQuery}
           onSearchChange={(query) =>
             setFilterState({ ...filterState, searchQuery: query })
@@ -1291,7 +1309,11 @@ export default function JiraApp() {
               currentUser={currentUser}
               isLoading={isLoadingData}
               onIssueClick={setSelectedIssue}
-              onCreateIssueClick={() => setIsCreateModalOpen(true)}
+              onCreateIssueClick={() => {
+                setCreateInitialType("STORY");
+                setCreateInitialSprintId("");
+                setIsCreateModalOpen(true);
+              }}
               onCreateSprint={handleCreateSprint}
               onStartSprint={handleStartSprint}
               onCompleteSprint={handleCompleteSprint}
@@ -1343,6 +1365,7 @@ export default function JiraApp() {
         allIssues={issues}
         users={projectUsers}
         epics={projectEpics}
+        sprints={projectSprints}
         statuses={statuses}
         currentUser={currentUser}
         onClose={() => setSelectedIssue(null)}
@@ -1361,6 +1384,8 @@ export default function JiraApp() {
         currentUser={currentUser}
         currentProject={currentProject}
         initialStatus={createInitialStatus}
+        initialType={createInitialType}
+        initialSprintId={createInitialSprintId}
         onClose={() => setIsCreateModalOpen(false)}
         onCreate={handleCreateIssue}
       />

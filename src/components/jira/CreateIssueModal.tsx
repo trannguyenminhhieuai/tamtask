@@ -14,6 +14,8 @@ interface CreateIssueModalProps {
   currentUser: User;
   currentProject?: Project | null;
   initialStatus?: IssueStatus;
+  initialType?: IssueType;
+  initialSprintId?: string;
   onClose: () => void;
   onCreate: (newIssue: Partial<Issue>) => void;
 }
@@ -26,37 +28,39 @@ export const CreateIssueModal: React.FC<CreateIssueModalProps> = ({
   currentUser,
   currentProject,
   initialStatus = "TODO",
+  initialType = "TASK",
+  initialSprintId = "",
   onClose,
   onCreate,
 }) => {
   if (!isOpen) return null;
 
-  const [type, setType] = useState<IssueType>("TASK");
+  const [type, setType] = useState<IssueType>(initialType);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [assigneeId, setAssigneeId] = useState("");
   const [epicId, setEpicId] = useState("");
   const [priority, setPriority] = useState<IssuePriority>("MEDIUM");
   const [storyPoints, setStoryPoints] = useState<string>("");
-  const [sprintId, setSprintId] = useState(sprints[0]?.id || "");
+  const [sprintId, setSprintId] = useState(initialSprintId);
   const [isAiSuggesting, setIsAiSuggesting] = useState(false);
   const [isGeneratingCriteria, setIsGeneratingCriteria] = useState(false);
   const [aiMessage, setAiMessage] = useState<string | null>(null);
 
-  // Synchronize form fields to current project and its active sprint whenever opened
+  // Synchronize form fields whenever opened
   useEffect(() => {
     if (isOpen) {
+      setType(initialType);
       setTitle("");
       setDescription("");
       setAssigneeId("");
       setEpicId("");
       setStoryPoints("");
-      const activeSprint = sprints.find((s) => s.status === "ACTIVE");
-      setSprintId(activeSprint?.id || sprints[0]?.id || "");
+      setSprintId(initialSprintId);
       setDuplicateMatches([]);
       setAiMessage(null);
     }
-  }, [isOpen, sprints, currentProject?.id]);
+  }, [isOpen, sprints, currentProject?.id, initialType, initialSprintId]);
 
   // Mouse-1 Duplicate Detection state
   const [duplicateMatches, setDuplicateMatches] = useState<Array<{
