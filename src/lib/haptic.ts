@@ -9,7 +9,19 @@ export const haptic = {
       navigator.vibrate(10);
     }
   },
-  /** Medium pulse — for drag-drop complete, task done */
+  /** Selection tap for tab navigation */
+  selection: () => {
+    if (typeof navigator !== "undefined" && "vibrate" in navigator) {
+      navigator.vibrate(8);
+    }
+  },
+  /** Medium pulse — for button press or creation */
+  medium: () => {
+    if (typeof navigator !== "undefined" && "vibrate" in navigator) {
+      navigator.vibrate(20);
+    }
+  },
+  /** Success pulse — for drag-drop complete, task done */
   success: () => {
     if (typeof navigator !== "undefined" && "vibrate" in navigator) {
       navigator.vibrate([15, 30, 15]);

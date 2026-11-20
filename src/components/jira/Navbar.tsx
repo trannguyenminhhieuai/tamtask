@@ -407,7 +407,14 @@ export const Navbar: React.FC<NavbarProps> = ({
           <div className="flex items-center space-x-2.5 truncate">
             <Search className="w-3.5 h-3.5 text-[#9B9B9B] group-hover:text-[#EE0033] transition-colors shrink-0" />
             <span className="truncate">
-              {searchQuery ? `"${searchQuery}"` : "Tìm nhanh task, dự án, lệnh... (Ctrl + K)"}
+              {searchQuery ? (
+                `"${searchQuery}"`
+              ) : (
+                <>
+                  <span className="hidden sm:inline">Tìm nhanh task, dự án, lệnh... (Ctrl + K)</span>
+                  <span className="sm:hidden">Tìm kiếm...</span>
+                </>
+              )}
             </span>
           </div>
           <kbd className="hidden sm:inline-flex items-center text-[10px] bg-white/80 dark:bg-zinc-700/80 border border-[#D7D7D7]/60 dark:border-zinc-600/80 text-[#111827] dark:text-zinc-200 px-2 py-0.5 rounded-full font-mono font-semibold shadow-2xs shrink-0">
@@ -434,11 +441,12 @@ export const Navbar: React.FC<NavbarProps> = ({
         {canCreateIssue ? (
           <button
             onClick={onCreateIssueClick}
-            className="flex items-center space-x-1.5 bg-[#EE0033] hover:bg-[#D6002E] active:bg-[#BD0029] focus:ring-3 focus:ring-[#EE0033]/20 text-white text-xs font-semibold px-3.5 sm:px-4 py-1.5 rounded-full transition shadow-xs shrink-0"
+            className="flex items-center space-x-1 sm:space-x-1.5 bg-[#EE0033] hover:bg-[#D6002E] active:bg-[#BD0029] focus:ring-3 focus:ring-[#EE0033]/20 text-white text-xs font-semibold px-2.5 sm:px-4 py-1.5 rounded-full transition shadow-xs shrink-0"
             title="Tạo mới công việc / task"
           >
             <Plus className="w-4 h-4 text-white shrink-0" />
-            <span>Thêm mới</span>
+            <span className="hidden sm:inline">Thêm mới</span>
+            <span className="sm:hidden">Mới</span>
           </button>
         ) : (
           <div

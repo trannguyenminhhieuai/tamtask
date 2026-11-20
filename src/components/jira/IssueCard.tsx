@@ -234,7 +234,7 @@ export const IssueCard: React.FC<IssueCardProps> = ({
               e.stopPropagation();
               setShowQuickMenu((prev) => !prev);
             }}
-            className="p-1 -mr-1 -mt-1 text-slate-400 hover:text-slate-700 dark:hover:text-zinc-200 hover:bg-slate-100 dark:hover:bg-zinc-800 rounded-lg transition opacity-0 group-hover:opacity-100 focus:opacity-100"
+            className="p-1.5 -mr-1 -mt-1 text-slate-400 hover:text-slate-700 dark:hover:text-zinc-200 hover:bg-slate-100 dark:hover:bg-zinc-800 rounded-lg transition opacity-70 md:opacity-0 md:group-hover:opacity-100 focus:opacity-100 touch-manipulation"
             title="Thao tác nhanh"
           >
             <MoreHorizontal className="w-3.5 h-3.5" />

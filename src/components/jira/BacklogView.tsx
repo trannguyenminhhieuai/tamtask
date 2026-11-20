@@ -540,7 +540,7 @@ export const BacklogView: React.FC<BacklogViewProps> = ({
                         value={issue.sprintId || ""}
                         onClick={(e) => e.stopPropagation()}
                         onChange={(e) => onMoveIssueToSprint(issue.id, e.target.value || null)}
-                        className="text-[11px] bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-lg px-2 py-0.5 text-slate-700 dark:text-zinc-200 opacity-0 group-hover:opacity-100 transition focus:opacity-100"
+                        className="text-[11px] bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-lg px-2 py-0.5 text-slate-700 dark:text-zinc-200 opacity-70 sm:opacity-0 sm:group-hover:opacity-100 transition focus:opacity-100"
                       >
                         <option value="" className="dark:bg-zinc-800">Chuyển về Backlog</option>
                         {activeAndPlannedSprints.map((s) => (
@@ -714,7 +714,7 @@ export const BacklogView: React.FC<BacklogViewProps> = ({
                     value=""
                     onClick={(e) => e.stopPropagation()}
                     onChange={(e) => onMoveIssueToSprint(issue.id, e.target.value)}
-                    className="text-[11px] bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-lg px-2 py-0.5 text-slate-700 dark:text-zinc-200 opacity-0 group-hover:opacity-100 transition focus:opacity-100"
+                    className="text-[11px] bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-lg px-2 py-0.5 text-slate-700 dark:text-zinc-200 opacity-70 sm:opacity-0 sm:group-hover:opacity-100 transition focus:opacity-100"
                   >
                     <option value="" disabled className="dark:bg-zinc-800">
                       Gán vào Sprint...

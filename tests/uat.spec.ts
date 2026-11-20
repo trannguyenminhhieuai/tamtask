@@ -137,8 +137,8 @@ test.describe("TamTask Agile Hub - UAT Automation Test Suite (Plan.md)", () => {
     await expect(projectSwitcher).toBeVisible();
 
     // Kiểm tra có các cột trạng thái chuẩn Agile
-    const columnHeader = page.getByText("To do").or(page.getByText("In progress")).first();
-    await expect(columnHeader).toBeVisible();
+    const columnHeader = page.getByText("To do").or(page.getByText("In progress")).locator("visible=true").first();
+    await expect(columnHeader).toBeVisible({ timeout: 15000 });
   });
 
   // TC04: Tạo công việc mới qua CreateIssueModal

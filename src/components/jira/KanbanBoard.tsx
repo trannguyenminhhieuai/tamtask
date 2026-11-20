@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import { mouse1 } from "@/lib/mouse1";
 import { triggerConfetti } from "@/lib/confetti";
+import { haptic } from "@/lib/haptic";
 
 interface KanbanBoardProps {
   issues: Issue[];
@@ -71,6 +72,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   const [showAssigneeOverflow, setShowAssigneeOverflow] = useState(false);
   const [showMoreFilters, setShowMoreFilters] = useState(false);
   const [isScrolledHeader, setIsScrolledHeader] = useState(false);
+  const [mobileActiveColumn, setMobileActiveColumn] = useState<string>("ALL");
   const moreFiltersRef = React.useRef<HTMLDivElement>(null);
 
   const [collapsedColIds, setCollapsedColIds] = useState<string[]>(() => {
@@ -370,7 +372,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
         </div>
 
         {/* Center / Right: Streamlined Filters & Actions */}
-        <div className="flex items-center flex-wrap gap-2">
+        <div className="flex items-center flex-wrap sm:flex-nowrap gap-2 max-w-full overflow-x-auto no-scrollbar py-0.5">
           {/* My Issues Toggle */}
           <button
             onClick={() => onFilterChange({ ...filterState, onlyMyIssues: !filterState.onlyMyIssues })}
@@ -761,16 +763,74 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                 </div>
               )}
 
-              {/* Status Columns Grid - columns expand full height, pinned horizontal scroll at bottom */}
-              <div className="flex gap-4 min-w-max pb-4 items-start">
+              {/* Mobile Status Switcher - Tối ưu 100% trải nghiệm xem cột trên Mobile */}
+              <div className="md:hidden flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1 px-0.5 mb-1 select-none">
+                <button
+                  type="button"
+                  onClick={() => {
+                    haptic.selection();
+                    setMobileActiveColumn("ALL");
+                  }}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all shrink-0 ${
+                    mobileActiveColumn === "ALL"
+                      ? "bg-[#EE0033] text-white shadow-xs"
+                      : "bg-white dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 border border-slate-200 dark:border-zinc-700 hover:bg-slate-50 dark:hover:bg-zinc-700"
+                  }`}
+                >
+                  Tất cả ({lane.issues.length})
+                </button>
                 {statuses.map((col) => {
+                  const count = lane.issues.filter((i) => i.status === col.id).length;
+                  const isActive = mobileActiveColumn === col.id;
+                  return (
+                    <button
+                      key={col.id}
+                      type="button"
+                      onClick={() => {
+                        haptic.selection();
+                        setMobileActiveColumn(col.id);
+                      }}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 shrink-0 ${
+                        isActive
+                          ? "bg-[#EE0033] text-white shadow-xs"
+                          : "bg-white dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 border border-slate-200 dark:border-zinc-700 hover:bg-slate-50 dark:hover:bg-zinc-700"
+                      }`}
+                    >
+                      <span
+                        className="w-2 h-2 rounded-full shrink-0"
+                        style={{ backgroundColor: isActive ? "#ffffff" : col.color }}
+                      />
+                      <span>{col.name}</span>
+                      <span
+                        className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${
+                          isActive
+                            ? "bg-white/20 text-white"
+                            : "bg-slate-100 dark:bg-zinc-700 text-slate-600 dark:text-zinc-400"
+                        }`}
+                      >
+                        {count}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Status Columns Grid - columns expand full height, pinned horizontal scroll at bottom */}
+              <div
+                className={`flex gap-4 pb-4 items-start ${
+                  mobileActiveColumn === "ALL"
+                    ? "min-w-max"
+                    : "flex-col md:flex-row w-full md:min-w-max"
+                }`}
+              >
+                {(mobileActiveColumn === "ALL" ? statuses : statuses.filter((c) => c.id === mobileActiveColumn)).map((col) => {
                   const colIssues = lane.issues.filter((i) => i.status === col.id);
                   const totalPoints = colIssues.reduce((acc, curr) => acc + (curr.storyPoints || 0), 0);
                   const isOver = dragOverCol === col.id;
                   const hasWip = typeof col.maxWip === "number" && col.maxWip > 0;
                   const isWipExceeded = hasWip && colIssues.length > (col.maxWip || 0);
                   const isWipMax = hasWip && colIssues.length === (col.maxWip || 0);
-                  const isCollapsed = collapsedColIds.includes(col.id);
+                  const isCollapsed = mobileActiveColumn === "ALL" && collapsedColIds.includes(col.id);
 
                   if (isCollapsed) {
                     return (
@@ -838,7 +898,9 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                       key={col.id}
                       onDragOver={(e) => handleDragOver(e, col.id)}
                       onDrop={(e) => handleDrop(e, col.id)}
-                      className={`w-80 flex-shrink-0 transition-all border ${
+                      className={`${
+                        mobileActiveColumn === "ALL" ? "w-80 flex-shrink-0" : "w-full md:w-80 md:flex-shrink-0"
+                      } transition-all border ${
                         isScrolledHeader ? "rounded-b-2xl rounded-t-none" : "rounded-2xl"
                       } ${
                         isOver
