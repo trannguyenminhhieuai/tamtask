@@ -80,6 +80,7 @@ export default function JiraApp() {
   // Ref to prevent auto-switching to default project after user has logged in once
   // Prevents loadData() re-runs (triggered by issue/project updates) from resetting currentProject
   const hasAutoSwitchedOnLoginRef = useRef(false);
+  const isLoadingDataRef = useRef(false);
 
   // Modals & Drawers State
   const [selectedIssue, setSelectedIssue] = useState<Issue | null>(null);
@@ -186,6 +187,8 @@ export default function JiraApp() {
 
   // Fetch live persistent data from backend API
   const loadData = useCallback(async () => {
+    if (isLoadingDataRef.current) return;
+    isLoadingDataRef.current = true;
     try {
       let freshProjects: Project[] | undefined;
       let freshIssues: Issue[] | undefined;
@@ -337,6 +340,7 @@ export default function JiraApp() {
       console.warn("Could not fetch data from database API:", err);
     } finally {
       setIsLoadingData(false);
+      isLoadingDataRef.current = false;
     }
   }, [session, currentUser]);
 

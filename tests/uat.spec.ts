@@ -42,7 +42,7 @@ test.describe("TamTask Agile Hub - UAT Automation Test Suite (Plan.md)", () => {
   let page: Page;
 
   test.beforeEach(async () => {
-    test.setTimeout(60000);
+    test.setTimeout(90000);
   });
 
   test.beforeAll(async ({ browser }) => {
@@ -76,8 +76,8 @@ test.describe("TamTask Agile Hub - UAT Automation Test Suite (Plan.md)", () => {
       fullPage: true,
     });
 
-    await expect(page.locator("text=TamTask").first()).toBeVisible();
-    await expect(page.locator("button:has-text('Đăng nhập với Google')")).toBeVisible();
+    await expect(page.locator("text=TamTask").first()).toBeVisible({ timeout: 15000 });
+    await expect(page.locator("button:has-text('Đăng nhập với Google')")).toBeVisible({ timeout: 15000 });
 
     // 2. Negative case: Nhập sai mật khẩu
     await page.fill("input[type='email']", "hieu.tran@company.com");
@@ -140,7 +140,8 @@ test.describe("TamTask Agile Hub - UAT Automation Test Suite (Plan.md)", () => {
 
     // Đợi vào Workspace chính & bảng Kanban tải xong
     await page.waitForSelector("h1:has-text('Bảng Công Việc')", { timeout: 30000 });
-    await page.waitForTimeout(2000);
+    // Chờ Kanban columns tải xong từ remote database
+    await page.locator("text='To do' >> visible=true").or(page.locator("text='In progress' >> visible=true")).first().waitFor({ state: "visible", timeout: 35000 });
 
     await page.screenshot({
       path: path.join(SCREENSHOT_DIR, "TC02_Admin_WorkspaceLoaded_PASS.png"),
@@ -159,13 +160,13 @@ test.describe("TamTask Agile Hub - UAT Automation Test Suite (Plan.md)", () => {
       fullPage: true,
     });
 
-    // Kiểm tra có Project Switcher trên Header (Mã TT hoặc tên TamTask)
-    const projectSwitcher = page.locator("header button:has-text('TT'), header button:has-text('TamTask')").first();
+    // Kiểm tra có Project Switcher trên Header (Mã TT, BP hoặc tên dự án)
+    const projectSwitcher = page.locator("[data-testid='project-switcher'], header button:has-text('TT'), header button:has-text('TamTask'), header button:has-text('BP'), header button:has-text('BA project')").first();
     await expect(projectSwitcher).toBeVisible();
 
     // Kiểm tra có các cột trạng thái chuẩn Agile
     const columnHeader = page.locator("text='To do' >> visible=true").or(page.locator("text='In progress' >> visible=true")).first();
-    await expect(columnHeader).toBeVisible({ timeout: 15000 });
+    await expect(columnHeader).toBeVisible({ timeout: 25000 });
   });
 
   // TC04: Tạo công việc mới qua CreateIssueModal

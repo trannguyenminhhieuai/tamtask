@@ -313,6 +313,8 @@ export const Navbar: React.FC<NavbarProps> = ({
         {/* Project Selector Dropdown */}
         <div className="relative z-40" ref={projectMenuRef}>
           <button
+            data-testid="project-switcher"
+            title="Chọn dự án"
             onClick={() => setShowProjectDropdown(!showProjectDropdown)}
             className="flex items-center space-x-2 p-1 sm:p-1.5 rounded-full hover:bg-white/80 dark:hover:bg-zinc-800/80 border border-[#D7D7D7] dark:border-zinc-700/80 transition text-left group px-2 sm:px-2.5 shadow-2xs"
           >
@@ -396,35 +398,37 @@ export const Navbar: React.FC<NavbarProps> = ({
         </div>
       </div>
 
-      {/* Center: Auto-layout centered Frosted Glass Search Bar with thin border */}
-      <div className="flex-1 min-w-0 flex justify-center px-1.5 sm:px-4">
+      {/* Center: Auto-layout centered Frosted Glass Search Bar (Desktop only, mobile uses quick search icon button) */}
+      <div className="hidden md:flex flex-1 min-w-0 justify-center px-4">
         <button
           type="button"
           onClick={() => onOpenCommandPalette?.()}
-          className="w-full max-w-md flex items-center justify-between bg-white/70 dark:bg-zinc-800/70 hover:bg-white/95 dark:hover:bg-zinc-800/95 backdrop-blur-md border border-[#D7D7D7]/80 dark:border-zinc-700/80 hover:border-[#EE0033]/60 dark:hover:border-[#EE0033]/60 rounded-full px-3 sm:px-4 py-1.5 text-xs text-left text-[#6B7280] dark:text-zinc-400 hover:text-[#111827] dark:hover:text-zinc-100 transition shadow-[inset_0_1px_1px_rgba(255,255,255,0.7)] dark:shadow-[inset_0_1px_1px_rgba(255,255,255,0.06)] group focus:ring-2 focus:ring-[#EE0033]/20"
+          className="w-full max-w-md flex items-center justify-between bg-white/70 dark:bg-zinc-800/70 hover:bg-white/95 dark:hover:bg-zinc-800/95 backdrop-blur-md border border-[#D7D7D7]/80 dark:border-zinc-700/80 hover:border-[#EE0033]/60 dark:hover:border-[#EE0033]/60 rounded-full px-4 py-1.5 text-xs text-left text-[#6B7280] dark:text-zinc-400 hover:text-[#111827] dark:hover:text-zinc-100 transition shadow-[inset_0_1px_1px_rgba(255,255,255,0.7)] dark:shadow-[inset_0_1px_1px_rgba(255,255,255,0.06)] group focus:ring-2 focus:ring-[#EE0033]/20"
           title="Tìm kiếm nhanh (Ctrl + K)"
         >
           <div className="flex items-center space-x-2 truncate">
             <Search className="w-3.5 h-3.5 text-[#9B9B9B] group-hover:text-[#EE0033] transition-colors shrink-0" />
             <span className="truncate text-xs">
-              {searchQuery ? (
-                `"${searchQuery}"`
-              ) : (
-                <>
-                  <span className="hidden sm:inline">Tìm nhanh task, dự án, lệnh... (Ctrl + K)</span>
-                  <span className="sm:hidden">Tìm nhanh...</span>
-                </>
-              )}
+              {searchQuery ? `"${searchQuery}"` : "Tìm nhanh task, dự án, lệnh... (Ctrl + K)"}
             </span>
           </div>
-          <kbd className="hidden sm:inline-flex items-center text-[10px] bg-white/80 dark:bg-zinc-700/80 border border-[#D7D7D7]/60 dark:border-zinc-600/80 text-[#111827] dark:text-zinc-200 px-2 py-0.5 rounded-full font-mono font-semibold shadow-2xs shrink-0">
+          <kbd className="inline-flex items-center text-[10px] bg-white/80 dark:bg-zinc-700/80 border border-[#D7D7D7]/60 dark:border-zinc-600/80 text-[#111827] dark:text-zinc-200 px-2 py-0.5 rounded-full font-mono font-semibold shadow-2xs shrink-0">
             ⌘K
           </kbd>
         </button>
       </div>
 
       {/* Right: Actions, Notifications & Profile */}
-      <div className="flex items-center space-x-1 sm:space-x-2.5 shrink-0">
+      <div className="flex items-center space-x-1 sm:space-x-2.5 shrink-0 ml-auto md:ml-0">
+        {/* Mobile Search Icon Button */}
+        <button
+          type="button"
+          onClick={() => onOpenCommandPalette?.()}
+          className="md:hidden p-1.5 text-slate-500 hover:text-slate-800 dark:text-zinc-400 dark:hover:text-zinc-100 hover:bg-slate-100 dark:hover:bg-zinc-800 rounded-full transition"
+          title="Tìm kiếm nhanh (Ctrl + K)"
+        >
+          <Search className="w-4 h-4 text-slate-600 dark:text-zinc-300" />
+        </button>
         {/* Project Members Button (Admin & Project Lead) */}
         {canManageProjects && onOpenProjectMembers && currentProject && (
           <button

@@ -295,20 +295,20 @@ export const BacklogView: React.FC<BacklogViewProps> = ({
   return (
     <div className="flex-1 overflow-y-auto p-4 bg-[#F5F6F8] dark:bg-[#09090B] space-y-4 transition-colors duration-200">
       {/* Unified Glass Island Header */}
-      <div className="p-4 rounded-2xl bg-white/75 dark:bg-zinc-900/75 backdrop-blur-xl border border-white/80 dark:border-white/10 shadow-[0_8px_32px_0_rgba(31,38,135,0.05)] flex flex-wrap items-center justify-between gap-4 shrink-0">
-        <div className="flex items-center space-x-2.5">
-          <h1 className="text-base sm:text-lg font-extrabold text-[#111827] dark:text-zinc-100 tracking-tight">
+      <div className="p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-white/80 dark:bg-zinc-900/80 sm:bg-white/75 sm:dark:bg-zinc-900/75 backdrop-blur-xl border border-slate-200/60 dark:border-zinc-800/60 sm:border-white/80 sm:dark:border-white/10 shadow-xs flex flex-wrap items-center justify-between gap-2.5 sm:gap-4 shrink-0">
+        <div className="flex items-center space-x-2 sm:space-x-2.5 flex-wrap gap-y-1">
+          <h1 className="text-sm sm:text-lg font-extrabold text-[#111827] dark:text-zinc-100 tracking-tight">
             Kế Hoạch Chu Kỳ (Backlog)
           </h1>
-          <span className="text-[11px] font-semibold text-slate-500 dark:text-zinc-400 bg-slate-100 dark:bg-zinc-800 px-2.5 py-0.5 rounded-full border border-slate-200 dark:border-zinc-700">
+          <span className="text-[10px] sm:text-[11px] font-semibold text-slate-500 dark:text-zinc-400 bg-slate-100 dark:bg-zinc-800 px-2 sm:px-2.5 py-0.5 rounded-full border border-slate-200 dark:border-zinc-700">
             {activeAndPlannedSprints.length} chu kỳ • {backlogIssues.length} backlog tasks
           </span>
         </div>
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-1.5 sm:space-x-2 shrink-0">
           {completedSprints.length > 0 && (
             <button
               onClick={() => setShowClosedModal(true)}
-              className="bg-white dark:bg-zinc-800 border border-[#D7D7D7] dark:border-zinc-700 hover:bg-slate-50 dark:hover:bg-zinc-700 text-slate-700 dark:text-zinc-200 text-xs font-semibold px-3 py-1.5 rounded-full flex items-center gap-1.5 transition shadow-2xs"
+              className="bg-white dark:bg-zinc-800 border border-[#D7D7D7] dark:border-zinc-700 hover:bg-slate-50 dark:hover:bg-zinc-700 text-slate-700 dark:text-zinc-200 text-xs font-semibold px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full flex items-center gap-1 sm:gap-1.5 transition shadow-2xs"
             >
               <History className="w-3.5 h-3.5 text-slate-500 dark:text-zinc-400" />
               <span>Đã đóng ({completedSprints.length})</span>
@@ -318,7 +318,7 @@ export const BacklogView: React.FC<BacklogViewProps> = ({
           {canManageSprints && (
             <button
               onClick={() => setIsCreateSprintOpen(true)}
-              className="bg-white dark:bg-zinc-800 border border-[#D7D7D7] dark:border-zinc-700 hover:bg-slate-50 dark:hover:bg-zinc-700 text-[#111827] dark:text-zinc-200 text-xs font-semibold px-3.5 py-1.5 rounded-full flex items-center gap-1.5 transition shadow-2xs"
+              className="bg-white dark:bg-zinc-800 border border-[#D7D7D7] dark:border-zinc-700 hover:bg-slate-50 dark:hover:bg-zinc-700 text-[#111827] dark:text-zinc-200 text-xs font-semibold px-3 sm:px-3.5 py-1 sm:py-1.5 rounded-full flex items-center gap-1 sm:gap-1.5 transition shadow-2xs"
             >
               <Plus className="w-3.5 h-3.5 text-[#EE0033]" />
               <span>Tạo Sprint</span>
@@ -327,7 +327,7 @@ export const BacklogView: React.FC<BacklogViewProps> = ({
           {!isViewer && (
             <button
               onClick={onCreateIssueClick}
-              className="bg-[#EE0033] hover:bg-[#D6002E] active:bg-[#BD0029] text-white text-xs font-semibold px-3.5 sm:px-4 py-1.5 rounded-full flex items-center gap-1.5 transition shadow-xs"
+              className="hidden sm:flex bg-[#EE0033] hover:bg-[#D6002E] active:bg-[#BD0029] text-white text-xs font-semibold px-3.5 sm:px-4 py-1.5 rounded-full items-center gap-1.5 transition shadow-xs"
             >
               <Plus className="w-3.5 h-3.5 text-white" />
               <span>Thêm mới</span>
@@ -525,7 +525,7 @@ export const BacklogView: React.FC<BacklogViewProps> = ({
                       </button>
                     )}
                     {!isViewer && (
-                      <span className="text-gray-300 dark:text-zinc-600 group-hover:text-gray-500 dark:group-hover:text-zinc-400 cursor-grab shrink-0">
+                      <span className="hidden sm:inline-flex text-gray-300 dark:text-zinc-600 group-hover:text-gray-500 dark:group-hover:text-zinc-400 cursor-grab shrink-0">
                         <GripVertical className="w-4 h-4" />
                       </span>
                     )}
@@ -540,7 +540,7 @@ export const BacklogView: React.FC<BacklogViewProps> = ({
                         value={issue.sprintId || ""}
                         onClick={(e) => e.stopPropagation()}
                         onChange={(e) => onMoveIssueToSprint(issue.id, e.target.value || null)}
-                        className="text-[11px] bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-lg px-2 py-0.5 text-slate-700 dark:text-zinc-200 opacity-70 sm:opacity-0 sm:group-hover:opacity-100 transition focus:opacity-100"
+                        className="text-[11px] bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-lg px-2 py-0.5 text-slate-700 dark:text-zinc-200 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition focus:opacity-100"
                       >
                         <option value="" className="dark:bg-zinc-800">Chuyển về Backlog</option>
                         {activeAndPlannedSprints.map((s) => (
@@ -699,7 +699,7 @@ export const BacklogView: React.FC<BacklogViewProps> = ({
                   </button>
                 )}
                 {!isViewer && (
-                  <span className="text-gray-300 dark:text-zinc-600 group-hover:text-gray-500 dark:group-hover:text-zinc-400 cursor-grab shrink-0">
+                  <span className="hidden sm:inline-flex text-gray-300 dark:text-zinc-600 group-hover:text-gray-500 dark:group-hover:text-zinc-400 cursor-grab shrink-0">
                     <GripVertical className="w-4 h-4" />
                   </span>
                 )}
@@ -714,7 +714,7 @@ export const BacklogView: React.FC<BacklogViewProps> = ({
                     value=""
                     onClick={(e) => e.stopPropagation()}
                     onChange={(e) => onMoveIssueToSprint(issue.id, e.target.value)}
-                    className="text-[11px] bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-lg px-2 py-0.5 text-slate-700 dark:text-zinc-200 opacity-70 sm:opacity-0 sm:group-hover:opacity-100 transition focus:opacity-100"
+                    className="text-[11px] bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-lg px-2 py-0.5 text-slate-700 dark:text-zinc-200 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition focus:opacity-100"
                   >
                     <option value="" disabled className="dark:bg-zinc-800">
                       Gán vào Sprint...

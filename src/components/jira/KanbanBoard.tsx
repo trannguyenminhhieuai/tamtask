@@ -107,6 +107,17 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
     touchStartY.current = null;
   };
 
+  const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
+
+  const activeFilterCount = useMemo(() => {
+    let count = 0;
+    if (quickFilter !== "ALL") count++;
+    if (filterState.assigneeIds.length > 0) count += filterState.assigneeIds.length;
+    if (filterState.epicIds.length > 0) count += filterState.epicIds.length;
+    if (filterState.priorities.length > 0) count += filterState.priorities.length;
+    return count;
+  }, [quickFilter, filterState.assigneeIds, filterState.epicIds, filterState.priorities]);
+
   const [collapsedColIds, setCollapsedColIds] = useState<string[]>(() => {
     if (typeof window !== "undefined") {
       try {
@@ -387,46 +398,257 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden bg-[#F5F6F8] dark:bg-[#09090B] transition-colors duration-200">
-      {/* Unified Glass Island Header - Smoothly collapses up on scroll to optimize vertical workspace */}
-      <div
-        className={`relative z-20 transition-all duration-300 ease-in-out shrink-0 overflow-visible ${
-          isScrolledHeader
-            ? "max-h-0 opacity-0 -translate-y-4 mb-0 pointer-events-none"
-            : "max-h-60 opacity-100 translate-y-0 m-2 sm:m-4 mb-0"
-        }`}
-      >
-        <div className="p-2 sm:p-4 rounded-2xl bg-white/80 dark:bg-zinc-900/80 sm:bg-white/75 sm:dark:bg-zinc-900/75 backdrop-blur-xl border border-slate-200/60 dark:border-zinc-800/60 sm:border-white/80 sm:dark:border-white/10 shadow-xs flex flex-col md:flex-row md:items-center md:justify-between gap-2 md:gap-4">
-          {/* Top row on mobile / Left on desktop: Title + Mobile Sprint Selector */}
-          <div className="flex items-center justify-between md:justify-start space-x-3 shrink-0">
-            <h1 className="text-sm sm:text-lg font-extrabold text-[#111827] dark:text-zinc-100 tracking-tight">
-              Bảng Công Việc
-            </h1>
+      {/* Mobile Streamlined App Bar (Height 42px, Zero Clutter) */}
+      <div className="md:hidden px-3 py-1.5 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-xl border-b border-slate-200/80 dark:border-zinc-800 flex items-center justify-between gap-2 shrink-0 z-20">
+        {/* Left: Sprint Selector */}
+        <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700/80 rounded-full px-2.5 py-1 text-xs shadow-2xs">
+          <Layers className="w-3.5 h-3.5 text-[#EE0033] shrink-0" />
+          <select
+            value={effectiveSprintId}
+            onChange={(e) =>
+              onFilterChange({
+                ...filterState,
+                sprintId: e.target.value,
+              })
+            }
+            className="bg-transparent text-xs font-semibold text-slate-800 dark:text-zinc-200 focus:outline-none max-w-[130px] truncate cursor-pointer"
+          >
+            {sprints.map((s) => (
+              <option key={s.id} value={s.id} className="dark:bg-zinc-900">
+                {s.name}
+              </option>
+            ))}
+            <option value="ALL" className="dark:bg-zinc-900">Tất cả chu kỳ</option>
+            <option value="BACKLOG" className="dark:bg-zinc-900">Chỉ Backlog</option>
+          </select>
+        </div>
 
-            {/* Mobile-only compact Sprint Selector beside title */}
-            <div className="md:hidden flex items-center gap-1.5 bg-white/90 dark:bg-zinc-800/90 backdrop-blur-md border border-slate-200 dark:border-zinc-700/80 rounded-full px-2.5 py-1 text-xs shadow-2xs">
-              <Layers className="w-3 h-3 text-[#EE0033] shrink-0" />
-              <select
-                value={effectiveSprintId}
-                onChange={(e) =>
+        {/* Right: Quick actions (My issues + Filter bottom sheet trigger) */}
+        <div className="flex items-center gap-1.5 shrink-0">
+          <button
+            type="button"
+            onClick={() => {
+              haptic.selection();
+              onFilterChange({ ...filterState, onlyMyIssues: !filterState.onlyMyIssues });
+            }}
+            className={`text-xs px-2.5 py-1 rounded-full font-semibold transition flex items-center gap-1 shadow-2xs ${
+              filterState.onlyMyIssues
+                ? "bg-[#EE0033] text-white"
+                : "bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 border border-slate-200 dark:border-zinc-700/80"
+            }`}
+          >
+            {filterState.onlyMyIssues && <Check className="w-3 h-3 stroke-[2.5]" />}
+            <span>Của tôi</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              haptic.selection();
+              setIsMobileFilterOpen(true);
+            }}
+            className={`text-xs px-2.5 py-1 rounded-full font-semibold transition flex items-center gap-1 shadow-2xs ${
+              activeFilterCount > 0
+                ? "bg-rose-50 dark:bg-rose-950/50 text-[#EE0033] border border-rose-300 dark:border-rose-800 font-bold"
+                : "bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 border border-slate-200 dark:border-zinc-700/80"
+            }`}
+          >
+            <Filter className="w-3 h-3 text-[#EE0033]" />
+            <span>Lọc</span>
+            {activeFilterCount > 0 && (
+              <span className="w-4 h-4 rounded-full bg-[#EE0033] text-white text-[10px] flex items-center justify-center font-bold">
+                {activeFilterCount}
+              </span>
+            )}
+          </button>
+        </div>
+      </div>
+
+      {/* Mobile Advanced Filter Bottom Sheet */}
+      {isMobileFilterOpen && (
+        <div
+          className="fixed inset-0 z-[80] flex items-end bg-black/60 backdrop-blur-xs animate-in fade-in duration-150 md:hidden"
+          onClick={() => setIsMobileFilterOpen(false)}
+        >
+          <div
+            className="w-full max-h-[85vh] bg-white dark:bg-zinc-900 rounded-t-3xl shadow-2xl border-t border-slate-200 dark:border-zinc-800 p-5 space-y-4 overflow-y-auto animate-in slide-in-from-bottom duration-200 select-none"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Grab Handle & Header */}
+            <div className="flex flex-col items-center gap-2">
+              <div className="w-12 h-1.5 rounded-full bg-slate-300 dark:bg-zinc-700" />
+              <div className="w-full flex items-center justify-between pt-1">
+                <div className="flex items-center gap-2 text-sm font-bold text-slate-900 dark:text-zinc-100">
+                  <Filter className="w-4 h-4 text-[#EE0033]" />
+                  <span>Bộ Lọc Nâng Cao</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsMobileFilterOpen(false)}
+                  className="p-1 rounded-full text-slate-400 hover:text-slate-700 dark:hover:text-zinc-200 hover:bg-slate-100 dark:hover:bg-zinc-800"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+
+            {/* Quick Presets */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-slate-500 dark:text-zinc-400 uppercase tracking-wider">
+                Lọc nhanh công việc
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    haptic.selection();
+                    setQuickFilter((prev) => (prev === "BUGS" ? "ALL" : "BUGS"));
+                  }}
+                  className={`p-2.5 rounded-xl border text-xs font-semibold flex items-center gap-2 transition ${
+                    quickFilter === "BUGS"
+                      ? "bg-rose-50 dark:bg-rose-950/40 border-rose-300 dark:border-rose-800 text-[#EE0033]"
+                      : "bg-slate-50 dark:bg-zinc-800/60 border-slate-200 dark:border-zinc-700 text-slate-700 dark:text-zinc-300"
+                  }`}
+                >
+                  <Bug className="w-4 h-4 text-rose-600 shrink-0" />
+                  <span>Lỗi / Bugs</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    haptic.selection();
+                    setQuickFilter((prev) => (prev === "RECENT" ? "ALL" : "RECENT"));
+                  }}
+                  className={`p-2.5 rounded-xl border text-xs font-semibold flex items-center gap-2 transition ${
+                    quickFilter === "RECENT"
+                      ? "bg-emerald-50 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300"
+                      : "bg-slate-50 dark:bg-zinc-800/60 border-slate-200 dark:border-zinc-700 text-slate-700 dark:text-zinc-300"
+                  }`}
+                >
+                  <Clock className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span>Mới cập nhật</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    haptic.selection();
+                    setQuickFilter((prev) => (prev === "UNASSIGNED" ? "ALL" : "UNASSIGNED"));
+                  }}
+                  className={`p-2.5 rounded-xl border text-xs font-semibold flex items-center gap-2 transition ${
+                    quickFilter === "UNASSIGNED"
+                      ? "bg-amber-50 dark:bg-amber-950/40 border-amber-300 dark:border-amber-800 text-amber-700 dark:text-amber-300"
+                      : "bg-slate-50 dark:bg-zinc-800/60 border-slate-200 dark:border-zinc-700 text-slate-700 dark:text-zinc-300"
+                  }`}
+                >
+                  <UserCheck className="w-4 h-4 text-amber-600 shrink-0" />
+                  <span>Chưa ai nhận</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    haptic.selection();
+                    onFilterChange({ ...filterState, onlyMyIssues: !filterState.onlyMyIssues });
+                  }}
+                  className={`p-2.5 rounded-xl border text-xs font-semibold flex items-center gap-2 transition ${
+                    filterState.onlyMyIssues
+                      ? "bg-rose-50 dark:bg-rose-950/40 border-rose-300 dark:border-rose-800 text-[#EE0033]"
+                      : "bg-slate-50 dark:bg-zinc-800/60 border-slate-200 dark:border-zinc-700 text-slate-700 dark:text-zinc-300"
+                  }`}
+                >
+                  <Check className="w-4 h-4 text-[#EE0033] shrink-0" />
+                  <span>Việc của tôi</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Assignee Filter */}
+            {assignedUsers.length > 0 && (
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-500 dark:text-zinc-400 uppercase tracking-wider">
+                  Người thực hiện ({assignedUsers.length})
+                </label>
+                <div className="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto py-1">
+                  {assignedUsers.map((u) => {
+                    const isSelected = filterState.assigneeIds.includes(u.id);
+                    return (
+                      <button
+                        key={u.id}
+                        type="button"
+                        onClick={() => {
+                          haptic.selection();
+                          toggleAssigneeFilter(u.id);
+                        }}
+                        className={`px-3 py-1.5 rounded-full text-xs font-medium flex items-center gap-1.5 border transition ${
+                          isSelected
+                            ? "bg-[#EE0033] text-white border-[#EE0033] shadow-xs"
+                            : "bg-slate-50 dark:bg-zinc-800/60 border-slate-200 dark:border-zinc-700 text-slate-700 dark:text-zinc-300"
+                        }`}
+                      >
+                        <img src={u.avatar} alt={u.name} className="w-4 h-4 rounded-full object-cover shrink-0" />
+                        <span className="truncate max-w-[120px]">{u.name}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Bottom Actions */}
+            <div className="pt-2 border-t border-slate-100 dark:border-zinc-800 flex items-center justify-between gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  haptic.medium();
+                  setQuickFilter("ALL");
                   onFilterChange({
-                    ...filterState,
-                    sprintId: e.target.value,
-                  })
-                }
-                className="bg-transparent text-[11px] font-semibold text-[#111827] dark:text-zinc-200 focus:outline-none cursor-pointer max-w-[130px] truncate"
+                    searchQuery: "",
+                    assigneeIds: [],
+                    epicIds: [],
+                    priorities: [],
+                    sprintId: activeSprint?.id || "",
+                    onlyMyIssues: false,
+                  });
+                }}
+                className="text-xs font-semibold text-slate-500 dark:text-zinc-400 hover:text-[#EE0033] py-2 px-3"
               >
-                {sprints.map((s) => (
-                  <option key={s.id} value={s.id} className="dark:bg-zinc-900">
-                    {s.name}
-                  </option>
-                ))}
-                <option value="ALL" className="dark:bg-zinc-900">Tất cả chu kỳ</option>
-                <option value="BACKLOG" className="dark:bg-zinc-900">Chỉ Backlog</option>
-              </select>
+                Xóa tất cả
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  haptic.selection();
+                  setIsMobileFilterOpen(false);
+                }}
+                className="flex-1 bg-[#EE0033] hover:bg-[#D6002E] text-white font-bold text-xs py-2.5 rounded-xl shadow-xs text-center transition"
+              >
+                Áp dụng bộ lọc
+              </button>
             </div>
           </div>
+        </div>
+      )}
 
-          {/* Center / Right: Streamlined Filters & Actions - Single horizontal scrollable row on mobile */}
+      {/* Desktop Unified Glass Island Header */}
+      <div
+        className={`hidden md:block relative z-20 transition-all duration-300 ease-in-out shrink-0 overflow-visible ${
+          isScrolledHeader
+            ? "max-h-0 opacity-0 -translate-y-4 mb-0 pointer-events-none"
+            : "max-h-60 opacity-100 translate-y-0 m-4 mb-0"
+        }`}
+      >
+        <div className="p-4 rounded-2xl bg-white/75 dark:bg-zinc-900/75 backdrop-blur-xl border border-white/80 dark:border-white/10 shadow-xs flex items-center justify-between gap-4">
+          {/* Left on desktop: Title */}
+          <div className="flex items-center space-x-3 shrink-0">
+            <h1 className="text-lg font-extrabold text-[#111827] dark:text-zinc-100 tracking-tight">
+              Bảng Công Việc
+            </h1>
+          </div>
+
+          {/* Center / Right: Streamlined Filters & Actions */}
           <div className="flex items-center gap-2 max-w-full overflow-x-auto no-scrollbar py-0.5">
             {/* Desktop Sprint Selector */}
             <div className="hidden md:flex items-center gap-1.5 bg-white/80 dark:bg-zinc-800/80 backdrop-blur-md border border-white/80 dark:border-zinc-700/80 rounded-full px-3 py-1.5 text-xs shadow-2xs shrink-0">
