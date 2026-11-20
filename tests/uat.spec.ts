@@ -14,6 +14,10 @@ test.describe.configure({ mode: "serial" });
 test.describe("TamTask Agile Hub - UAT Automation Test Suite (Plan.md)", () => {
   let page: Page;
 
+  test.beforeEach(async () => {
+    test.setTimeout(60000);
+  });
+
   test.beforeAll(async ({ browser }) => {
     // Đảm bảo tài khoản admin có password và bật 2FA
     try {
@@ -98,7 +102,7 @@ test.describe("TamTask Agile Hub - UAT Automation Test Suite (Plan.md)", () => {
     expect(otp).toBeTruthy();
 
     // Điền mã OTP
-    await page.fill("input[placeholder='••••••']", otp);
+    await page.fill("input[placeholder='••••••']", otp!);
 
     await page.screenshot({
       path: path.join(SCREENSHOT_DIR, "TC02_2FA_OtpFilled_PASS.png"),

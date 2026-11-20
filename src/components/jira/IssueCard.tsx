@@ -30,6 +30,7 @@ interface IssueCardProps {
   isDraggable?: boolean;
   onQuickStatusChange?: (issueId: string, status: IssueStatus) => void;
   statuses?: WorkflowStatus[];
+  density?: "comfortable" | "compact";
 }
 
 export const IssueCard: React.FC<IssueCardProps> = ({
@@ -39,7 +40,9 @@ export const IssueCard: React.FC<IssueCardProps> = ({
   isDraggable = true,
   onQuickStatusChange,
   statuses = [],
+  density = "comfortable",
 }) => {
+  const isCompact = density === "compact";
   const [showQuickMenu, setShowQuickMenu] = useState(false);
   const [copiedKey, setCopiedKey] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
@@ -177,14 +180,14 @@ export const IssueCard: React.FC<IssueCardProps> = ({
         if (isDraggable && onDragStart) onDragStart(e);
       }}
       onClick={onClick}
-      className={`bg-white dark:bg-zinc-900 p-4 rounded-xl border border-[#D7D7D7] dark:border-zinc-800 shadow-xs transition-all duration-200 select-none group relative ${
+      className={`bg-white dark:bg-zinc-900 ${isCompact ? "p-3 rounded-lg" : "p-4 rounded-xl"} border border-[#D7D7D7] dark:border-zinc-800 shadow-xs transition-all duration-200 select-none group relative ${
         isDraggable
           ? "cursor-grab active:cursor-grabbing hover:shadow-md hover:border-[#EE0033]/60 dark:hover:border-[#EE0033]/60 hover:ring-1 hover:ring-[#EE0033]/30 active:scale-[0.99]"
           : "cursor-pointer hover:border-[#EE0033]/60 hover:shadow-xs"
       }`}
     >
       {/* Top Header: Badges / Epic + Quick Action Menu */}
-      <div className="mb-2 flex items-start justify-between gap-1.5">
+      <div className={`${isCompact ? "mb-1.5" : "mb-2"} flex items-start justify-between gap-1.5`}>
         <div className="flex items-center flex-wrap gap-1.5 flex-1 min-w-0">
           {issue.epic && (
             <span
@@ -320,13 +323,13 @@ export const IssueCard: React.FC<IssueCardProps> = ({
       </div>
 
       {/* Title */}
-      <h4 className="text-xs font-semibold text-[#111827] dark:text-zinc-100 group-hover:text-[#EE0033] dark:group-hover:text-rose-400 transition line-clamp-2 leading-relaxed">
+      <h4 className={`text-xs font-semibold text-[#111827] dark:text-zinc-100 group-hover:text-[#EE0033] dark:group-hover:text-rose-400 transition ${isCompact ? "line-clamp-1" : "line-clamp-2"} leading-relaxed`}>
         {issue.title}
       </h4>
 
       {/* Subtasks Progress if any */}
       {totalSubtasks > 0 && (
-        <div className="mt-2.5 flex items-center space-x-2 text-[11px] text-slate-500 dark:text-zinc-400">
+        <div className={`${isCompact ? "mt-1.5" : "mt-2.5"} flex items-center space-x-2 text-[11px] text-slate-500 dark:text-zinc-400`}>
           <CheckCircle2 className={`w-3.5 h-3.5 ${completedSubtasks === totalSubtasks ? "text-emerald-600 dark:text-emerald-400" : "text-slate-400"}`} />
           <span>
             {completedSubtasks}/{totalSubtasks} subtasks
@@ -341,7 +344,7 @@ export const IssueCard: React.FC<IssueCardProps> = ({
       )}
 
       {/* Footer Info */}
-      <div className="mt-3 pt-2.5 border-t border-slate-100 dark:border-zinc-800/80 flex items-center justify-between">
+      <div className={`${isCompact ? "mt-2 pt-1.5" : "mt-3 pt-2.5"} border-t border-slate-100 dark:border-zinc-800/80 flex items-center justify-between`}>
         <div className="flex items-center space-x-1.5">
           {renderTypeIcon(issue.type)}
           <span className="text-[11px] font-semibold font-mono text-slate-500 dark:text-zinc-400 group-hover:text-slate-800 dark:group-hover:text-zinc-200">

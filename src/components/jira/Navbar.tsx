@@ -22,10 +22,17 @@ import {
   Menu,
   Sun,
   Moon,
+  History,
+  Trash2,
+  Bookmark,
+  Bug,
+  FolderGit2,
+  ListTree,
 } from "lucide-react";
 import { User, Project, NotificationItem } from "@/types/jira";
 import { useSession, signOut } from "next-auth/react";
 import { LoginModal } from "./LoginModal";
+import { recentItems, RecentItem } from "@/lib/recentItems";
 
 interface NavbarProps {
   currentUser: User;
@@ -42,6 +49,7 @@ interface NavbarProps {
   onToggleSidebar?: () => void;
   currentView?: string;
   onViewChange?: (view: any) => void;
+  onSelectRecentIssue?: (issueId: string) => void;
 }
 
 const ROLE_CONFIG: Record<
@@ -100,15 +108,28 @@ export const Navbar: React.FC<NavbarProps> = ({
   onToggleSidebar,
   currentView = "BOARD",
   onViewChange,
+  onSelectRecentIssue,
 }) => {
   const { data: session } = useSession();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showProjectDropdown, setShowProjectDropdown] = useState(false);
   const [showNotifMenu, setShowNotifMenu] = useState(false);
+  const [showRecentMenu, setShowRecentMenu] = useState(false);
+  const [recents, setRecents] = useState<RecentItem[]>([]);
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const projectMenuRef = useRef<HTMLDivElement>(null);
   const notifMenuRef = useRef<HTMLDivElement>(null);
+  const recentMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setRecents(recentItems.get());
+    const handleStorageChange = () => {
+      setRecents(recentItems.get());
+    };
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
+  }, []);
 
   const displayUser = session?.user
     ? {
@@ -226,10 +247,40 @@ export const Navbar: React.FC<NavbarProps> = ({
       if (notifMenuRef.current && !notifMenuRef.current.contains(e.target as Node)) {
         setShowNotifMenu(false);
       }
+      if (recentMenuRef.current && !recentMenuRef.current.contains(e.target as Node)) {
+        setShowRecentMenu(false);
+      }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  const renderRecentTypeIcon = (type: string) => {
+    switch (type) {
+      case "STORY":
+        return <Bookmark className="w-3.5 h-3.5 text-emerald-600 fill-emerald-600" />;
+      case "BUG":
+        return <Bug className="w-3.5 h-3.5 text-red-600 fill-red-100" />;
+      case "TASK":
+        return <CheckSquare className="w-3.5 h-3.5 text-blue-600" />;
+      case "EPIC":
+        return <FolderGit2 className="w-3.5 h-3.5 text-purple-600" />;
+      case "SUBTASK":
+        return <ListTree className="w-3.5 h-3.5 text-cyan-600" />;
+      default:
+        return <CheckSquare className="w-3.5 h-3.5 text-blue-600" />;
+    }
+  };
+
+  const formatRelativeTime = (timestamp: number) => {
+    const diffSec = Math.floor((Date.now() - timestamp) / 1000);
+    if (diffSec < 60) return "Vừa xong";
+    const diffMin = Math.floor(diffSec / 60);
+    if (diffMin < 60) return `${diffMin}p trước`;
+    const diffHour = Math.floor(diffMin / 60);
+    if (diffHour < 24) return `${diffHour}h trước`;
+    return `${Math.floor(diffHour / 24)}d trước`;
+  };
 
   return (
     <header className="h-14 bg-white/75 dark:bg-zinc-950/75 backdrop-blur-xl border-b border-[#D7D7D7]/80 dark:border-zinc-800/80 px-3 sm:px-4 flex items-center justify-between sticky top-0 z-30 select-none shadow-[0_1px_3px_rgba(0,0,0,0.03)] transition-colors duration-200">
@@ -411,6 +462,92 @@ export const Navbar: React.FC<NavbarProps> = ({
             <Moon className="w-4 h-4 text-slate-600" />
           )}
         </button>
+
+        {/* Recent Viewed Issues Popover */}
+        <div className="relative" ref={recentMenuRef}>
+          <button
+            type="button"
+            onClick={() => {
+              setRecents(recentItems.get());
+              setShowRecentMenu(!showRecentMenu);
+            }}
+            className={`p-1.5 rounded-lg transition relative ${
+              showRecentMenu
+                ? "bg-slate-100 dark:bg-zinc-800 text-slate-900 dark:text-zinc-100"
+                : "text-slate-500 dark:text-zinc-400 hover:text-slate-800 dark:hover:text-zinc-100 hover:bg-slate-100 dark:hover:bg-zinc-800"
+            }`}
+            title="Công việc đã xem gần đây"
+          >
+            <Clock className="w-4 h-4" />
+            {recents.length > 0 && (
+              <span className="w-1.5 h-1.5 bg-[#EE0033] rounded-full absolute top-1 right-1" />
+            )}
+          </button>
+
+          {showRecentMenu && (
+            <div className="absolute right-0 mt-2 w-80 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-xl border border-[#D7D7D7] dark:border-zinc-800 rounded-2xl shadow-2xl py-2 z-50 animate-in fade-in zoom-in-95">
+              <div className="px-3.5 py-2 border-b border-slate-100 dark:border-zinc-800 flex items-center justify-between">
+                <div className="flex items-center gap-1.5">
+                  <Clock className="w-3.5 h-3.5 text-slate-500 dark:text-zinc-400" />
+                  <span className="text-xs font-bold text-slate-900 dark:text-zinc-100">
+                    Đã xem gần đây
+                  </span>
+                </div>
+                {recents.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      recentItems.clear();
+                      setRecents([]);
+                    }}
+                    className="text-[11px] text-slate-400 hover:text-rose-600 transition flex items-center gap-1"
+                    title="Xóa lịch sử đã xem"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                    <span>Xóa</span>
+                  </button>
+                )}
+              </div>
+
+              <div className="max-h-72 overflow-y-auto divide-y divide-slate-100 dark:divide-zinc-800/60">
+                {recents.length === 0 ? (
+                  <div className="py-8 text-center text-xs text-slate-400 dark:text-zinc-500">
+                    Chưa có công việc nào xem gần đây
+                  </div>
+                ) : (
+                  recents.map((item) => (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => {
+                        setShowRecentMenu(false);
+                        if (onSelectRecentIssue) onSelectRecentIssue(item.id);
+                      }}
+                      className="w-full px-3.5 py-2.5 text-left hover:bg-slate-50 dark:hover:bg-zinc-800/70 transition flex items-start gap-2.5 group"
+                    >
+                      <div className="mt-0.5 shrink-0">
+                        {renderRecentTypeIcon(item.type)}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="text-[11px] font-mono font-semibold text-[#EE0033] group-hover:underline">
+                            {item.key}
+                          </span>
+                          <span className="text-[10px] text-slate-400 dark:text-zinc-500">
+                            {formatRelativeTime(item.viewedAt)}
+                          </span>
+                        </div>
+                        <p className="text-xs font-medium text-slate-800 dark:text-zinc-200 truncate mt-0.5">
+                          {item.title}
+                        </p>
+                      </div>
+                    </button>
+                  ))
+                )}
+              </div>
+            </div>
+          )}
+        </div>
 
         {/* Notifications Popover */}
         <div className="relative" ref={notifMenuRef}>

@@ -41,7 +41,9 @@ import {
   WorkflowStatus,
   Project,
 } from "@/types/jira";
-import { Layers } from "lucide-react";
+import { Layers, RefreshCw } from "lucide-react";
+import { recentItems } from "@/lib/recentItems";
+import { haptic } from "@/lib/haptic";
 
 // Helper to determine if a user is actively assigned to a project (as Lead or Member)
 const isUserAssignedToProject = (p: Project, uId: string, uEmail?: string): boolean => {
@@ -550,6 +552,66 @@ export default function JiraApp() {
       projectSprints[0]
     );
   }, [projectSprints]);
+
+  // Select Issue & Track in Recent Items
+  const handleSelectIssue = useCallback(
+    (issue: Issue | null) => {
+      setSelectedIssue(issue);
+      if (issue) {
+        recentItems.push({
+          id: issue.id,
+          key: issue.key,
+          title: issue.title,
+          type: issue.type,
+          projectKey: currentProject?.key,
+        });
+      }
+    },
+    [currentProject?.key]
+  );
+
+  // Pull-to-refresh on mobile
+  const [pullDistance, setPullDistance] = useState(0);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const touchStartY = useRef<number | null>(null);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (typeof window !== "undefined" && window.scrollY <= 5) {
+      touchStartY.current = e.touches[0].clientY;
+    } else {
+      touchStartY.current = null;
+    }
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (touchStartY.current === null || isRefreshing) return;
+    const diff = e.touches[0].clientY - touchStartY.current;
+    if (diff > 0) {
+      const distance = Math.min(diff * 0.45, 90);
+      setPullDistance(distance);
+      if (distance >= 55 && pullDistance < 55) {
+        haptic.light();
+      }
+    }
+  };
+
+  const handleTouchEnd = async () => {
+    if (pullDistance >= 55 && !isRefreshing) {
+      setIsRefreshing(true);
+      haptic.success();
+      try {
+        await loadData();
+      } finally {
+        setTimeout(() => {
+          setIsRefreshing(false);
+          setPullDistance(0);
+        }, 600);
+      }
+    } else {
+      setPullDistance(0);
+    }
+    touchStartY.current = null;
+  };
 
   // Update Status in Database & Local State
   const handleUpdateIssueStatus = async (
@@ -1221,7 +1283,34 @@ export default function JiraApp() {
   // 3. Authenticated App Workspace
   return (
     <ToastProvider>
-      <div className="flex flex-col h-screen overflow-hidden">
+      <div
+        className="flex flex-col h-screen overflow-hidden"
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+      >
+        {/* Pull to Refresh Indicator on Mobile */}
+        {(pullDistance > 0 || isRefreshing) && (
+          <div
+            className="md:hidden fixed top-16 left-1/2 -translate-x-1/2 z-40 flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white dark:bg-zinc-800 shadow-lg border border-slate-200 dark:border-zinc-700 text-xs font-semibold text-[#EE0033] transition-all"
+            style={{
+              transform: `translate(-50%, ${Math.min(pullDistance, 35)}px)`,
+              opacity: Math.min(pullDistance / 40, 1),
+            }}
+          >
+            <RefreshCw
+              className={`w-3.5 h-3.5 ${isRefreshing ? "animate-spin text-[#EE0033]" : "text-slate-500"}`}
+            />
+            <span>
+              {isRefreshing
+                ? "Đang đồng bộ..."
+                : pullDistance >= 55
+                ? "Thả ra để làm mới"
+                : "Kéo để làm mới"}
+            </span>
+          </div>
+        )}
+
         {/* Top Navbar */}
         <Navbar
           currentUser={currentUser}
@@ -1250,6 +1339,10 @@ export default function JiraApp() {
           onToggleSidebar={() => setIsSidebarCollapsed((prev) => !prev)}
           currentView={currentView}
           onViewChange={setCurrentView}
+          onSelectRecentIssue={(id) => {
+            const found = issues.find((i) => i.id === id);
+            if (found) handleSelectIssue(found);
+          }}
         />
 
       {/* Main Workspace: Sidebar + Dynamic View */}
@@ -1291,7 +1384,7 @@ export default function JiraApp() {
               statuses={statuses}
               currentUser={currentUser}
               isLoading={isLoadingData}
-              onIssueClick={setSelectedIssue}
+              onIssueClick={handleSelectIssue}
               onUpdateIssueStatus={handleUpdateIssueStatus}
               onCreateInStatus={handleOpenCreateInStatus}
               onQuickCreateIssue={(title, status) => handleCreateIssue({ title, status })}
@@ -1309,7 +1402,7 @@ export default function JiraApp() {
               users={projectUsers}
               currentUser={currentUser}
               isLoading={isLoadingData}
-              onIssueClick={setSelectedIssue}
+              onIssueClick={handleSelectIssue}
               onCreateIssueClick={() => {
                 setCreateInitialType("STORY");
                 setCreateInitialSprintId("");
@@ -1331,7 +1424,7 @@ export default function JiraApp() {
               sprints={projectSprints}
               issues={projectIssues}
               currentUser={currentUser}
-              onIssueClick={setSelectedIssue}
+              onIssueClick={handleSelectIssue}
             />
           )}
 
@@ -1385,7 +1478,7 @@ export default function JiraApp() {
         onUpdateIssue={handleUpdateIssue}
         onUpdateIssueLocal={handleUpdateIssueLocal}
         onDeleteIssue={handleDeleteIssue}
-        onSelectIssue={(iss) => setSelectedIssue(iss)}
+        onSelectIssue={(iss) => handleSelectIssue(iss)}
       />
 
       {/* Create Issue Modal */}
@@ -1452,7 +1545,7 @@ export default function JiraApp() {
           const active = projectSprints.find((s) => s.status === "ACTIVE") || projectSprints[0];
           setFilterState((f) => ({ ...f, sprintId: active ? active.id : "" }));
         }}
-        onSelectIssue={(iss) => setSelectedIssue(iss)}
+        onSelectIssue={(iss) => handleSelectIssue(iss)}
         onSelectView={(v) => setCurrentView(v)}
         onOpenCreateIssue={() => setIsCreateModalOpen(true)}
         onOpenShortcutsHelp={() => setIsShortcutsModalOpen(true)}

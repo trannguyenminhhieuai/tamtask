@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useMemo } from "react";
 import { Issue, IssueStatus, IssuePriority, User, Epic, Sprint, Subtask, WorkflowStatus, IssueLink, IssueLinkType, Worklog } from "@/types/jira";
 import {
   X,
@@ -507,10 +507,108 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
     }
   };
 
+  // @mention Autocomplete state & handlers
+  const [mentionQuery, setMentionQuery] = useState<string | null>(null);
+  const [mentionIndex, setMentionIndex] = useState(0);
+  const commentInputRef = useRef<HTMLInputElement>(null);
+
+  const handleCommentChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setNewComment(val);
+    const cursor = e.target.selectionStart || val.length;
+    const textBeforeCursor = val.slice(0, cursor);
+    const match = textBeforeCursor.match(/@([a-zA-Z0-9_\u00C0-\u1EF9]*)$/);
+    if (match) {
+      setMentionQuery(match[1]);
+      setMentionIndex(0);
+    } else {
+      setMentionQuery(null);
+    }
+  };
+
+  const mentionFilteredUsers = useMemo(() => {
+    if (mentionQuery === null) return [];
+    const q = mentionQuery.toLowerCase();
+    return users
+      .filter(
+        (u) =>
+          u.name.toLowerCase().includes(q) ||
+          u.email.toLowerCase().includes(q)
+      )
+      .slice(0, 5);
+  }, [mentionQuery, users]);
+
+  const insertMention = (user: User) => {
+    if (!commentInputRef.current) return;
+    const input = commentInputRef.current;
+    const val = newComment;
+    const cursor = input.selectionStart || val.length;
+    const textBeforeCursor = val.slice(0, cursor);
+    const textAfterCursor = val.slice(cursor);
+    const lastAtPos = textBeforeCursor.lastIndexOf("@");
+    if (lastAtPos !== -1) {
+      const updated = textBeforeCursor.slice(0, lastAtPos) + `@${user.name} ` + textAfterCursor;
+      setNewComment(updated);
+      setMentionQuery(null);
+      setTimeout(() => {
+        input.focus();
+        const nextPos = lastAtPos + user.name.length + 2;
+        input.setSelectionRange(nextPos, nextPos);
+      }, 50);
+    }
+  };
+
+  const handleCommentKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (mentionQuery !== null && mentionFilteredUsers.length > 0) {
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        setMentionIndex((prev) => (prev + 1) % mentionFilteredUsers.length);
+        return;
+      }
+      if (e.key === "ArrowUp") {
+        e.preventDefault();
+        setMentionIndex((prev) => (prev - 1 + mentionFilteredUsers.length) % mentionFilteredUsers.length);
+        return;
+      }
+      if (e.key === "Enter" || e.key === "Tab") {
+        e.preventDefault();
+        insertMention(mentionFilteredUsers[mentionIndex]);
+        return;
+      }
+      if (e.key === "Escape") {
+        setMentionQuery(null);
+        return;
+      }
+    }
+
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      addComment();
+    }
+  };
+
+  const renderCommentContentWithMentions = (content: string) => {
+    const parts = content.split(/(@[a-zA-Z0-9_\u00C0-\u1EF9\s]+?(?=\s|$|[.,!?]))/g);
+    return parts.map((part, index) => {
+      if (part.startsWith("@")) {
+        return (
+          <span
+            key={index}
+            className="inline-flex items-center font-semibold text-[#EE0033] bg-rose-50 dark:bg-rose-950/40 px-1.5 py-0.5 rounded border border-rose-200 dark:border-rose-900/60"
+          >
+            {part}
+          </span>
+        );
+      }
+      return part;
+    });
+  };
+
   const addComment = async () => {
     if (!newComment.trim()) return;
     const commentText = newComment.trim();
     setNewComment("");
+    setMentionQuery(null);
 
     // Optimistic UI update
     const tempComment = {
@@ -1250,7 +1348,9 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
                               <span className="font-semibold text-gray-800 dark:text-zinc-200">{comment.author.name}</span>
                               <span>{comment.createdAt}</span>
                             </div>
-                            <p className="text-gray-700 dark:text-zinc-300 leading-relaxed">{comment.content}</p>
+                            <p className="text-gray-700 dark:text-zinc-300 leading-relaxed">
+                              {renderCommentContentWithMentions(comment.content)}
+                            </p>
                           </div>
                         </div>
                       ))
@@ -1263,13 +1363,47 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
 
                   {/* Add Comment Box */}
                   {!isViewer ? (
-                    <div className="flex space-x-2">
+                    <div className="flex space-x-2 relative">
+                      {/* @mention Autocomplete Popover */}
+                      {mentionQuery !== null && mentionFilteredUsers.length > 0 && (
+                        <div className="absolute bottom-full left-0 mb-1.5 w-64 bg-white dark:bg-zinc-800 rounded-xl shadow-xl border border-slate-200 dark:border-zinc-700 py-1.5 z-30 animate-in fade-in zoom-in-95">
+                          <div className="px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-zinc-500">
+                            Nhắc đến thành viên (@)
+                          </div>
+                          {mentionFilteredUsers.map((u: User, i: number) => (
+                            <button
+                              key={u.id}
+                              type="button"
+                              onClick={() => insertMention(u)}
+                              className={`w-full px-3 py-1.5 text-left flex items-center gap-2.5 transition text-xs ${
+                                i === mentionIndex
+                                  ? "bg-rose-50 dark:bg-rose-950/40 text-[#EE0033]"
+                                  : "text-slate-700 dark:text-zinc-200 hover:bg-slate-50 dark:hover:bg-zinc-700/60"
+                              }`}
+                            >
+                              <img
+                                src={u.avatar}
+                                alt={u.name}
+                                className="w-5 h-5 rounded-full object-cover shrink-0"
+                              />
+                              <div className="flex-1 min-w-0">
+                                <div className="font-semibold truncate">{u.name}</div>
+                                <div className="text-[10px] text-slate-400 dark:text-zinc-400 truncate">
+                                  {u.email}
+                                </div>
+                              </div>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+
                       <input
+                        ref={commentInputRef}
                         type="text"
                         value={newComment}
-                        onChange={(e) => setNewComment(e.target.value)}
-                        onKeyDown={(e) => e.key === "Enter" && addComment()}
-                        placeholder="Viết bình luận..."
+                        onChange={handleCommentChange}
+                        onKeyDown={handleCommentKeyDown}
+                        placeholder="Viết bình luận... (Gõ @ để nhắc thành viên)"
                         className="flex-1 text-xs bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 text-gray-900 dark:text-zinc-100 placeholder:text-gray-400 dark:placeholder:text-zinc-500 rounded px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[#EE0033]"
                       />
                       <button

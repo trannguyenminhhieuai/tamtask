@@ -20,6 +20,8 @@ import {
   FolderGit2,
   ChevronsLeft,
   ChevronsRight,
+  LayoutGrid,
+  AlignJustify,
 } from "lucide-react";
 import { mouse1 } from "@/lib/mouse1";
 import { triggerConfetti } from "@/lib/confetti";
@@ -88,6 +90,26 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
       const next = prev.includes(colId) ? prev.filter((id) => id !== colId) : [...prev, colId];
       try {
         localStorage.setItem("tamtask_collapsed_cols", JSON.stringify(next));
+      } catch {}
+      return next;
+    });
+  };
+
+  const [density, setDensity] = useState<"comfortable" | "compact">(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const saved = localStorage.getItem("tamtask_display_density");
+        if (saved === "compact" || saved === "comfortable") return saved;
+      } catch {}
+    }
+    return "comfortable";
+  });
+
+  const toggleDensity = () => {
+    setDensity((prev) => {
+      const next = prev === "comfortable" ? "compact" : "comfortable";
+      try {
+        localStorage.setItem("tamtask_display_density", next);
       } catch {}
       return next;
     });
@@ -491,6 +513,30 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
             </select>
           </div>
 
+          {/* Display Density Switcher */}
+          <button
+            type="button"
+            onClick={toggleDensity}
+            className={`flex items-center space-x-1.5 text-xs font-semibold px-3 py-1.5 rounded-full border transition backdrop-blur-md shadow-2xs ${
+              density === "compact"
+                ? "bg-slate-900 dark:bg-zinc-100 text-white dark:text-zinc-900 border-slate-900 dark:border-zinc-100 shadow-xs"
+                : "bg-white/80 dark:bg-zinc-800/80 text-[#111827] dark:text-zinc-200 border-white/80 dark:border-zinc-700/80 hover:bg-white dark:hover:bg-zinc-700"
+            }`}
+            title={density === "compact" ? "Chuyển sang chế độ Chuẩn (Comfortable)" : "Chuyển sang chế độ Gọn (Compact)"}
+          >
+            {density === "compact" ? (
+              <>
+                <AlignJustify className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Gọn</span>
+              </>
+            ) : (
+              <>
+                <LayoutGrid className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Chuẩn</span>
+              </>
+            )}
+          </button>
+
           {/* "Bộ lọc & Tuỳ chọn khác" Popover */}
           <div className="relative" ref={moreFiltersRef}>
             <button
@@ -869,6 +915,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                             onDragStart={(e) => handleDragStart(e, issue.id)}
                             onQuickStatusChange={!isViewer ? onUpdateIssueStatus : undefined}
                             statuses={statuses}
+                            density={density}
                           />
                         ))}
 
