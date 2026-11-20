@@ -1,7 +1,7 @@
 "use client";
 
-import React from "react";
-import { Issue, IssuePriority, IssueType } from "@/types/jira";
+import React, { useState, useRef, useEffect } from "react";
+import { Issue, IssuePriority, IssueType, IssueStatus, WorkflowStatus } from "@/types/jira";
 import {
   Bookmark,
   CheckSquare,
@@ -14,13 +14,22 @@ import {
   CheckCircle2,
   Lock,
   Link2,
+  MoreHorizontal,
+  Copy,
+  Check,
+  ExternalLink,
+  ChevronRight,
+  Sparkles,
 } from "lucide-react";
+import { triggerConfetti } from "@/lib/confetti";
 
 interface IssueCardProps {
   issue: Issue;
   onClick: () => void;
   onDragStart?: (e: React.DragEvent) => void;
   isDraggable?: boolean;
+  onQuickStatusChange?: (issueId: string, status: IssueStatus) => void;
+  statuses?: WorkflowStatus[];
 }
 
 export const IssueCard: React.FC<IssueCardProps> = ({
@@ -28,7 +37,58 @@ export const IssueCard: React.FC<IssueCardProps> = ({
   onClick,
   onDragStart,
   isDraggable = true,
+  onQuickStatusChange,
+  statuses = [],
 }) => {
+  const [showQuickMenu, setShowQuickMenu] = useState(false);
+  const [copiedKey, setCopiedKey] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  // Close quick menu on outside click
+  useEffect(() => {
+    if (!showQuickMenu) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setShowQuickMenu(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [showQuickMenu]);
+
+  const handleCopyKey = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    navigator.clipboard.writeText(issue.key);
+    setCopiedKey(true);
+    setTimeout(() => {
+      setCopiedKey(false);
+      setShowQuickMenu(false);
+    }, 1200);
+  };
+
+  const handleCopyLink = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const url = typeof window !== "undefined" ? `${window.location.origin}/?issue=${issue.key}` : "";
+    navigator.clipboard.writeText(url);
+    setCopiedLink(true);
+    setTimeout(() => {
+      setCopiedLink(false);
+      setShowQuickMenu(false);
+    }, 1200);
+  };
+
+  const handleStatusChange = (e: React.MouseEvent, newStatus: IssueStatus) => {
+    e.stopPropagation();
+    if (onQuickStatusChange) {
+      if (newStatus === "DONE") {
+        triggerConfetti();
+      }
+      onQuickStatusChange(issue.id, newStatus);
+    }
+    setShowQuickMenu(false);
+  };
+
   const renderTypeIcon = (type: IssueType) => {
     switch (type) {
       case "STORY":
@@ -123,43 +183,140 @@ export const IssueCard: React.FC<IssueCardProps> = ({
           : "cursor-pointer hover:border-[#EE0033]/60 hover:shadow-xs"
       }`}
     >
-      {/* Badges / Epic */}
-      <div className="mb-2 flex items-center flex-wrap gap-1.5">
-        {issue.epic && (
-          <span
-            className="text-[10px] font-semibold uppercase tracking-wider px-2.5 py-0.5 rounded-full border transition-colors [color:var(--epic-c)] [background-color:var(--epic-bg)] [border-color:var(--epic-border)] dark:[color:var(--epic-c-dark)] dark:[background-color:var(--epic-bg-dark)] dark:[border-color:var(--epic-border-dark)]"
-            style={{
-              ["--epic-c" as any]: issue.epic.color,
-              ["--epic-bg" as any]: `${issue.epic.color}15`,
-              ["--epic-border" as any]: `${issue.epic.color}40`,
-              ["--epic-c-dark" as any]: getLightenedColor(issue.epic.color, 50),
-              ["--epic-bg-dark" as any]: `${issue.epic.color}30`,
-              ["--epic-border-dark" as any]: `${issue.epic.color}70`,
+      {/* Top Header: Badges / Epic + Quick Action Menu */}
+      <div className="mb-2 flex items-start justify-between gap-1.5">
+        <div className="flex items-center flex-wrap gap-1.5 flex-1 min-w-0">
+          {issue.epic && (
+            <span
+              className="text-[10px] font-semibold uppercase tracking-wider px-2.5 py-0.5 rounded-full border transition-colors truncate max-w-[140px] [color:var(--epic-c)] [background-color:var(--epic-bg)] [border-color:var(--epic-border)] dark:[color:var(--epic-c-dark)] dark:[background-color:var(--epic-bg-dark)] dark:[border-color:var(--epic-border-dark)]"
+              style={{
+                ["--epic-c" as any]: issue.epic.color,
+                ["--epic-bg" as any]: `${issue.epic.color}15`,
+                ["--epic-border" as any]: `${issue.epic.color}40`,
+                ["--epic-c-dark" as any]: getLightenedColor(issue.epic.color, 50),
+                ["--epic-bg-dark" as any]: `${issue.epic.color}30`,
+                ["--epic-border-dark" as any]: `${issue.epic.color}70`,
+              }}
+            >
+              {issue.epic.name}
+            </span>
+          )}
+
+          {isBlocked && (
+            <span
+              className="inline-flex items-center gap-1 text-[10px] font-medium text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 px-2.5 py-0.5 rounded-full border border-amber-200 dark:border-amber-800/60"
+              title="Đang bị chặn bởi công việc chưa hoàn thành"
+            >
+              <Lock className="w-2.5 h-2.5 text-amber-600 dark:text-amber-400" />
+              Bị chặn
+            </span>
+          )}
+
+          {totalLinks > 0 && !isBlocked && (
+            <span
+              className="inline-flex items-center gap-0.5 text-[10px] font-medium text-slate-500 dark:text-zinc-400 bg-slate-50 dark:bg-zinc-800 px-2.5 py-0.5 rounded-full border border-slate-200 dark:border-zinc-700"
+              title={`${totalLinks} liên kết`}
+            >
+              <Link2 className="w-2.5 h-2.5 text-slate-400" />
+              {totalLinks}
+            </span>
+          )}
+        </div>
+
+        {/* Quick Action Button & Dropdown */}
+        <div className="relative flex-shrink-0" ref={menuRef}>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowQuickMenu((prev) => !prev);
             }}
+            className="p-1 -mr-1 -mt-1 text-slate-400 hover:text-slate-700 dark:hover:text-zinc-200 hover:bg-slate-100 dark:hover:bg-zinc-800 rounded-lg transition opacity-0 group-hover:opacity-100 focus:opacity-100"
+            title="Thao tác nhanh"
           >
-            {issue.epic.name}
-          </span>
-        )}
+            <MoreHorizontal className="w-3.5 h-3.5" />
+          </button>
 
-        {isBlocked && (
-          <span
-            className="inline-flex items-center gap-1 text-[10px] font-medium text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 px-2.5 py-0.5 rounded-full border border-amber-200 dark:border-amber-800/60"
-            title="Đang bị chặn bởi công việc chưa hoàn thành"
-          >
-            <Lock className="w-2.5 h-2.5 text-amber-600 dark:text-amber-400" />
-            Bị chặn
-          </span>
-        )}
+          {showQuickMenu && (
+            <div
+              onClick={(e) => e.stopPropagation()}
+              className="absolute right-0 top-6 z-40 w-52 bg-white dark:bg-zinc-800 rounded-xl shadow-xl border border-slate-200 dark:border-zinc-700 py-1.5 text-xs animate-in fade-in zoom-in-95 duration-100"
+            >
+              <div className="px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-zinc-400">
+                Thao tác nhanh
+              </div>
 
-        {totalLinks > 0 && !isBlocked && (
-          <span
-            className="inline-flex items-center gap-0.5 text-[10px] font-medium text-slate-500 dark:text-zinc-400 bg-slate-50 dark:bg-zinc-800 px-2.5 py-0.5 rounded-full border border-slate-200 dark:border-zinc-700"
-            title={`${totalLinks} liên kết`}
-          >
-            <Link2 className="w-2.5 h-2.5 text-slate-400" />
-            {totalLinks}
-          </span>
-        )}
+              {/* Status transitions */}
+              {onQuickStatusChange && statuses.length > 0 && (
+                <div className="py-1 border-b border-slate-100 dark:border-zinc-700/60">
+                  <div className="px-3 py-0.5 text-[10px] font-medium text-slate-400 dark:text-zinc-500">
+                    Chuyển trạng thái:
+                  </div>
+                  {statuses
+                    .filter((s) => s.id !== issue.status)
+                    .map((s) => (
+                      <button
+                        key={s.id}
+                        type="button"
+                        onClick={(e) => handleStatusChange(e, s.id)}
+                        className="w-full px-3 py-1.5 text-left flex items-center justify-between text-slate-700 dark:text-zinc-200 hover:bg-slate-100 dark:hover:bg-zinc-700/70 transition"
+                      >
+                        <div className="flex items-center gap-2">
+                          <span
+                            className="w-2 h-2 rounded-full"
+                            style={{ backgroundColor: s.color }}
+                          />
+                          <span className="truncate">{s.name}</span>
+                        </div>
+                        {s.id === "DONE" && <Sparkles className="w-3 h-3 text-emerald-500" />}
+                      </button>
+                    ))}
+                </div>
+              )}
+
+              {/* Copy actions */}
+              <div className="py-1">
+                <button
+                  type="button"
+                  onClick={handleCopyKey}
+                  className="w-full px-3 py-1.5 text-left flex items-center justify-between text-slate-700 dark:text-zinc-200 hover:bg-slate-100 dark:hover:bg-zinc-700/70 transition"
+                >
+                  <span className="flex items-center gap-2">
+                    <Copy className="w-3.5 h-3.5 text-slate-400" />
+                    Sao chép mã {issue.key}
+                  </span>
+                  {copiedKey && <Check className="w-3.5 h-3.5 text-emerald-600" />}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleCopyLink}
+                  className="w-full px-3 py-1.5 text-left flex items-center justify-between text-slate-700 dark:text-zinc-200 hover:bg-slate-100 dark:hover:bg-zinc-700/70 transition"
+                >
+                  <span className="flex items-center gap-2">
+                    <ExternalLink className="w-3.5 h-3.5 text-slate-400" />
+                    Sao chép liên kết
+                  </span>
+                  {copiedLink && <Check className="w-3.5 h-3.5 text-emerald-600" />}
+                </button>
+              </div>
+
+              <div className="pt-1 border-t border-slate-100 dark:border-zinc-700/60">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowQuickMenu(false);
+                    onClick();
+                  }}
+                  className="w-full px-3 py-1.5 text-left flex items-center justify-between text-[#EE0033] hover:bg-rose-50 dark:hover:bg-rose-950/30 transition font-medium"
+                >
+                  <span>Xem chi tiết</span>
+                  <ChevronRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Title */}
@@ -221,4 +378,3 @@ export const IssueCard: React.FC<IssueCardProps> = ({
     </div>
   );
 };
-

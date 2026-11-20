@@ -242,17 +242,45 @@ export const CreateIssueModal: React.FC<CreateIssueModalProps> = ({
     }
   };
 
+  // Mobile swipe-down to dismiss
+  const touchStartY = React.useRef<number | null>(null);
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartY.current = e.touches[0].clientY;
+  };
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartY.current !== null) {
+      const deltaY = e.changedTouches[0].clientY - touchStartY.current;
+      if (deltaY > 80) {
+        onClose();
+      }
+      touchStartY.current = null;
+    }
+  };
+
   return (
     <div
-      className="fixed inset-0 z-[80] flex items-center justify-center bg-[rgba(27,27,27,0.6)] backdrop-blur-xs p-4 animate-in fade-in"
+      className="fixed inset-0 z-[80] flex items-end md:items-center justify-center bg-[rgba(27,27,27,0.6)] backdrop-blur-xs p-0 md:p-4 animate-in fade-in"
       onClick={onClose}
     >
       <div
-        className="bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden border border-[#D7D7D7] dark:border-zinc-800 animate-in fade-in zoom-in-95 duration-150"
+        className="bg-white dark:bg-zinc-900 rounded-t-3xl md:rounded-2xl shadow-2xl w-full max-w-2xl max-h-[92vh] md:max-h-[90vh] flex flex-col overflow-hidden border border-[#D7D7D7] dark:border-zinc-800 animate-in slide-in-from-bottom md:zoom-in-95 duration-150"
         onClick={(e) => e.stopPropagation()}
       >
+        {/* Mobile Grab Handle */}
+        <div
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+          className="md:hidden flex flex-col items-center pt-3 pb-1.5 bg-white dark:bg-zinc-900 cursor-grab active:cursor-grabbing border-b border-slate-100 dark:border-zinc-800 select-none flex-shrink-0"
+        >
+          <div className="w-12 h-1.5 rounded-full bg-slate-300 dark:bg-zinc-700" />
+        </div>
+
         {/* Header */}
-        <div className="px-6 py-4 border-b border-[#E5E7EB] dark:border-zinc-800 flex items-center justify-between bg-white/70 dark:bg-zinc-900/70 backdrop-blur-md flex-shrink-0">
+        <div
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+          className="px-6 py-4 border-b border-[#E5E7EB] dark:border-zinc-800 flex items-center justify-between bg-white/70 dark:bg-zinc-900/70 backdrop-blur-md flex-shrink-0"
+        >
           <div className="flex items-center gap-2">
             <h3 className="text-base font-bold text-[#111827] dark:text-zinc-100">Tạo Công Việc</h3>
             {currentProject && (

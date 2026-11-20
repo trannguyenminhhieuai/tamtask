@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { Issue, IssueStatus, IssuePriority, User, Epic, Sprint, Subtask, WorkflowStatus, IssueLink, IssueLinkType, Worklog } from "@/types/jira";
 import {
   X,
@@ -584,17 +584,45 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
     setMouseFeedback(triageResult.decision.reasoning);
   };
 
+  // Mobile swipe-down to dismiss
+  const touchStartY = useRef<number | null>(null);
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartY.current = e.touches[0].clientY;
+  };
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartY.current !== null) {
+      const deltaY = e.changedTouches[0].clientY - touchStartY.current;
+      if (deltaY > 80) {
+        onClose();
+      }
+      touchStartY.current = null;
+    }
+  };
+
   return (
     <div
-      className="fixed inset-0 z-[70] flex justify-end bg-[rgba(27,27,27,0.6)] backdrop-blur-xs animate-in fade-in"
+      className="fixed inset-0 z-[70] flex items-end md:items-stretch md:justify-end bg-[rgba(27,27,27,0.6)] backdrop-blur-xs animate-in fade-in"
       onClick={onClose}
     >
       <div
-        className="w-full md:max-w-4xl bg-white dark:bg-zinc-900 h-full shadow-2xl flex flex-col border-l border-[#D7D7D7] dark:border-zinc-800 rounded-l-2xl sm:rounded-l-3xl overflow-hidden animate-in slide-in-from-right duration-200"
+        className="w-full md:max-w-4xl bg-white dark:bg-zinc-900 h-[92vh] md:h-full shadow-2xl flex flex-col border-t md:border-t-0 md:border-l border-[#D7D7D7] dark:border-zinc-800 rounded-t-3xl md:rounded-t-none md:rounded-l-3xl overflow-hidden animate-in slide-in-from-bottom md:slide-in-from-right duration-200"
         onClick={(e) => e.stopPropagation()}
       >
+        {/* Mobile Grab Handle */}
+        <div
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+          className="md:hidden flex flex-col items-center pt-3 pb-1.5 bg-white dark:bg-zinc-900 cursor-grab active:cursor-grabbing border-b border-slate-100 dark:border-zinc-800 select-none"
+        >
+          <div className="w-12 h-1.5 rounded-full bg-slate-300 dark:bg-zinc-700" />
+        </div>
+
         {/* Top Header */}
-        <div className="px-6 py-3.5 border-b border-[#E5E7EB] dark:border-zinc-800 flex items-center justify-between bg-white/70 dark:bg-zinc-900/70 backdrop-blur-md">
+        <div
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+          className="px-6 py-3.5 border-b border-[#E5E7EB] dark:border-zinc-800 flex items-center justify-between bg-white/70 dark:bg-zinc-900/70 backdrop-blur-md"
+        >
           <div className="flex items-center space-x-3">
             <span className="text-xs font-semibold font-mono text-slate-700 dark:text-zinc-300 bg-slate-100 dark:bg-zinc-800 px-2.5 py-0.5 rounded-full border border-slate-200 dark:border-zinc-700">
               {issue.key}

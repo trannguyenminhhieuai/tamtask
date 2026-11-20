@@ -18,8 +18,11 @@ import {
   UserCheck,
   Zap,
   FolderGit2,
+  ChevronsLeft,
+  ChevronsRight,
 } from "lucide-react";
 import { mouse1 } from "@/lib/mouse1";
+import { triggerConfetti } from "@/lib/confetti";
 
 interface KanbanBoardProps {
   issues: Issue[];
@@ -67,6 +70,28 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   const [showMoreFilters, setShowMoreFilters] = useState(false);
   const [isScrolledHeader, setIsScrolledHeader] = useState(false);
   const moreFiltersRef = React.useRef<HTMLDivElement>(null);
+
+  const [collapsedColIds, setCollapsedColIds] = useState<string[]>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const saved = localStorage.getItem("tamtask_collapsed_cols");
+        return saved ? JSON.parse(saved) : [];
+      } catch {
+        return [];
+      }
+    }
+    return [];
+  });
+
+  const toggleCollapseColumn = (colId: string) => {
+    setCollapsedColIds((prev) => {
+      const next = prev.includes(colId) ? prev.filter((id) => id !== colId) : [...prev, colId];
+      try {
+        localStorage.setItem("tamtask_collapsed_cols", JSON.stringify(next));
+      } catch {}
+      return next;
+    });
+  };
 
   const handleBoardScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const top = e.currentTarget.scrollTop;
@@ -294,6 +319,10 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
         );
         setTimeout(() => setGateWarning(null), 6000);
       }
+    }
+
+    if (targetStatus === "DONE") {
+      triggerConfetti();
     }
 
     onUpdateIssueStatus(issueId, targetStatus);
@@ -695,6 +724,68 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                   const hasWip = typeof col.maxWip === "number" && col.maxWip > 0;
                   const isWipExceeded = hasWip && colIssues.length > (col.maxWip || 0);
                   const isWipMax = hasWip && colIssues.length === (col.maxWip || 0);
+                  const isCollapsed = collapsedColIds.includes(col.id);
+
+                  if (isCollapsed) {
+                    return (
+                      <div
+                        key={col.id}
+                        onDragOver={(e) => handleDragOver(e, col.id)}
+                        onDrop={(e) => handleDrop(e, col.id)}
+                        onClick={() => toggleCollapseColumn(col.id)}
+                        title={`Mở rộng cột ${col.name} (${colIssues.length} việc)`}
+                        className={`w-14 flex-shrink-0 min-w-[56px] py-4 px-1.5 flex flex-col items-center justify-between min-h-[420px] rounded-2xl border transition-all duration-200 select-none cursor-pointer group ${
+                          isOver
+                            ? "bg-rose-50/80 dark:bg-rose-950/30 border-2 border-dashed border-[#EE0033]"
+                            : isWipExceeded
+                            ? "bg-rose-50/70 dark:bg-rose-950/10 border-rose-300 dark:border-rose-800"
+                            : "bg-white dark:bg-zinc-900 hover:bg-slate-50 dark:hover:bg-zinc-800/60 border-[#E5E7EB] dark:border-zinc-800 shadow-xs"
+                        }`}
+                      >
+                        <div className="flex flex-col items-center gap-3">
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleCollapseColumn(col.id);
+                            }}
+                            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-zinc-200 hover:bg-slate-100 dark:hover:bg-zinc-800 transition"
+                            title="Mở rộng cột"
+                          >
+                            <ChevronsRight className="w-4 h-4" />
+                          </button>
+                          <span
+                            className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                            style={{ backgroundColor: col.color }}
+                          />
+                          <div
+                            className="text-xs font-bold uppercase tracking-wider text-[#111827] dark:text-zinc-200 [writing-mode:vertical-lr] rotate-180 py-2 group-hover:text-[#EE0033] dark:group-hover:text-rose-400 transition"
+                          >
+                            {col.name}
+                          </div>
+                        </div>
+
+                        <div className="flex flex-col items-center gap-1.5 pb-2">
+                          <span
+                            className={`text-[11px] font-bold px-2 py-0.5 rounded-full transition-colors flex items-center gap-0.5 ${
+                              isWipExceeded
+                                ? "bg-[#EE0033] text-white"
+                                : isWipMax
+                                ? "bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-700"
+                                : "bg-slate-100 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 text-[#111827] dark:text-zinc-200"
+                            }`}
+                          >
+                            {colIssues.length}
+                          </span>
+                          {totalPoints > 0 && (
+                            <span className="text-[10px] font-mono font-semibold text-[#9B9B9B] dark:text-zinc-500">
+                              {totalPoints}p
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  }
 
                   return (
                     <div
@@ -741,11 +832,24 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                             )}
                           </span>
                         </div>
-                        {totalPoints > 0 && (
-                          <span className="text-[10px] font-semibold text-[#9B9B9B] dark:text-zinc-500" title="Total Story Points">
-                            {totalPoints} pts
-                          </span>
-                        )}
+                        <div className="flex items-center space-x-1.5">
+                          {totalPoints > 0 && (
+                            <span className="text-[10px] font-semibold text-[#9B9B9B] dark:text-zinc-500" title="Total Story Points">
+                              {totalPoints} pts
+                            </span>
+                          )}
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleCollapseColumn(col.id);
+                            }}
+                            className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-zinc-200 hover:bg-slate-100 dark:hover:bg-zinc-800 rounded-md transition"
+                            title="Thu gọn cột"
+                          >
+                            <ChevronsLeft className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
                       </div>
 
                       {/* Column Cards List - 16px gap, 16px padding, full expand no internal scroll */}
@@ -763,6 +867,8 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                             isDraggable={!isViewer}
                             onClick={() => onIssueClick(issue)}
                             onDragStart={(e) => handleDragStart(e, issue.id)}
+                            onQuickStatusChange={!isViewer ? onUpdateIssueStatus : undefined}
+                            statuses={statuses}
                           />
                         ))}
 
