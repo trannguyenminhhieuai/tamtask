@@ -21,6 +21,7 @@ import { EpicSettingsModal } from "@/components/jira/EpicSettingsModal";
 import { ToastProvider, notify } from "@/components/jira/Toast";
 import { CommandPalette } from "@/components/jira/CommandPalette";
 import { ShortcutsModal } from "@/components/jira/ShortcutsModal";
+import { MobileBottomNav } from "@/components/jira/MobileBottomNav";
 import {
   MOCK_USERS,
   CURRENT_USER,
@@ -1280,7 +1281,7 @@ export default function JiraApp() {
         </div>
 
         {/* Central View Area */}
-        <main className="flex-1 flex flex-col overflow-hidden">
+        <main className="flex-1 flex flex-col overflow-hidden pb-16 md:pb-0">
           {currentView === "BOARD" && (
             <KanbanBoard
               issues={projectIssues}
@@ -1357,6 +1358,18 @@ export default function JiraApp() {
             />
           )}
         </main>
+
+        {/* Mobile Bottom Navigation Bar (Thumb ergonomic for PWA) */}
+        <MobileBottomNav
+          currentView={currentView}
+          onViewChange={setCurrentView}
+          onCreateClick={() => {
+            setCreateInitialType(currentView === "BACKLOG" ? "STORY" : "TASK");
+            setCreateInitialSprintId(currentView === "BACKLOG" ? "" : (activeSprint?.id || ""));
+            setIsCreateModalOpen(true);
+          }}
+          onToggleSidebar={() => setIsSidebarCollapsed((prev) => !prev)}
+        />
       </div>
 
       {/* Slide-over Issue Detail Drawer */}

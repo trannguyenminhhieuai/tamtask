@@ -1,0 +1,62 @@
+{
+  "name": "TamTask - Quản Trị Công Việc & Dự Án Thông Minh",
+  "short_name": "TamTask",
+  "description": "Nền tảng quản lý dự án hiện đại, mượt mà và bảo mật cao - Kiến tạo bởi Tammi",
+  "start_url": "/",
+  "id": "/",
+  "display": "standalone",
+  "background_color": "#09090B",
+  "theme_color": "#EE0033",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "vi",
+  "categories": ["productivity", "business", "utilities"],
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-maskable-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Bảng Kanban",
+      "short_name": "Kanban",
+      "description": "Xem bảng công việc Kanban",
+      "url": "/?view=BOARD",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Hàng đợi Backlog",
+      "short_name": "Backlog",
+      "description": "Lập kế hoạch Sprint & Backlog",
+      "url": "/?view=BACKLOG",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}
