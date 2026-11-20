@@ -397,22 +397,22 @@ export const Navbar: React.FC<NavbarProps> = ({
       </div>
 
       {/* Center: Auto-layout centered Frosted Glass Search Bar with thin border */}
-      <div className="flex-1 min-w-0 flex justify-center px-2 sm:px-4">
+      <div className="flex-1 min-w-0 flex justify-center px-1.5 sm:px-4">
         <button
           type="button"
           onClick={() => onOpenCommandPalette?.()}
-          className="w-full flex items-center justify-between bg-white/70 dark:bg-zinc-800/70 hover:bg-white/95 dark:hover:bg-zinc-800/95 backdrop-blur-md border border-[#D7D7D7]/80 dark:border-zinc-700/80 hover:border-[#EE0033]/60 dark:hover:border-[#EE0033]/60 rounded-full px-4 py-1.5 text-xs text-left text-[#6B7280] dark:text-zinc-400 hover:text-[#111827] dark:hover:text-zinc-100 transition shadow-[inset_0_1px_1px_rgba(255,255,255,0.7)] dark:shadow-[inset_0_1px_1px_rgba(255,255,255,0.06)] group focus:ring-2 focus:ring-[#EE0033]/20"
+          className="w-full max-w-md flex items-center justify-between bg-white/70 dark:bg-zinc-800/70 hover:bg-white/95 dark:hover:bg-zinc-800/95 backdrop-blur-md border border-[#D7D7D7]/80 dark:border-zinc-700/80 hover:border-[#EE0033]/60 dark:hover:border-[#EE0033]/60 rounded-full px-3 sm:px-4 py-1.5 text-xs text-left text-[#6B7280] dark:text-zinc-400 hover:text-[#111827] dark:hover:text-zinc-100 transition shadow-[inset_0_1px_1px_rgba(255,255,255,0.7)] dark:shadow-[inset_0_1px_1px_rgba(255,255,255,0.06)] group focus:ring-2 focus:ring-[#EE0033]/20"
           title="Tìm kiếm nhanh (Ctrl + K)"
         >
-          <div className="flex items-center space-x-2.5 truncate">
+          <div className="flex items-center space-x-2 truncate">
             <Search className="w-3.5 h-3.5 text-[#9B9B9B] group-hover:text-[#EE0033] transition-colors shrink-0" />
-            <span className="truncate">
+            <span className="truncate text-xs">
               {searchQuery ? (
                 `"${searchQuery}"`
               ) : (
                 <>
                   <span className="hidden sm:inline">Tìm nhanh task, dự án, lệnh... (Ctrl + K)</span>
-                  <span className="sm:hidden">Tìm kiếm...</span>
+                  <span className="sm:hidden">Tìm nhanh...</span>
                 </>
               )}
             </span>
@@ -424,7 +424,7 @@ export const Navbar: React.FC<NavbarProps> = ({
       </div>
 
       {/* Right: Actions, Notifications & Profile */}
-      <div className="flex items-center space-x-1.5 sm:space-x-2.5 shrink-0">
+      <div className="flex items-center space-x-1 sm:space-x-2.5 shrink-0">
         {/* Project Members Button (Admin & Project Lead) */}
         {canManageProjects && onOpenProjectMembers && currentProject && (
           <button
@@ -437,20 +437,19 @@ export const Navbar: React.FC<NavbarProps> = ({
           </button>
         )}
 
-        {/* Create Issue Button ("+ Thêm mới") */}
+        {/* Create Issue Button ("+ Thêm mới") - Chỉ hiện trên desktop (sm:flex), trên mobile đã có nút FAB (+) dưới đáy */}
         {canCreateIssue ? (
           <button
             onClick={onCreateIssueClick}
-            className="flex items-center space-x-1 sm:space-x-1.5 bg-[#EE0033] hover:bg-[#D6002E] active:bg-[#BD0029] focus:ring-3 focus:ring-[#EE0033]/20 text-white text-xs font-semibold px-2.5 sm:px-4 py-1.5 rounded-full transition shadow-xs shrink-0"
+            className="hidden sm:flex items-center space-x-1.5 bg-[#EE0033] hover:bg-[#D6002E] active:bg-[#BD0029] focus:ring-3 focus:ring-[#EE0033]/20 text-white text-xs font-semibold px-3.5 sm:px-4 py-1.5 rounded-full transition shadow-xs shrink-0"
             title="Tạo mới công việc / task"
           >
             <Plus className="w-4 h-4 text-white shrink-0" />
-            <span className="hidden sm:inline">Thêm mới</span>
-            <span className="sm:hidden">Mới</span>
+            <span>Thêm mới</span>
           </button>
         ) : (
           <div
-            className="flex items-center space-x-1 text-[#9B9B9B] text-xs px-2.5 sm:px-3 py-1 rounded-full border border-[#D7D7D7] bg-[#F8F8F8] cursor-not-allowed shrink-0"
+            className="hidden sm:flex items-center space-x-1 text-[#9B9B9B] text-xs px-2.5 sm:px-3 py-1 rounded-full border border-[#D7D7D7] bg-[#F8F8F8] cursor-not-allowed shrink-0"
             title="Quyền chỉ được xem, không thể tạo task"
           >
             <span>Chỉ xem</span>
@@ -471,8 +470,8 @@ export const Navbar: React.FC<NavbarProps> = ({
           )}
         </button>
 
-        {/* Recent Viewed Issues Popover */}
-        <div className="relative" ref={recentMenuRef}>
+        {/* Recent Viewed Issues Popover - Ẩn trên mobile để tối ưu diện tích cho Avatar */}
+        <div className="relative hidden sm:block" ref={recentMenuRef}>
           <button
             type="button"
             onClick={() => {
