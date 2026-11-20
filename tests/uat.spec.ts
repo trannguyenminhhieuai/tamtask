@@ -3,7 +3,34 @@ import path from "path";
 import fs from "fs";
 import { PrismaClient } from "@prisma/client";
 
-const prisma = new PrismaClient();
+const getTestDatabaseUrl = () => {
+  const url = process.env.DATABASE_URL;
+  if (!url) return undefined;
+  try {
+    const parsed = new URL(url);
+    if (parsed.hostname.includes("pooler.supabase.com")) {
+      parsed.port = "6543";
+      parsed.searchParams.set("pgbouncer", "true");
+      parsed.searchParams.set("connection_limit", "2");
+      return parsed.toString();
+    }
+    if (!parsed.searchParams.has("connection_limit")) {
+      parsed.searchParams.set("connection_limit", "2");
+      return parsed.toString();
+    }
+  } catch {
+    // Fallback
+  }
+  return url;
+};
+
+const prisma = new PrismaClient({
+  datasources: {
+    db: {
+      url: getTestDatabaseUrl(),
+    },
+  },
+});
 const SCREENSHOT_DIR = path.resolve(process.cwd(), "uat-reports/screenshots");
 if (!fs.existsSync(SCREENSHOT_DIR)) {
   fs.mkdirSync(SCREENSHOT_DIR, { recursive: true });
@@ -137,7 +164,7 @@ test.describe("TamTask Agile Hub - UAT Automation Test Suite (Plan.md)", () => {
     await expect(projectSwitcher).toBeVisible();
 
     // Kiểm tra có các cột trạng thái chuẩn Agile
-    const columnHeader = page.getByText("To do").or(page.getByText("In progress")).locator("visible=true").first();
+    const columnHeader = page.locator("text='To do' >> visible=true").or(page.locator("text='In progress' >> visible=true")).first();
     await expect(columnHeader).toBeVisible({ timeout: 15000 });
   });
 

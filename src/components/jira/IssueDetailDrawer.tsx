@@ -28,6 +28,7 @@ import {
 import { mouse1 } from "@/lib/mouse1";
 import { TiptapEditor } from "./TiptapEditor";
 import { notify } from "./Toast";
+import { haptic } from "@/lib/haptic";
 
 interface IssueDetailDrawerProps {
   issue: Issue | null;
@@ -66,6 +67,7 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
   const [newSubtaskTitle, setNewSubtaskTitle] = useState("");
   const [newComment, setNewComment] = useState("");
   const [activeTab, setActiveTab] = useState<"COMMENTS" | "HISTORY">("COMMENTS");
+  const [mobileDrawerTab, setMobileDrawerTab] = useState<"DETAILS" | "PROPERTIES" | "COMMENTS">("DETAILS");
   const [isTriaging, setIsTriaging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [isGeneratingCriteria, setIsGeneratingCriteria] = useState(false);
@@ -82,6 +84,7 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
     setSubtasks(issue.subtasks || []);
     setNewSubtaskTitle("");
     setNewComment("");
+    setMobileDrawerTab("DETAILS");
     setIsLinkingOpen(false);
     setIsLoggingWork(false);
   }, [issue.id]);
@@ -751,11 +754,64 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
           </div>
         </div>
 
+        {/* Mobile Segmented Tab Navigation */}
+        <div className="md:hidden px-4 py-2 bg-slate-100/90 dark:bg-zinc-800/90 border-b border-slate-200 dark:border-zinc-800 flex items-center justify-around gap-1.5 shrink-0 select-none">
+          <button
+            type="button"
+            onClick={() => {
+              haptic.selection();
+              setMobileDrawerTab("DETAILS");
+            }}
+            className={`flex-1 py-1.5 px-2 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition ${
+              mobileDrawerTab === "DETAILS"
+                ? "bg-white dark:bg-zinc-700 text-[#EE0033] shadow-xs font-bold"
+                : "text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-200"
+            }`}
+          >
+            <FileText className="w-3.5 h-3.5" />
+            <span>Chi tiết</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              haptic.selection();
+              setMobileDrawerTab("PROPERTIES");
+            }}
+            className={`flex-1 py-1.5 px-2 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition ${
+              mobileDrawerTab === "PROPERTIES"
+                ? "bg-white dark:bg-zinc-700 text-[#EE0033] shadow-xs font-bold"
+                : "text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-200"
+            }`}
+          >
+            <Tag className="w-3.5 h-3.5" />
+            <span>Thuộc tính</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              haptic.selection();
+              setMobileDrawerTab("COMMENTS");
+            }}
+            className={`flex-1 py-1.5 px-2 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition ${
+              mobileDrawerTab === "COMMENTS"
+                ? "bg-white dark:bg-zinc-700 text-[#EE0033] shadow-xs font-bold"
+                : "text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-200"
+            }`}
+          >
+            <MessageSquare className="w-3.5 h-3.5" />
+            <span>Thảo luận ({issue.comments?.length || 0})</span>
+          </button>
+        </div>
+
         {/* Content Body (2 Columns) - Unified Single Scrollbar with 16px bottom padding */}
         <div className="flex-1 overflow-y-auto overflow-x-hidden">
           <div className="flex flex-col md:flex-row md:items-start min-h-full pb-4 w-full">
-            {/* Left Column: Title, Description, Subtasks, Comments (Strict min-w-0 and overflow-hidden to prevent layout blow-out) */}
-            <div className="flex-1 min-w-0 w-full p-6 pb-6 md:border-r border-gray-200 dark:border-zinc-800 space-y-6 bg-white dark:bg-zinc-900 flex flex-col justify-start overflow-hidden">
+            {/* Left Column: Title, Description, Subtasks, Comments */}
+            <div className={`flex-1 min-w-0 w-full p-4 sm:p-6 pb-6 md:border-r border-gray-200 dark:border-zinc-800 space-y-6 bg-white dark:bg-zinc-900 flex-col justify-start overflow-hidden ${
+              mobileDrawerTab === "PROPERTIES" ? "hidden md:flex" : "flex"
+            }`}>
+              {/* Details & Specifications Group */}
+              <div className={`space-y-6 ${mobileDrawerTab === "COMMENTS" ? "hidden md:block" : "block"}`}>
             {/* Title */}
             <div>
               <input
@@ -1297,9 +1353,10 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
                 </div>
               )}
             </div>
+          </div>
 
             {/* Activity & Comments Tabs */}
-            <div>
+            <div className={mobileDrawerTab === "DETAILS" ? "hidden md:block" : "block"}>
               <div className="flex items-center space-x-6 border-b border-gray-200 dark:border-zinc-800 mb-4">
                 <button
                   type="button"
@@ -1506,7 +1563,9 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
           </div>
 
           {/* Right Column: Metadata & Fast Actions (Unified Single Scroll, Full Stretch) */}
-          <div className="w-full md:w-80 lg:w-88 p-5 pb-16 bg-slate-50/70 dark:bg-zinc-900/60 md:border-l border-slate-200 dark:border-zinc-800 space-y-4 shrink-0 flex flex-col justify-start">
+          <div className={`w-full md:w-80 lg:w-88 p-4 sm:p-5 pb-16 bg-slate-50/70 dark:bg-zinc-900/60 md:border-l border-slate-200 dark:border-zinc-800 space-y-4 shrink-0 flex-col justify-start ${
+            mobileDrawerTab === "PROPERTIES" ? "flex" : "hidden md:flex"
+          }`}>
             {/* Auto Triage Action Button */}
             {!isViewer && (
               <div className="bg-white dark:bg-zinc-800/80 border border-slate-200 dark:border-zinc-700/80 rounded-2xl p-4 shadow-2xs space-y-2.5">

@@ -22,6 +22,7 @@ import {
   ChevronsRight,
   LayoutGrid,
   AlignJustify,
+  Inbox,
 } from "lucide-react";
 import { mouse1 } from "@/lib/mouse1";
 import { triggerConfetti } from "@/lib/confetti";
@@ -74,6 +75,37 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   const [isScrolledHeader, setIsScrolledHeader] = useState(false);
   const [mobileActiveColumn, setMobileActiveColumn] = useState<string>("ALL");
   const moreFiltersRef = React.useRef<HTMLDivElement>(null);
+
+  // Mobile horizontal touch swipe gestures to navigate columns smoothly
+  const touchStartX = React.useRef<number | null>(null);
+  const touchStartY = React.useRef<number | null>(null);
+
+  const handleBoardTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+    touchStartY.current = e.touches[0].clientY;
+  };
+
+  const handleBoardTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX.current === null || touchStartY.current === null) return;
+    const deltaX = e.changedTouches[0].clientX - touchStartX.current;
+    const deltaY = e.changedTouches[0].clientY - touchStartY.current;
+
+    // Dominant horizontal swipe (>50px and x > y * 1.3)
+    if (mobileActiveColumn !== "ALL" && Math.abs(deltaX) > 50 && Math.abs(deltaX) > Math.abs(deltaY) * 1.3) {
+      const currIdx = statuses.findIndex((s) => s.id === mobileActiveColumn);
+      if (deltaX < 0 && currIdx >= 0 && currIdx < statuses.length - 1) {
+        // Swipe Left -> Next column
+        haptic.selection();
+        setMobileActiveColumn(statuses[currIdx + 1].id);
+      } else if (deltaX > 0 && currIdx > 0) {
+        // Swipe Right -> Prev column
+        haptic.selection();
+        setMobileActiveColumn(statuses[currIdx - 1].id);
+      }
+    }
+    touchStartX.current = null;
+    touchStartY.current = null;
+  };
 
   const [collapsedColIds, setCollapsedColIds] = useState<string[]>(() => {
     if (typeof window !== "undefined") {
@@ -888,6 +920,8 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
 
               {/* Status Columns Grid - columns expand full height, pinned horizontal scroll at bottom */}
               <div
+                onTouchStart={handleBoardTouchStart}
+                onTouchEnd={handleBoardTouchEnd}
                 className={`flex gap-4 pb-4 items-start ${
                   mobileActiveColumn === "ALL"
                     ? "min-w-max"
@@ -1053,8 +1087,16 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                         ))}
 
                         {colIssues.length === 0 && dragOverCol !== col.id && (
-                          <div className="h-16 border-2 border-dashed border-gray-300/80 rounded-xl flex items-center justify-center text-xs text-gray-400">
-                            Trống
+                          <div className="py-8 px-4 border-2 border-dashed border-slate-200 dark:border-zinc-800 rounded-2xl flex flex-col items-center justify-center text-center gap-2 bg-slate-50/50 dark:bg-zinc-900/40">
+                            <div className="w-9 h-9 rounded-full bg-slate-100 dark:bg-zinc-800 flex items-center justify-center text-slate-400 dark:text-zinc-500">
+                              <Inbox className="w-4 h-4 opacity-70" />
+                            </div>
+                            <div className="text-xs font-semibold text-slate-600 dark:text-zinc-300">
+                              Chưa có công việc nào
+                            </div>
+                            <p className="text-[11px] text-slate-400 dark:text-zinc-500 max-w-[200px]">
+                              Kéo thả thẻ vào đây hoặc nhấn &quot;+ Thêm thẻ mới&quot;
+                            </p>
                           </div>
                         )}
                       </div>
