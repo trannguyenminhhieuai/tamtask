@@ -360,10 +360,10 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
         className={`relative z-20 transition-all duration-300 ease-in-out shrink-0 overflow-visible ${
           isScrolledHeader
             ? "max-h-0 opacity-0 -translate-y-4 mb-0 pointer-events-none"
-            : "max-h-60 opacity-100 translate-y-0 m-2.5 sm:m-4 mb-0"
+            : "max-h-60 opacity-100 translate-y-0 m-2 sm:m-4 mb-0"
         }`}
       >
-        <div className="p-2.5 sm:p-4 rounded-2xl bg-white/75 dark:bg-zinc-900/75 backdrop-blur-xl border border-white/80 dark:border-white/10 shadow-[0_8px_32px_0_rgba(31,38,135,0.05)] flex flex-col md:flex-row md:items-center md:justify-between gap-2.5 md:gap-4">
+        <div className="p-2 sm:p-4 rounded-2xl bg-white/80 dark:bg-zinc-900/80 sm:bg-white/75 sm:dark:bg-zinc-900/75 backdrop-blur-xl border border-slate-200/60 dark:border-zinc-800/60 sm:border-white/80 sm:dark:border-white/10 shadow-xs flex flex-col md:flex-row md:items-center md:justify-between gap-2 md:gap-4">
           {/* Top row on mobile / Left on desktop: Title + Mobile Sprint Selector */}
           <div className="flex items-center justify-between md:justify-start space-x-3 shrink-0">
             <h1 className="text-sm sm:text-lg font-extrabold text-[#111827] dark:text-zinc-100 tracking-tight">
@@ -371,7 +371,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
             </h1>
 
             {/* Mobile-only compact Sprint Selector beside title */}
-            <div className="md:hidden flex items-center gap-1.5 bg-white/80 dark:bg-zinc-800/80 backdrop-blur-md border border-slate-200 dark:border-zinc-700/80 rounded-full px-2.5 py-1 text-xs shadow-2xs">
+            <div className="md:hidden flex items-center gap-1.5 bg-white/90 dark:bg-zinc-800/90 backdrop-blur-md border border-slate-200 dark:border-zinc-700/80 rounded-full px-2.5 py-1 text-xs shadow-2xs">
               <Layers className="w-3 h-3 text-[#EE0033] shrink-0" />
               <select
                 value={effectiveSprintId}
@@ -786,56 +786,104 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                 </div>
               )}
 
-              {/* Mobile Status Switcher - Tối ưu 100% trải nghiệm xem cột trên Mobile */}
-              <div className="md:hidden flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1 px-0.5 mb-1 select-none">
-                <button
-                  type="button"
-                  onClick={() => {
-                    haptic.selection();
-                    setMobileActiveColumn("ALL");
-                  }}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all shrink-0 ${
-                    mobileActiveColumn === "ALL"
-                      ? "bg-[#EE0033] text-white shadow-xs"
-                      : "bg-white dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 border border-slate-200 dark:border-zinc-700 hover:bg-slate-50 dark:hover:bg-zinc-700"
-                  }`}
-                >
-                  Tất cả ({lane.issues.length})
-                </button>
-                {statuses.map((col) => {
-                  const count = lane.issues.filter((i) => i.status === col.id).length;
-                  const isActive = mobileActiveColumn === col.id;
-                  return (
-                    <button
-                      key={col.id}
-                      type="button"
-                      onClick={() => {
-                        haptic.selection();
-                        setMobileActiveColumn(col.id);
-                      }}
-                      className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 shrink-0 ${
-                        isActive
-                          ? "bg-[#EE0033] text-white shadow-xs"
-                          : "bg-white dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 border border-slate-200 dark:border-zinc-700 hover:bg-slate-50 dark:hover:bg-zinc-700"
-                      }`}
-                    >
-                      <span
-                        className="w-2 h-2 rounded-full shrink-0"
-                        style={{ backgroundColor: isActive ? "#ffffff" : col.color }}
-                      />
-                      <span>{col.name}</span>
-                      <span
-                        className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${
+              {/* Mobile iOS-style Segmented Status Switcher */}
+              <div className="md:hidden pb-2 px-1 select-none">
+                <div className="flex items-center gap-1 p-1 bg-slate-200/70 dark:bg-zinc-900 rounded-2xl overflow-x-auto no-scrollbar shadow-inner border border-slate-300/40 dark:border-zinc-800">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      haptic.selection();
+                      setMobileActiveColumn("ALL");
+                    }}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all duration-150 shrink-0 ${
+                      mobileActiveColumn === "ALL"
+                        ? "bg-white dark:bg-zinc-800 text-[#EE0033] shadow-sm font-bold scale-[1.02]"
+                        : "text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-200"
+                    }`}
+                  >
+                    Toàn cảnh ({lane.issues.length})
+                  </button>
+                  {statuses.map((col) => {
+                    const count = lane.issues.filter((i) => i.status === col.id).length;
+                    const isActive = mobileActiveColumn === col.id;
+                    return (
+                      <button
+                        key={col.id}
+                        type="button"
+                        onClick={() => {
+                          haptic.selection();
+                          setMobileActiveColumn(col.id);
+                        }}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all duration-150 flex items-center gap-1.5 shrink-0 ${
                           isActive
-                            ? "bg-white/20 text-white"
-                            : "bg-slate-100 dark:bg-zinc-700 text-slate-600 dark:text-zinc-400"
+                            ? "bg-white dark:bg-zinc-800 text-[#EE0033] shadow-sm font-bold scale-[1.02]"
+                            : "text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-200"
                         }`}
                       >
-                        {count}
+                        <span
+                          className="w-2 h-2 rounded-full shrink-0"
+                          style={{ backgroundColor: col.color }}
+                        />
+                        <span>{col.name}</span>
+                        <span
+                          className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
+                            isActive
+                              ? "bg-rose-50 dark:bg-rose-950/60 text-[#EE0033]"
+                              : "bg-slate-300/60 dark:bg-zinc-800 text-slate-500 dark:text-zinc-400"
+                          }`}
+                        >
+                          {count}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Quick Prev / Next Column Switcher Pager on Mobile when viewing single column */}
+                {mobileActiveColumn !== "ALL" && (() => {
+                  const currIdx = statuses.findIndex((s) => s.id === mobileActiveColumn);
+                  const prevCol = currIdx > 0 ? statuses[currIdx - 1] : null;
+                  const nextCol = currIdx >= 0 && currIdx < statuses.length - 1 ? statuses[currIdx + 1] : null;
+                  return (
+                    <div className="flex items-center justify-between pt-2 px-1 text-xs">
+                      {prevCol ? (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            haptic.selection();
+                            setMobileActiveColumn(prevCol.id);
+                          }}
+                          className="flex items-center gap-1 text-slate-600 dark:text-zinc-400 hover:text-[#EE0033] py-1 px-2.5 rounded-xl bg-white/80 dark:bg-zinc-800/80 border border-slate-200 dark:border-zinc-700 shadow-2xs transition"
+                        >
+                          <ChevronsLeft className="w-3.5 h-3.5" />
+                          <span className="truncate max-w-[110px]">{prevCol.name}</span>
+                        </button>
+                      ) : (
+                        <div />
+                      )}
+
+                      <span className="text-[11px] font-mono font-semibold text-slate-400 dark:text-zinc-500">
+                        {currIdx + 1} / {statuses.length}
                       </span>
-                    </button>
+
+                      {nextCol ? (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            haptic.selection();
+                            setMobileActiveColumn(nextCol.id);
+                          }}
+                          className="flex items-center gap-1 text-slate-600 dark:text-zinc-400 hover:text-[#EE0033] py-1 px-2.5 rounded-xl bg-white/80 dark:bg-zinc-800/80 border border-slate-200 dark:border-zinc-700 shadow-2xs transition"
+                        >
+                          <span className="truncate max-w-[110px]">{nextCol.name}</span>
+                          <ChevronsRight className="w-3.5 h-3.5" />
+                        </button>
+                      ) : (
+                        <div />
+                      )}
+                    </div>
                   );
-                })}
+                })()}
               </div>
 
               {/* Status Columns Grid - columns expand full height, pinned horizontal scroll at bottom */}
