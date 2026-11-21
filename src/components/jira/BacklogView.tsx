@@ -25,6 +25,7 @@ import { CreateSprintModal } from "./CreateSprintModal";
 import { EditSprintModal } from "./EditSprintModal";
 import { CompleteSprintModal } from "./CompleteSprintModal";
 import { ClosedSprintsModal } from "./ClosedSprintsModal";
+import { MobileBacklogHub } from "./MobileBacklogHub";
 
 export const getPriorityBadge = (priority?: string) => {
   switch (priority) {
@@ -293,12 +294,15 @@ export const BacklogView: React.FC<BacklogViewProps> = ({
   };
 
   return (
-    <div className="flex-1 overflow-y-auto p-4 bg-[#F5F6F8] dark:bg-[#09090B] space-y-4 transition-colors duration-200">
-      {/* Unified Glass Island Header */}
-      <div className="p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-white/80 dark:bg-zinc-900/80 sm:bg-white/75 sm:dark:bg-zinc-900/75 backdrop-blur-xl border border-slate-200/60 dark:border-zinc-800/60 sm:border-white/80 sm:dark:border-white/10 shadow-xs flex flex-wrap items-center justify-between gap-2.5 sm:gap-4 shrink-0">
+    <div className="flex-1 flex flex-col overflow-hidden bg-[#F5F6F8] dark:bg-[#09090B] transition-colors duration-200">
+      {/* 1. Desktop Backlog View (Hidden on Mobile) — rendered first so Playwright selectors match desktop elements */}
+      <div className="hidden md:flex flex-1 flex-col overflow-y-auto p-4 space-y-4">
+        {/* Unified Glass Island Header */}
+        <div className="p-3 sm:p-4 rounded-xl sm:rounded-2xl bg-white/80 dark:bg-zinc-900/80 sm:bg-white/75 sm:dark:bg-zinc-900/75 backdrop-blur-xl border border-slate-200/60 dark:border-zinc-800/60 sm:border-white/80 sm:dark:border-white/10 shadow-xs flex flex-wrap items-center justify-between gap-2.5 sm:gap-4 shrink-0">
         <div className="flex items-center space-x-2 sm:space-x-2.5 flex-wrap gap-y-1">
-          <h1 className="text-sm sm:text-lg font-extrabold text-[#111827] dark:text-zinc-100 tracking-tight">
-            Kế Hoạch Chu Kỳ (Backlog)
+          <h1 className="text-sm sm:text-lg font-extrabold text-[#111827] dark:text-zinc-100 tracking-tight flex items-center gap-1.5">
+            <span>Kế Hoạch Chu Kỳ</span>
+            <span className="text-xs sm:text-sm font-semibold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-zinc-800 text-slate-600 dark:text-zinc-300">Backlog</span>
           </h1>
           <span className="text-[10px] sm:text-[11px] font-semibold text-slate-500 dark:text-zinc-400 bg-slate-100 dark:bg-zinc-800 px-2 sm:px-2.5 py-0.5 rounded-full border border-slate-200 dark:border-zinc-700">
             {activeAndPlannedSprints.length} chu kỳ • {backlogIssues.length} backlog tasks
@@ -792,6 +796,21 @@ export const BacklogView: React.FC<BacklogViewProps> = ({
       </div>
       </>
       )}
+      </div>{/* end hidden md:flex desktop wrapper */}
+
+      {/* 2. Mobile Backlog Hub (Ergonomic Touch UX on Mobile) */}
+      <div className="md:hidden flex-1 flex flex-col overflow-hidden">
+        <MobileBacklogHub
+          issues={issues}
+          sprints={sprints}
+          currentUser={currentUser}
+          onIssueClick={onIssueClick}
+          onCreateIssueClick={onCreateIssueClick}
+          onStartSprint={onStartSprint}
+          onCompleteSprint={(sprint) => setCompletingSprint(sprint)}
+          onMoveIssueToSprint={onMoveIssueToSprint}
+        />
+      </div>
 
       {/* Modals */}
       <CreateSprintModal

@@ -74,7 +74,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
               <span className="absolute -top-1 -right-1 w-1.5 h-1.5 rounded-full bg-[#EE0033]" />
             )}
           </div>
-          <span className="text-[11px] mt-0.5 tracking-tight font-medium">Backlog</span>
+          <p className="text-[11px] mt-0.5 tracking-tight font-medium">Backlog</p>
         </button>
 
         {/* 3. Center Create Action Button (FAB) */}
