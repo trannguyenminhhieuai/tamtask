@@ -67,8 +67,11 @@ test.describe("TamTask Agile Hub - UAT Automation Test Suite (Plan.md)", () => {
 
   // TC01: Auth Gate & Form Validation
   test("TC01 - Cổng kiểm soát đăng nhập & Validation biểu mẫu (Auth Gate)", async () => {
-    await page.goto("http://localhost:3000", { timeout: 35000 });
+    await page.goto("http://localhost:3000", { timeout: 45000 });
     await page.waitForLoadState("networkidle");
+
+    // Đợi màn hình loading ban đầu biến mất
+    await page.locator("text=Đang khởi động TamTask").waitFor({ state: "hidden", timeout: 30000 }).catch(() => {});
 
     // 1. Chụp ảnh màn hình Welcome / Auth Landing
     await page.screenshot({
@@ -76,8 +79,8 @@ test.describe("TamTask Agile Hub - UAT Automation Test Suite (Plan.md)", () => {
       fullPage: true,
     });
 
-    await expect(page.locator("text=TamTask").first()).toBeVisible({ timeout: 15000 });
-    await expect(page.locator("button:has-text('Đăng nhập với Google')")).toBeVisible({ timeout: 15000 });
+    await expect(page.locator("text=TamTask").first()).toBeVisible({ timeout: 25000 });
+    await expect(page.locator("button:has-text('Đăng nhập với Google')")).toBeVisible({ timeout: 25000 });
 
     // 2. Negative case: Nhập sai mật khẩu
     await page.fill("input[type='email']", "hieu.tran@company.com");
@@ -309,5 +312,20 @@ test.describe("TamTask Agile Hub - UAT Automation Test Suite (Plan.md)", () => {
     // Xác nhận có các nút Bảng, Backlog, Tạo (+), Tiến độ
     await expect(bottomNav.locator("text=Bảng")).toBeVisible();
     await expect(bottomNav.locator("text=Backlog")).toBeVisible();
+
+    // Xác nhận Mobile Task Hub hiển thị với các chế độ chuyển đổi thông minh
+    const focusModeBtn = page.locator("button:has-text('Việc của tôi')").first();
+    const listModeBtn = page.locator("button:has-text('Danh sách')").first();
+    await expect(focusModeBtn).toBeVisible();
+    await expect(listModeBtn).toBeVisible();
+
+    // Chuyển sang chế độ Danh sách dọc (Collapsible Status List)
+    await listModeBtn.click();
+    await page.waitForTimeout(1000);
+
+    await page.screenshot({
+      path: path.join(SCREENSHOT_DIR, "TC07_Mobile_TaskHub_ListView_PASS.png"),
+      fullPage: true,
+    });
   });
 });

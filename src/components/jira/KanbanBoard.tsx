@@ -27,6 +27,7 @@ import {
 import { mouse1 } from "@/lib/mouse1";
 import { triggerConfetti } from "@/lib/confetti";
 import { haptic } from "@/lib/haptic";
+import { MobileTaskHub } from "./MobileTaskHub";
 
 interface KanbanBoardProps {
   issues: Issue[];
@@ -398,70 +399,177 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden bg-[#F5F6F8] dark:bg-[#09090B] transition-colors duration-200">
-      {/* Mobile Streamlined App Bar (Height 42px, Zero Clutter) */}
-      <div className="md:hidden px-3 py-1.5 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-xl border-b border-slate-200/80 dark:border-zinc-800 flex items-center justify-between gap-2 shrink-0 z-20">
-        {/* Left: Sprint Selector */}
-        <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700/80 rounded-full px-2.5 py-1 text-xs shadow-2xs">
-          <Layers className="w-3.5 h-3.5 text-[#EE0033] shrink-0" />
-          <select
-            value={effectiveSprintId}
-            onChange={(e) =>
-              onFilterChange({
-                ...filterState,
-                sprintId: e.target.value,
-              })
-            }
-            className="bg-transparent text-xs font-semibold text-slate-800 dark:text-zinc-200 focus:outline-none max-w-[130px] truncate cursor-pointer"
-          >
-            {sprints.map((s) => (
-              <option key={s.id} value={s.id} className="dark:bg-zinc-900">
-                {s.name}
-              </option>
-            ))}
-            <option value="ALL" className="dark:bg-zinc-900">Tất cả chu kỳ</option>
-            <option value="BACKLOG" className="dark:bg-zinc-900">Chỉ Backlog</option>
-          </select>
-        </div>
+      {/* 1. Mobile Task Hub (Ergonomic Touch UX on Mobile) */}
+      <div className="md:hidden flex-1 flex flex-col overflow-hidden">
+        <MobileTaskHub
+          issues={filteredIssues}
+          statuses={statuses}
+          sprints={sprints}
+          currentUser={currentUser}
+          filterState={filterState}
+          effectiveSprintId={effectiveSprintId}
+          onFilterChange={onFilterChange}
+          onIssueClick={onIssueClick}
+          onUpdateIssueStatus={onUpdateIssueStatus}
+          onOpenMobileFilterSheet={() => setIsMobileFilterOpen(true)}
+          activeFilterCount={activeFilterCount}
+          renderBoardView={() => (
+            <div
+              onTouchStart={handleBoardTouchStart}
+              onTouchEnd={handleBoardTouchEnd}
+              className="flex-1 overflow-x-auto overflow-y-auto px-3 pb-4 space-y-3 bg-[#F5F6F8] dark:bg-[#09090B]"
+            >
+              {/* iOS-style Column Segmented Switcher & Prev/Next pager */}
+              <div className="pt-2 pb-1 select-none">
+                <div className="flex items-center gap-1 p-1 bg-slate-200/70 dark:bg-zinc-900 rounded-2xl overflow-x-auto no-scrollbar shadow-inner border border-slate-300/40 dark:border-zinc-800">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      haptic.selection();
+                      setMobileActiveColumn("ALL");
+                    }}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all duration-150 shrink-0 ${
+                      mobileActiveColumn === "ALL"
+                        ? "bg-white dark:bg-zinc-800 text-[#EE0033] shadow-sm font-bold scale-[1.02]"
+                        : "text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-200"
+                    }`}
+                  >
+                    Toàn cảnh ({filteredIssues.length})
+                  </button>
+                  {statuses.map((col) => {
+                    const count = filteredIssues.filter((i) => i.status === col.id).length;
+                    const isActive = mobileActiveColumn === col.id;
+                    return (
+                      <button
+                        key={col.id}
+                        type="button"
+                        onClick={() => {
+                          haptic.selection();
+                          setMobileActiveColumn(col.id);
+                        }}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all duration-150 flex items-center gap-1.5 shrink-0 ${
+                          isActive
+                            ? "bg-white dark:bg-zinc-800 text-[#EE0033] shadow-sm font-bold scale-[1.02]"
+                            : "text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-200"
+                        }`}
+                      >
+                        <span
+                          className="w-2 h-2 rounded-full shrink-0"
+                          style={{ backgroundColor: col.color }}
+                        />
+                        <span>{col.name}</span>
+                        <span
+                          className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
+                            isActive
+                              ? "bg-rose-50 dark:bg-rose-950/60 text-[#EE0033]"
+                              : "bg-slate-300/60 dark:bg-zinc-800 text-slate-500 dark:text-zinc-400"
+                          }`}
+                        >
+                          {count}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
 
-        {/* Right: Quick actions (My issues + Filter bottom sheet trigger) */}
-        <div className="flex items-center gap-1.5 shrink-0">
-          <button
-            type="button"
-            onClick={() => {
-              haptic.selection();
-              onFilterChange({ ...filterState, onlyMyIssues: !filterState.onlyMyIssues });
-            }}
-            className={`text-xs px-2.5 py-1 rounded-full font-semibold transition flex items-center gap-1 shadow-2xs ${
-              filterState.onlyMyIssues
-                ? "bg-[#EE0033] text-white"
-                : "bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 border border-slate-200 dark:border-zinc-700/80"
-            }`}
-          >
-            {filterState.onlyMyIssues && <Check className="w-3 h-3 stroke-[2.5]" />}
-            <span>Của tôi</span>
-          </button>
+                {/* Quick Prev / Next Column Switcher Pager on Mobile when viewing single column */}
+                {mobileActiveColumn !== "ALL" && (() => {
+                  const currIdx = statuses.findIndex((s) => s.id === mobileActiveColumn);
+                  const prevCol = currIdx > 0 ? statuses[currIdx - 1] : null;
+                  const nextCol = currIdx >= 0 && currIdx < statuses.length - 1 ? statuses[currIdx + 1] : null;
+                  return (
+                    <div className="flex items-center justify-between pt-2 px-1 text-xs">
+                      {prevCol ? (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            haptic.selection();
+                            setMobileActiveColumn(prevCol.id);
+                          }}
+                          className="flex items-center gap-1 text-slate-600 dark:text-zinc-400 hover:text-[#EE0033] py-1 px-2.5 rounded-xl bg-white/80 dark:bg-zinc-800/80 border border-slate-200 dark:border-zinc-700 shadow-2xs transition"
+                        >
+                          <ChevronsLeft className="w-3.5 h-3.5" />
+                          <span className="truncate max-w-[110px]">{prevCol.name}</span>
+                        </button>
+                      ) : (
+                        <div />
+                      )}
 
-          <button
-            type="button"
-            onClick={() => {
-              haptic.selection();
-              setIsMobileFilterOpen(true);
-            }}
-            className={`text-xs px-2.5 py-1 rounded-full font-semibold transition flex items-center gap-1 shadow-2xs ${
-              activeFilterCount > 0
-                ? "bg-rose-50 dark:bg-rose-950/50 text-[#EE0033] border border-rose-300 dark:border-rose-800 font-bold"
-                : "bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 border border-slate-200 dark:border-zinc-700/80"
-            }`}
-          >
-            <Filter className="w-3 h-3 text-[#EE0033]" />
-            <span>Lọc</span>
-            {activeFilterCount > 0 && (
-              <span className="w-4 h-4 rounded-full bg-[#EE0033] text-white text-[10px] flex items-center justify-center font-bold">
-                {activeFilterCount}
-              </span>
-            )}
-          </button>
-        </div>
+                      <span className="text-[11px] font-mono font-semibold text-slate-400 dark:text-zinc-500">
+                        {currIdx + 1} / {statuses.length}
+                      </span>
+
+                      {nextCol ? (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            haptic.selection();
+                            setMobileActiveColumn(nextCol.id);
+                          }}
+                          className="flex items-center gap-1 text-slate-600 dark:text-zinc-400 hover:text-[#EE0033] py-1 px-2.5 rounded-xl bg-white/80 dark:bg-zinc-800/80 border border-slate-200 dark:border-zinc-700 shadow-2xs transition"
+                        >
+                          <span className="truncate max-w-[110px]">{nextCol.name}</span>
+                          <ChevronsRight className="w-3.5 h-3.5" />
+                        </button>
+                      ) : (
+                        <div />
+                      )}
+                    </div>
+                  );
+                })()}
+              </div>
+
+              {/* Status Columns Grid on Mobile Board */}
+              <div
+                className={`flex gap-3 pb-4 items-start ${
+                  mobileActiveColumn === "ALL" ? "min-w-max" : "flex-col w-full"
+                }`}
+              >
+                {(mobileActiveColumn === "ALL" ? statuses : statuses.filter((c) => c.id === mobileActiveColumn)).map((col) => {
+                  const colIssues = filteredIssues.filter((i) => i.status === col.id);
+                  return (
+                    <div
+                      key={col.id}
+                      className={`${
+                        mobileActiveColumn === "ALL" ? "w-72 flex-shrink-0" : "w-full"
+                      } bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200 dark:border-zinc-800 overflow-hidden shadow-xs`}
+                    >
+                      <div className="p-3 bg-slate-50 dark:bg-zinc-800/60 border-b border-slate-200 dark:border-zinc-800 flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: col.color }} />
+                          <span className="text-xs font-bold text-slate-900 dark:text-zinc-100 uppercase">
+                            {col.name}
+                          </span>
+                          <span className="text-[10px] font-bold px-1.5 py-0.2 rounded-full bg-slate-200 dark:bg-zinc-700 text-slate-700 dark:text-zinc-300">
+                            {colIssues.length}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="p-2 space-y-2">
+                        {colIssues.length === 0 ? (
+                          <div className="py-6 text-center text-xs text-slate-400 dark:text-zinc-500 italic">
+                            Trống
+                          </div>
+                        ) : (
+                          colIssues.map((issue) => (
+                            <IssueCard
+                              key={issue.id}
+                              issue={issue}
+                              onClick={() => onIssueClick(issue)}
+                              statuses={statuses}
+                              density="compact"
+                              onQuickStatusChange={onUpdateIssueStatus}
+                            />
+                          ))
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        />
       </div>
 
       {/* Mobile Advanced Filter Bottom Sheet */}
@@ -965,10 +1073,10 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
         </div>
       )}
 
-      {/* Board Columns & Swimlanes Container - Single unified vertical & bottom-pinned horizontal scroll */}
+      {/* Board Columns & Swimlanes Container (Desktop only) */}
       <div
         onScroll={handleBoardScroll}
-        className={`flex-1 relative z-0 overflow-x-auto overflow-y-auto px-4 pb-4 space-y-4 bg-[#F5F6F8] dark:bg-[#09090B] touch-pan-x transition-all duration-300 ${
+        className={`hidden md:block flex-1 relative z-0 overflow-x-auto overflow-y-auto px-4 pb-4 space-y-4 bg-[#F5F6F8] dark:bg-[#09090B] touch-pan-x transition-all duration-300 ${
           isScrolledHeader ? "pt-0" : "pt-4"
         }`}
       >
