@@ -15,6 +15,9 @@ import {
   Inbox,
   Filter,
   Check,
+  Flame,
+  Award,
+  Zap,
 } from "lucide-react";
 import { haptic } from "@/lib/haptic";
 import { triggerConfetti } from "@/lib/confetti";
@@ -132,21 +135,31 @@ export const MobileTaskHub: React.FC<MobileTaskHubProps> = ({
     return { myIssues, urgent, inProgress, todo, done };
   }, [sprintFilteredIssues, currentUser.id]);
 
+  const userProgress = useMemo(() => {
+    const total = focusFeed.myIssues.length;
+    const done = focusFeed.done.length;
+    const inProgress = focusFeed.inProgress.length;
+    const urgent = focusFeed.urgent.length;
+    const todo = focusFeed.todo.length;
+    const percent = total > 0 ? Math.round((done / total) * 100) : 0;
+    return { total, done, inProgress, urgent, todo, percent };
+  }, [focusFeed]);
+
   const handleQuickComplete = (issueId: string) => {
     triggerConfetti();
     onUpdateIssueStatus(issueId, "DONE");
   };
 
   return (
-    <div className="flex-1 flex flex-col overflow-hidden bg-[#F5F6F8] dark:bg-[#09090B]">
+    <div className="flex-1 flex flex-col overflow-hidden bg-[#F8F9FA] dark:bg-[#09090B]">
       {/* 1. Mobile Segmented View Mode Switcher + Sprint Pill */}
-      <div className="px-3 pt-2 pb-2 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-xl border-b border-slate-200/80 dark:border-zinc-800 shrink-0 space-y-2 select-none z-20">
-        {/* Switcher Bar: FOCUS vs LIST vs BOARD */}
-        <div className="flex items-center p-1 bg-slate-200/70 dark:bg-zinc-800/80 rounded-2xl shadow-inner border border-slate-300/40 dark:border-zinc-700/60">
+      <div className="px-4 pt-2.5 pb-2 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-2xl border-b border-slate-200/80 dark:border-zinc-800 shrink-0 space-y-2.5 select-none z-20 shadow-2xs">
+        {/* Switcher Bar: FOCUS vs LIST vs BOARD - No line breaks, perfectly proportioned touch targets */}
+        <div className="flex items-center p-1 bg-slate-200/80 dark:bg-zinc-800/90 rounded-2xl shadow-inner border border-slate-300/40 dark:border-zinc-700/60">
           <button
             type="button"
             onClick={() => handleModeChange("FOCUS")}
-            className={`flex-1 py-1.5 px-2 rounded-xl text-xs font-bold transition-all duration-150 flex items-center justify-center gap-1.5 ${
+            className={`flex-1 py-2 px-1 rounded-xl text-[11.5px] font-bold transition-all duration-200 flex items-center justify-center gap-1 whitespace-nowrap ${
               hubMode === "FOCUS"
                 ? "bg-white dark:bg-zinc-700 text-[#EE0033] shadow-xs"
                 : "text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-200"
@@ -155,7 +168,7 @@ export const MobileTaskHub: React.FC<MobileTaskHubProps> = ({
             <span>🎯 Việc của tôi</span>
             {focusFeed.myIssues.length > 0 && (
               <span
-                className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
+                className={`text-[9.5px] px-1.5 py-0.5 rounded-full font-bold shrink-0 ${
                   hubMode === "FOCUS"
                     ? "bg-rose-50 dark:bg-rose-950/60 text-[#EE0033]"
                     : "bg-slate-300/70 dark:bg-zinc-800 text-slate-600 dark:text-zinc-400"
@@ -169,7 +182,7 @@ export const MobileTaskHub: React.FC<MobileTaskHubProps> = ({
           <button
             type="button"
             onClick={() => handleModeChange("LIST")}
-            className={`flex-1 py-1.5 px-2 rounded-xl text-xs font-bold transition-all duration-150 flex items-center justify-center gap-1.5 ${
+            className={`flex-1 py-2 px-1 rounded-xl text-[11.5px] font-bold transition-all duration-200 flex items-center justify-center gap-1 whitespace-nowrap ${
               hubMode === "LIST"
                 ? "bg-white dark:bg-zinc-700 text-[#EE0033] shadow-xs"
                 : "text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-200"
@@ -177,7 +190,7 @@ export const MobileTaskHub: React.FC<MobileTaskHubProps> = ({
           >
             <span>📋 Danh sách</span>
             <span
-              className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
+              className={`text-[9.5px] px-1.5 py-0.5 rounded-full font-bold shrink-0 ${
                 hubMode === "LIST"
                   ? "bg-rose-50 dark:bg-rose-950/60 text-[#EE0033]"
                   : "bg-slate-300/70 dark:bg-zinc-800 text-slate-600 dark:text-zinc-400"
@@ -190,7 +203,7 @@ export const MobileTaskHub: React.FC<MobileTaskHubProps> = ({
           <button
             type="button"
             onClick={() => handleModeChange("BOARD")}
-            className={`flex-1 py-1.5 px-2 rounded-xl text-xs font-bold transition-all duration-150 flex items-center justify-center gap-1.5 ${
+            className={`flex-1 py-2 px-1 rounded-xl text-[11.5px] font-bold transition-all duration-200 flex items-center justify-center gap-1 whitespace-nowrap ${
               hubMode === "BOARD"
                 ? "bg-white dark:bg-zinc-700 text-[#EE0033] shadow-xs"
                 : "text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-200"
@@ -203,7 +216,7 @@ export const MobileTaskHub: React.FC<MobileTaskHubProps> = ({
         {/* Quick Toolbar: Sprint Pill & Filter Sheet Trigger */}
         <div className="flex items-center justify-between gap-2">
           {/* Sprint Selector Pill */}
-          <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700/80 rounded-full px-2.5 py-1 text-xs shadow-2xs">
+          <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700/80 rounded-full px-3 py-1.5 text-xs shadow-2xs hover:border-slate-300 dark:hover:border-zinc-600 transition">
             <Layers className="w-3.5 h-3.5 text-[#EE0033] shrink-0" />
             <select
               value={effectiveSprintId}
@@ -213,7 +226,7 @@ export const MobileTaskHub: React.FC<MobileTaskHubProps> = ({
                   sprintId: e.target.value,
                 })
               }
-              className="bg-transparent text-xs font-semibold text-slate-800 dark:text-zinc-200 focus:outline-none max-w-[150px] truncate cursor-pointer"
+              className="bg-transparent text-xs font-semibold text-slate-800 dark:text-zinc-200 focus:outline-none max-w-[160px] truncate cursor-pointer"
             >
               {sprints.map((s) => (
                 <option key={s.id} value={s.id} className="dark:bg-zinc-900">
@@ -229,18 +242,18 @@ export const MobileTaskHub: React.FC<MobileTaskHubProps> = ({
             </select>
           </div>
 
-          {/* Filter Bottom Sheet Trigger */}
+          {/* Filter Bottom Sheet Trigger (Min 36px height) */}
           <div className="flex items-center gap-1.5">
             <button
               type="button"
               onClick={onOpenMobileFilterSheet}
-              className={`text-xs px-2.5 py-1 rounded-full font-semibold transition flex items-center gap-1 shadow-2xs ${
+              className={`text-xs px-3 py-1.5 rounded-full font-semibold transition flex items-center gap-1.5 shadow-2xs active:scale-95 ${
                 activeFilterCount > 0
                   ? "bg-rose-50 dark:bg-rose-950/50 text-[#EE0033] border border-rose-300 dark:border-rose-800 font-bold"
-                  : "bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 border border-slate-200 dark:border-zinc-700/80"
+                  : "bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 border border-slate-200 dark:border-zinc-700/80 hover:bg-slate-200/70"
               }`}
             >
-              <Filter className="w-3 h-3 text-[#EE0033]" />
+              <Filter className="w-3.5 h-3.5 text-[#EE0033]" />
               <span>Lọc</span>
               {activeFilterCount > 0 && (
                 <span className="w-4 h-4 rounded-full bg-[#EE0033] text-white text-[10px] flex items-center justify-center font-bold">
@@ -258,24 +271,87 @@ export const MobileTaskHub: React.FC<MobileTaskHubProps> = ({
         <div className="flex-1 flex flex-col overflow-hidden">{renderBoardView()}</div>
       ) : hubMode === "FOCUS" ? (
         // Mode 1: Focus Feed ("Việc của tôi")
-        <div className="flex-1 overflow-y-auto p-3 space-y-4">
+        <div className="flex-1 overflow-y-auto p-4 space-y-4">
           {focusFeed.myIssues.length === 0 ? (
-            <div className="py-16 px-4 text-center flex flex-col items-center justify-center space-y-3">
-              <div className="w-14 h-14 rounded-full bg-slate-100 dark:bg-zinc-800/80 flex items-center justify-center text-slate-400 dark:text-zinc-500">
-                <Inbox className="w-7 h-7" />
+            <div className="py-12 px-4 text-center flex flex-col items-center justify-center space-y-4 rounded-3xl bg-gradient-to-b from-rose-50/50 via-white to-amber-50/30 dark:from-zinc-900 dark:via-zinc-850 dark:to-zinc-900 border border-slate-200/80 dark:border-zinc-800 shadow-xs">
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-[#EE0033] to-amber-400 text-white flex items-center justify-center shadow-lg shadow-red-500/25 animate-bounce duration-1000">
+                <Award className="w-8 h-8 stroke-[2.2]" />
               </div>
-              <div>
-                <h4 className="text-sm font-bold text-slate-800 dark:text-zinc-200">
-                  Bạn không có công việc nào cần xử lý!
+              <div className="space-y-1">
+                <h4 className="text-base font-bold text-slate-900 dark:text-zinc-100">
+                  Tuyệt vời! Không còn việc tồn đọng 🎉
                 </h4>
-                <p className="text-xs text-slate-500 dark:text-zinc-400 mt-1 max-w-xs mx-auto">
-                  Tất cả các task được giao cho bạn trong chu kỳ này đã hoàn tất hoặc chưa được phân
-                  công.
+                <p className="text-xs text-slate-500 dark:text-zinc-400 max-w-xs mx-auto leading-relaxed">
+                  Tất cả các task được giao cho bạn trong chu kỳ này đã hoàn tất hoặc chưa được phân công.
                 </p>
+              </div>
+              <div className="flex items-center gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => handleModeChange("LIST")}
+                  className="px-4 py-2 rounded-xl text-xs font-bold text-slate-700 dark:text-zinc-300 bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 shadow-2xs hover:bg-slate-50 active:scale-95 transition"
+                >
+                  📋 Xem danh sách ({sprintFilteredIssues.length})
+                </button>
               </div>
             </div>
           ) : (
             <>
+              {/* Daily Focus Momentum Card */}
+              <div className="rounded-2xl p-4 bg-gradient-to-br from-white via-rose-50/30 to-amber-50/20 dark:from-zinc-900 dark:via-zinc-850 dark:to-zinc-900 border border-slate-200/90 dark:border-zinc-800 shadow-xs space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#EE0033] to-rose-400 text-white flex items-center justify-center shadow-xs">
+                      <Zap className="w-4.5 h-4.5 fill-white" />
+                    </div>
+                    <div>
+                      <h3 className="text-xs font-bold text-slate-900 dark:text-zinc-100 flex items-center gap-1.5">
+                        <span>Tiến độ cá nhân</span>
+                        <span className="text-[10px] font-normal text-slate-500 dark:text-zinc-400">
+                          • {userProgress.done}/{userProgress.total} hoàn thành
+                        </span>
+                      </h3>
+                      <p className="text-[11px] text-slate-500 dark:text-zinc-400">
+                        {userProgress.percent === 100
+                          ? "Tuyệt đỉnh! Hoàn thành 100% mục tiêu 🎉"
+                          : userProgress.percent >= 50
+                          ? "Đã qua nửa chặng đường, bứt phá nào! 🚀"
+                          : "Tập trung hoàn thành các việc ưu tiên hôm nay 💪"}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-lg font-black font-mono text-[#EE0033]">
+                      {userProgress.percent}%
+                    </span>
+                  </div>
+                </div>
+
+                {/* Progress Bar */}
+                <div className="w-full h-2 rounded-full bg-slate-200/80 dark:bg-zinc-800 overflow-hidden">
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-[#EE0033] via-rose-500 to-amber-500 transition-all duration-500"
+                    style={{ width: `${Math.max(userProgress.percent, 4)}%` }}
+                  />
+                </div>
+
+                {/* Quick Summary Badges */}
+                <div className="flex items-center gap-1.5 pt-0.5 overflow-x-auto no-scrollbar text-[11px]">
+                  <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-white dark:bg-zinc-800 border border-slate-200/80 dark:border-zinc-700/80 shadow-2xs font-semibold text-slate-700 dark:text-zinc-300 shrink-0">
+                    <Flame className="w-3 h-3 text-[#EE0033]" />
+                    <span>Khẩn cấp: {userProgress.urgent}</span>
+                  </div>
+                  <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-white dark:bg-zinc-800 border border-slate-200/80 dark:border-zinc-700/80 shadow-2xs font-semibold text-sky-700 dark:text-sky-400 shrink-0">
+                    <Play className="w-3 h-3 text-sky-600 fill-sky-600" />
+                    <span>Đang chạy: {userProgress.inProgress}</span>
+                  </div>
+                  <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-white dark:bg-zinc-800 border border-slate-200/80 dark:border-zinc-700/80 shadow-2xs font-semibold text-emerald-700 dark:text-emerald-400 shrink-0">
+                    <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                    <span>Đã xong: {userProgress.done}</span>
+                  </div>
+                </div>
+              </div>
+
               {/* Section 1: Urgent & Blocked */}
               {focusFeed.urgent.length > 0 && (
                 <div className="space-y-2">
