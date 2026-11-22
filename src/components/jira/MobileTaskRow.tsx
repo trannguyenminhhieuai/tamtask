@@ -270,19 +270,19 @@ export const MobileTaskRow: React.FC<MobileTaskRowProps> = ({
           {/* Right: Assignee Avatar with clean ring */}
           <div className="flex items-center gap-1.5 shrink-0 ml-2">
             {issue.assignee ? (
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-1.5 shrink-0">
                 <img
                   src={issue.assignee.avatar}
                   alt={issue.assignee.name}
-                  className="w-5.5 h-5.5 rounded-full object-cover ring-2 ring-white dark:ring-zinc-800 shadow-2xs"
+                  className="w-5 h-5 min-w-[20px] max-w-[20px] min-h-[20px] max-h-[20px] rounded-full object-cover shrink-0 ring-1 ring-slate-200 dark:ring-zinc-700 shadow-2xs"
                   title={issue.assignee.name}
                 />
-                <span className="text-[11px] font-medium text-slate-600 dark:text-zinc-300 truncate max-w-[80px]">
+                <span className="text-[11px] font-medium text-slate-600 dark:text-zinc-300 truncate max-w-[65px]">
                   {issue.assignee.name.split(" ").slice(-1)[0]}
                 </span>
               </div>
             ) : (
-              <span className="text-[10.5px] font-medium text-slate-400 dark:text-zinc-500 bg-slate-100/80 dark:bg-zinc-800/60 px-2 py-0.5 rounded-full border border-dashed border-slate-300 dark:border-zinc-700">
+              <span className="text-[10px] font-medium text-slate-400 dark:text-zinc-500 bg-slate-100/80 dark:bg-zinc-800/60 px-2 py-0.5 rounded-full border border-dashed border-slate-300 dark:border-zinc-700 shrink-0">
                 Chưa gán
               </span>
             )}

@@ -352,13 +352,13 @@ export const MobileMoreSheet: React.FC<MobileMoreSheetProps> = ({
             <button
               type="button"
               onClick={toggleDarkMode}
-              className={`w-12 h-6.5 rounded-full transition-colors relative flex items-center p-0.5 ${
+              className={`w-11 h-6 rounded-full transition-colors relative flex items-center p-0.5 ${
                 isDarkMode ? "bg-[#EE0033]" : "bg-slate-300 dark:bg-zinc-600"
               }`}
             >
               <div
-                className={`w-5.5 h-5.5 rounded-full bg-white shadow-md transform transition-transform ${
-                  isDarkMode ? "translate-x-5.5" : "translate-x-0"
+                className={`w-5 h-5 rounded-full bg-white shadow-md transform transition-transform ${
+                  isDarkMode ? "translate-x-5" : "translate-x-0"
                 }`}
               />
             </button>

@@ -58,7 +58,7 @@ export const MobileTaskHub: React.FC<MobileTaskHubProps> = ({
       try {
         const saved = localStorage.getItem("tamtask_mobile_hub_mode");
         if (saved === "FOCUS" || saved === "LIST" || saved === "BOARD") return saved;
-      } catch {}
+      } catch { }
     }
     return "FOCUS";
   });
@@ -68,7 +68,7 @@ export const MobileTaskHub: React.FC<MobileTaskHubProps> = ({
     setHubMode(mode);
     try {
       localStorage.setItem("tamtask_mobile_hub_mode", mode);
-    } catch {}
+    } catch { }
   };
 
   // State for 1-tap Status Picker Modal
@@ -159,20 +159,18 @@ export const MobileTaskHub: React.FC<MobileTaskHubProps> = ({
           <button
             type="button"
             onClick={() => handleModeChange("FOCUS")}
-            className={`flex-1 py-2 px-1 rounded-xl text-[11.5px] font-bold transition-all duration-200 flex items-center justify-center gap-1 whitespace-nowrap ${
-              hubMode === "FOCUS"
-                ? "bg-white dark:bg-zinc-700 text-[#EE0033] shadow-xs"
-                : "text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-200"
-            }`}
+            className={`flex-1 py-2 px-1 rounded-xl text-[11.5px] font-bold transition-all duration-200 flex items-center justify-center gap-1 whitespace-nowrap ${hubMode === "FOCUS"
+              ? "bg-white dark:bg-zinc-700 text-[#EE0033] shadow-xs"
+              : "text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-200"
+              }`}
           >
             <span>🎯 Việc của tôi</span>
             {focusFeed.myIssues.length > 0 && (
               <span
-                className={`text-[9.5px] px-1.5 py-0.5 rounded-full font-bold shrink-0 ${
-                  hubMode === "FOCUS"
-                    ? "bg-rose-50 dark:bg-rose-950/60 text-[#EE0033]"
-                    : "bg-slate-300/70 dark:bg-zinc-800 text-slate-600 dark:text-zinc-400"
-                }`}
+                className={`text-[9.5px] px-1.5 py-0.5 rounded-full font-bold shrink-0 ${hubMode === "FOCUS"
+                  ? "bg-rose-50 dark:bg-rose-950/60 text-[#EE0033]"
+                  : "bg-slate-300/70 dark:bg-zinc-800 text-slate-600 dark:text-zinc-400"
+                  }`}
               >
                 {focusFeed.myIssues.length}
               </span>
@@ -182,19 +180,17 @@ export const MobileTaskHub: React.FC<MobileTaskHubProps> = ({
           <button
             type="button"
             onClick={() => handleModeChange("LIST")}
-            className={`flex-1 py-2 px-1 rounded-xl text-[11.5px] font-bold transition-all duration-200 flex items-center justify-center gap-1 whitespace-nowrap ${
-              hubMode === "LIST"
-                ? "bg-white dark:bg-zinc-700 text-[#EE0033] shadow-xs"
-                : "text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-200"
-            }`}
+            className={`flex-1 py-2 px-1 rounded-xl text-[11.5px] font-bold transition-all duration-200 flex items-center justify-center gap-1 whitespace-nowrap ${hubMode === "LIST"
+              ? "bg-white dark:bg-zinc-700 text-[#EE0033] shadow-xs"
+              : "text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-200"
+              }`}
           >
             <span>📋 Danh sách</span>
             <span
-              className={`text-[9.5px] px-1.5 py-0.5 rounded-full font-bold shrink-0 ${
-                hubMode === "LIST"
-                  ? "bg-rose-50 dark:bg-rose-950/60 text-[#EE0033]"
-                  : "bg-slate-300/70 dark:bg-zinc-800 text-slate-600 dark:text-zinc-400"
-              }`}
+              className={`text-[9.5px] px-1.5 py-0.5 rounded-full font-bold shrink-0 ${hubMode === "LIST"
+                ? "bg-rose-50 dark:bg-rose-950/60 text-[#EE0033]"
+                : "bg-slate-300/70 dark:bg-zinc-800 text-slate-600 dark:text-zinc-400"
+                }`}
             >
               {sprintFilteredIssues.length}
             </span>
@@ -203,11 +199,10 @@ export const MobileTaskHub: React.FC<MobileTaskHubProps> = ({
           <button
             type="button"
             onClick={() => handleModeChange("BOARD")}
-            className={`flex-1 py-2 px-1 rounded-xl text-[11.5px] font-bold transition-all duration-200 flex items-center justify-center gap-1 whitespace-nowrap ${
-              hubMode === "BOARD"
-                ? "bg-white dark:bg-zinc-700 text-[#EE0033] shadow-xs"
-                : "text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-200"
-            }`}
+            className={`flex-1 py-2 px-1 rounded-xl text-[11.5px] font-bold transition-all duration-200 flex items-center justify-center gap-1 whitespace-nowrap ${hubMode === "BOARD"
+              ? "bg-white dark:bg-zinc-700 text-[#EE0033] shadow-xs"
+              : "text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-200"
+              }`}
           >
             <span>📊 Bảng</span>
           </button>
@@ -247,11 +242,10 @@ export const MobileTaskHub: React.FC<MobileTaskHubProps> = ({
             <button
               type="button"
               onClick={onOpenMobileFilterSheet}
-              className={`text-xs px-3 py-1.5 rounded-full font-semibold transition flex items-center gap-1.5 shadow-2xs active:scale-95 ${
-                activeFilterCount > 0
-                  ? "bg-rose-50 dark:bg-rose-950/50 text-[#EE0033] border border-rose-300 dark:border-rose-800 font-bold"
-                  : "bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 border border-slate-200 dark:border-zinc-700/80 hover:bg-slate-200/70"
-              }`}
+              className={`text-xs px-3 py-1.5 rounded-full font-semibold transition flex items-center gap-1.5 shadow-2xs active:scale-95 ${activeFilterCount > 0
+                ? "bg-rose-50 dark:bg-rose-950/50 text-[#EE0033] border border-rose-300 dark:border-rose-800 font-bold"
+                : "bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 border border-slate-200 dark:border-zinc-700/80 hover:bg-slate-200/70"
+                }`}
             >
               <Filter className="w-3.5 h-3.5 text-[#EE0033]" />
               <span>Lọc</span>
@@ -301,8 +295,8 @@ export const MobileTaskHub: React.FC<MobileTaskHubProps> = ({
               <div className="rounded-2xl p-4 bg-gradient-to-br from-white via-rose-50/30 to-amber-50/20 dark:from-zinc-900 dark:via-zinc-850 dark:to-zinc-900 border border-slate-200/90 dark:border-zinc-800 shadow-xs space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2.5">
-                    <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#EE0033] to-rose-400 text-white flex items-center justify-center shadow-xs">
-                      <Zap className="w-4.5 h-4.5 fill-white" />
+                    <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-[#EE0033] to-rose-400 text-white flex items-center justify-center shadow-xs">
+                      <Zap className="w-4 h-4 fill-white" />
                     </div>
                     <div>
                       <h3 className="text-xs font-bold text-slate-900 dark:text-zinc-100 flex items-center gap-1.5">
@@ -315,8 +309,8 @@ export const MobileTaskHub: React.FC<MobileTaskHubProps> = ({
                         {userProgress.percent === 100
                           ? "Tuyệt đỉnh! Hoàn thành 100% mục tiêu 🎉"
                           : userProgress.percent >= 50
-                          ? "Đã qua nửa chặng đường, bứt phá nào! 🚀"
-                          : "Tập trung hoàn thành các việc ưu tiên hôm nay 💪"}
+                            ? "Đã qua nửa chặng đường, bứt phá nào! 🚀"
+                            : "Tập trung hoàn thành các việc ưu tiên hôm nay 💪"}
                       </p>
                     </div>
                   </div>
