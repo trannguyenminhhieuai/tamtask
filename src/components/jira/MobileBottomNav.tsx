@@ -10,6 +10,7 @@ interface MobileBottomNavProps {
   onViewChange: (view: NavView) => void;
   onCreateClick: () => void;
   onToggleSidebar: () => void;
+  onOpenMore?: () => void;
   unreadCount?: number;
 }
 
@@ -18,6 +19,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
   onViewChange,
   onCreateClick,
   onToggleSidebar,
+  onOpenMore,
 }) => {
   const handleViewChange = (view: NavView) => {
     haptic.selection();
@@ -31,7 +33,11 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
 
   const handleMenu = () => {
     haptic.light();
-    onToggleSidebar();
+    if (onOpenMore) {
+      onOpenMore();
+    } else {
+      onToggleSidebar();
+    }
   };
 
   return (

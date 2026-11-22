@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
-import { useSession } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
 import { Navbar } from "@/components/jira/Navbar";
 import { Sidebar, NavView } from "@/components/jira/Sidebar";
 import { KanbanBoard } from "@/components/jira/KanbanBoard";
@@ -22,6 +22,7 @@ import { ToastProvider, notify } from "@/components/jira/Toast";
 import { CommandPalette } from "@/components/jira/CommandPalette";
 import { ShortcutsModal } from "@/components/jira/ShortcutsModal";
 import { MobileBottomNav } from "@/components/jira/MobileBottomNav";
+import { MobileMoreSheet } from "@/components/jira/MobileMoreSheet";
 import {
   MOCK_USERS,
   CURRENT_USER,
@@ -91,6 +92,7 @@ export default function JiraApp() {
   const [isEpicSettingsOpen, setIsEpicSettingsOpen] = useState(false);
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const [isShortcutsModalOpen, setIsShortcutsModalOpen] = useState(false);
+  const [isMobileMoreOpen, setIsMobileMoreOpen] = useState(false);
   const [createInitialStatus, setCreateInitialStatus] = useState<IssueStatus>("TODO");
   const [createInitialType, setCreateInitialType] = useState<IssueType>("TASK");
   const [createInitialSprintId, setCreateInitialSprintId] = useState<string>("");
@@ -1466,6 +1468,7 @@ export default function JiraApp() {
             setIsCreateModalOpen(true);
           }}
           onToggleSidebar={() => setIsSidebarCollapsed((prev) => !prev)}
+          onOpenMore={() => setIsMobileMoreOpen(true)}
         />
       </div>
 
@@ -1559,6 +1562,23 @@ export default function JiraApp() {
       <ShortcutsModal
         isOpen={isShortcutsModalOpen}
         onClose={() => setIsShortcutsModalOpen(false)}
+      />
+
+      {/* Mobile More Bottom Sheet (Native Mobile Ergonomic Navigation) */}
+      <MobileMoreSheet
+        isOpen={isMobileMoreOpen}
+        onClose={() => setIsMobileMoreOpen(false)}
+        currentUser={currentUser}
+        currentProject={currentProject}
+        projects={projects}
+        onSelectProject={(projId) => {
+          const match = projects.find((p) => p.id === projId);
+          if (match) setCurrentProject(match);
+        }}
+        currentView={currentView}
+        onViewChange={setCurrentView}
+        onOpenShortcutsModal={() => setIsShortcutsModalOpen(true)}
+        onLogout={() => signOut({ callbackUrl: "/" })}
       />
     </div>
   </ToastProvider>

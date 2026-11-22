@@ -15,6 +15,7 @@ import {
   Bug,
   CheckSquare,
 } from "lucide-react";
+import { MobileTimelineHub } from "./MobileTimelineHub";
 
 interface TimelineViewProps {
   epics: Epic[];
@@ -97,7 +98,9 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
 
   return (
     <div className="flex-1 flex flex-col h-full overflow-hidden bg-[#F5F6F8] dark:bg-[#09090B] transition-colors duration-200">
-      {/* Unified Glass Island Header */}
+      {/* 1. Desktop Timeline View (Hidden on Mobile) */}
+      <div className="hidden md:flex flex-1 flex-col h-full overflow-hidden">
+        {/* Unified Glass Island Header */}
       <div className="m-4 mb-3 p-4 rounded-2xl bg-white/75 dark:bg-zinc-900/75 backdrop-blur-xl border border-white/80 dark:border-white/10 shadow-[0_8px_32px_0_rgba(31,38,135,0.05)] flex flex-wrap items-center justify-between gap-4 shrink-0">
         <div className="flex items-center space-x-2.5">
           <h1 className="text-base sm:text-lg font-extrabold text-[#111827] dark:text-zinc-100 tracking-tight flex items-center gap-2">
@@ -336,6 +339,18 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
             })}
           </div>
         </div>
+      </div>
+      </div>
+
+      {/* 2. Mobile Timeline Hub (Ergonomic Touch UX on Mobile) */}
+      <div className="md:hidden flex-1 flex flex-col overflow-hidden">
+        <MobileTimelineHub
+          epics={epics}
+          sprints={sprints}
+          issues={issues}
+          currentUser={currentUser}
+          onIssueClick={onIssueClick}
+        />
       </div>
     </div>
   );
