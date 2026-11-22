@@ -58,6 +58,7 @@ model ProjectMember {
   joinedAt  DateTime @default(now())
 
   @@unique([projectId, userId])
+  @@index([userId])
 }
 
 model ProjectWorkflowStatus {
@@ -73,6 +74,7 @@ model ProjectWorkflowStatus {
   createdAt DateTime @default(now())
 
   @@unique([projectId, key])
+  @@index([projectId, order])
 }
 
 model Epic {
@@ -84,6 +86,8 @@ model Epic {
   project   Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
   issues    Issue[]
   createdAt DateTime @default(now())
+
+  @@index([projectId])
 }
 
 model Sprint {
@@ -99,6 +103,8 @@ model Sprint {
   project         Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
   issues          Issue[]
   createdAt       DateTime @default(now())
+
+  @@index([projectId, status])
 }
 
 model Issue {
@@ -144,6 +150,11 @@ model Issue {
   sourceLinks IssueLink[]       @relation("SourceLinks")
   targetLinks IssueLink[]       @relation("TargetLinks")
   worklogs    Worklog[]
+
+  @@index([projectId, status])
+  @@index([projectId, sprintId])
+  @@index([assigneeId])
+  @@index([createdAt(sort: Desc)])
 }
 
 model IssueActivity {
@@ -156,6 +167,8 @@ model IssueActivity {
   oldValue     String?
   newValue     String?
   createdAt    DateTime @default(now())
+
+  @@index([issueId, createdAt(sort: Desc)])
 }
 
 model Subtask {
@@ -166,6 +179,8 @@ model Subtask {
   issueId     String
   issue       Issue    @relation(fields: [issueId], references: [id], onDelete: Cascade)
   createdAt   DateTime @default(now())
+
+  @@index([issueId])
 }
 
 model Comment {
@@ -176,6 +191,8 @@ model Comment {
   issueId   String
   issue     Issue    @relation(fields: [issueId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
+
+  @@index([issueId, createdAt])
 }
 
 model Attachment {

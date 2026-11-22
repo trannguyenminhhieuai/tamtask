@@ -219,112 +219,212 @@ export default function JiraApp() {
       let freshEpics: Epic[] | undefined;
       let freshSprints: Sprint[] | undefined;
 
-      const [projectsRes, issuesRes, usersRes, epicsRes, sprintsRes] =
-        await Promise.all([
-          fetch("/api/projects"),
-          fetch("/api/issues"),
-          fetch("/api/users"),
-          fetch("/api/epics"),
-          fetch("/api/sprints"),
-        ]);
+      // 1. High-Performance Unified Bootstrap API (Single Roundtrip)
+      let bootstrapLoaded = false;
+      try {
+        const bootstrapUrl = currentProject?.id
+          ? `/api/bootstrap?projectId=${currentProject.id}`
+          : "/api/bootstrap";
+        const bootstrapRes = await fetch(bootstrapUrl);
+        if (bootstrapRes.ok) {
+          const bData = await bootstrapRes.json();
+          if (Array.isArray(bData.projects) && bData.projects.length > 0) {
+            freshProjects = bData.projects;
+            setProjects(bData.projects);
+            setCurrentProject((prev) => {
+              const uId = (session?.user as any)?.id || currentUser.id;
+              const uEmail = session?.user?.email || currentUser.email;
 
-      if (projectsRes.ok) {
-        const projectsData: Project[] = await projectsRes.json();
-        if (Array.isArray(projectsData) && projectsData.length > 0) {
-          freshProjects = projectsData;
-          setProjects(projectsData);
-          setCurrentProject((prev) => {
-            const uId = (session?.user as any)?.id || currentUser.id;
-            const uEmail = session?.user?.email || currentUser.email;
-
-            // 1. If user already has a valid project selected, refresh its reference and preserve it!
-            if (prev) {
-              const refreshedPrev = projectsData.find((p) => p.id === prev.id);
-              if (refreshedPrev) {
-                return refreshedPrev;
+              if (prev) {
+                const refreshedPrev = bData.projects.find((p: Project) => p.id === prev.id);
+                if (refreshedPrev) return refreshedPrev;
               }
-            }
 
-            // 2. Load user-specific last accessed project from localStorage
-            let userLastId: string | null = null;
+              let userLastId: string | null = null;
+              if (typeof window !== "undefined") {
+                try {
+                  userLastId =
+                    localStorage.getItem(`tamtask_last_project_id_${uId}`) ||
+                    localStorage.getItem(`tamtask_last_project_id_${uEmail}`) ||
+                    localStorage.getItem("tamtask_last_project_id");
+                } catch {}
+              }
+
+              if (userLastId) {
+                const matchedLast = bData.projects.find(
+                  (p: Project) => p.id === userLastId || p.key === userLastId
+                );
+                if (matchedLast) return matchedLast;
+              }
+
+              const assigned = bData.projects.filter((p: Project) =>
+                isUserAssignedToProject(p, uId, uEmail)
+              );
+              if (assigned.length > 0) return assigned[0];
+
+              return bData.projects[0] || null;
+            });
+          }
+
+          if (Array.isArray(bData.issues)) {
+            const now = Date.now();
+            const mergedIssues = bData.issues.map((fresh: Issue) => {
+              const recent = lastUpdatedIssueTimestamps.current.get(fresh.id);
+              if (recent && now - recent.timestamp < 15000) {
+                return { ...fresh, status: recent.status };
+              }
+              return fresh;
+            });
+            freshIssues = mergedIssues;
+            setIssues(mergedIssues);
+          }
+
+          if (Array.isArray(bData.users) && bData.users.length > 0) {
+            freshUsers = bData.users;
+            setUsers(bData.users);
+          }
+
+          if (Array.isArray(bData.epics) && bData.epics.length > 0) {
+            freshEpics = bData.epics;
+            setEpics(bData.epics);
+          }
+
+          if (Array.isArray(bData.sprints) && bData.sprints.length > 0) {
+            freshSprints = bData.sprints;
+            setSprints(bData.sprints);
+            let targetProjectId = "";
             if (typeof window !== "undefined") {
               try {
-                userLastId =
-                  localStorage.getItem(`tamtask_last_project_id_${uId}`) ||
-                  localStorage.getItem(`tamtask_last_project_id_${uEmail}`) ||
-                  localStorage.getItem("tamtask_last_project_id");
+                targetProjectId = localStorage.getItem("tamtask_last_project_id") || "";
               } catch {}
             }
+            const relevantSprints = targetProjectId
+              ? bData.sprints.filter((s: Sprint) => s.projectId === targetProjectId)
+              : bData.sprints;
+            const active =
+              (relevantSprints.length > 0 ? relevantSprints : bData.sprints).find(
+                (s: Sprint) => s.status === "ACTIVE"
+              ) || relevantSprints[0] || bData.sprints[0];
 
-            if (userLastId) {
-              const matchedLast = projectsData.find((p) => p.id === userLastId || p.key === userLastId);
-              if (matchedLast) return matchedLast;
-            }
-
-            // 3. Fallback to assigned projects or first available
-            const assigned = projectsData.filter((p) => isUserAssignedToProject(p, uId, uEmail));
-            if (assigned.length > 0) return assigned[0];
-
-            return projectsData[0] || null;
-          });
-        }
-      }
-
-      if (issuesRes.ok) {
-        const issuesData = await issuesRes.json();
-        if (Array.isArray(issuesData)) {
-          const now = Date.now();
-          const mergedIssues = issuesData.map((fresh: Issue) => {
-            const recent = lastUpdatedIssueTimestamps.current.get(fresh.id);
-            if (recent && now - recent.timestamp < 15000) {
-              return { ...fresh, status: recent.status };
-            }
-            return fresh;
-          });
-          freshIssues = mergedIssues;
-          setIssues(mergedIssues);
-        }
-      }
-
-      if (usersRes.ok) {
-        const usersData = await usersRes.json();
-        if (Array.isArray(usersData) && usersData.length > 0) {
-          freshUsers = usersData;
-          setUsers(usersData);
-        }
-      }
-
-      if (epicsRes.ok) {
-        const epicsData = await epicsRes.json();
-        if (Array.isArray(epicsData) && epicsData.length > 0) {
-          freshEpics = epicsData;
-          setEpics(epicsData);
-        }
-      }
-
-      if (sprintsRes.ok) {
-        const sprintsData: Sprint[] = await sprintsRes.json();
-        if (Array.isArray(sprintsData) && sprintsData.length > 0) {
-          freshSprints = sprintsData;
-          setSprints(sprintsData);
-          // Check last project to align active sprint
-          let targetProjectId = "";
-          if (typeof window !== "undefined") {
-            try {
-              targetProjectId = localStorage.getItem("tamtask_last_project_id") || "";
-            } catch {}
+            setFilterState((f) => ({
+              ...f,
+              sprintId: f.sprintId || active?.id || "",
+            }));
           }
-          const relevantSprints = targetProjectId
-            ? sprintsData.filter((s) => s.projectId === targetProjectId)
-            : sprintsData;
-          const active = (relevantSprints.length > 0 ? relevantSprints : sprintsData).find(
-            (s) => s.status === "ACTIVE"
-          ) || relevantSprints[0] || sprintsData[0];
 
-          setFilterState((f) => ({
-            ...f,
-            sprintId: f.sprintId || active?.id || "",
-          }));
+          if (Array.isArray(bData.statuses) && bData.statuses.length > 0) {
+            setStatuses(bData.statuses);
+          }
+
+          bootstrapLoaded = true;
+        }
+      } catch (e) {
+        console.warn("Bootstrap API fallback to legacy endpoints:", e);
+      }
+
+      // 2. Fallback to parallel requests if bootstrap failed
+      if (!bootstrapLoaded) {
+        const [projectsRes, issuesRes, usersRes, epicsRes, sprintsRes] =
+          await Promise.all([
+            fetch("/api/projects"),
+            fetch("/api/issues"),
+            fetch("/api/users"),
+            fetch("/api/epics"),
+            fetch("/api/sprints"),
+          ]);
+
+        if (projectsRes.ok) {
+          const projectsData: Project[] = await projectsRes.json();
+          if (Array.isArray(projectsData) && projectsData.length > 0) {
+            freshProjects = projectsData;
+            setProjects(projectsData);
+            setCurrentProject((prev) => {
+              const uId = (session?.user as any)?.id || currentUser.id;
+              const uEmail = session?.user?.email || currentUser.email;
+
+              if (prev) {
+                const refreshedPrev = projectsData.find((p) => p.id === prev.id);
+                if (refreshedPrev) return refreshedPrev;
+              }
+
+              let userLastId: string | null = null;
+              if (typeof window !== "undefined") {
+                try {
+                  userLastId =
+                    localStorage.getItem(`tamtask_last_project_id_${uId}`) ||
+                    localStorage.getItem(`tamtask_last_project_id_${uEmail}`) ||
+                    localStorage.getItem("tamtask_last_project_id");
+                } catch {}
+              }
+
+              if (userLastId) {
+                const matchedLast = projectsData.find((p) => p.id === userLastId || p.key === userLastId);
+                if (matchedLast) return matchedLast;
+              }
+
+              const assigned = projectsData.filter((p) => isUserAssignedToProject(p, uId, uEmail));
+              if (assigned.length > 0) return assigned[0];
+
+              return projectsData[0] || null;
+            });
+          }
+        }
+
+        if (issuesRes.ok) {
+          const issuesData = await issuesRes.json();
+          if (Array.isArray(issuesData)) {
+            const now = Date.now();
+            const mergedIssues = issuesData.map((fresh: Issue) => {
+              const recent = lastUpdatedIssueTimestamps.current.get(fresh.id);
+              if (recent && now - recent.timestamp < 15000) {
+                return { ...fresh, status: recent.status };
+              }
+              return fresh;
+            });
+            freshIssues = mergedIssues;
+            setIssues(mergedIssues);
+          }
+        }
+
+        if (usersRes.ok) {
+          const usersData = await usersRes.json();
+          if (Array.isArray(usersData) && usersData.length > 0) {
+            freshUsers = usersData;
+            setUsers(usersData);
+          }
+        }
+
+        if (epicsRes.ok) {
+          const epicsData = await epicsRes.json();
+          if (Array.isArray(epicsData) && epicsData.length > 0) {
+            freshEpics = epicsData;
+            setEpics(epicsData);
+          }
+        }
+
+        if (sprintsRes.ok) {
+          const sprintsData: Sprint[] = await sprintsRes.json();
+          if (Array.isArray(sprintsData) && sprintsData.length > 0) {
+            freshSprints = sprintsData;
+            setSprints(sprintsData);
+            let targetProjectId = "";
+            if (typeof window !== "undefined") {
+              try {
+                targetProjectId = localStorage.getItem("tamtask_last_project_id") || "";
+              } catch {}
+            }
+            const relevantSprints = targetProjectId
+              ? sprintsData.filter((s) => s.projectId === targetProjectId)
+              : sprintsData;
+            const active = (relevantSprints.length > 0 ? relevantSprints : sprintsData).find(
+              (s) => s.status === "ACTIVE"
+            ) || relevantSprints[0] || sprintsData[0];
+
+            setFilterState((f) => ({
+              ...f,
+              sprintId: f.sprintId || active?.id || "",
+            }));
+          }
         }
       }
 

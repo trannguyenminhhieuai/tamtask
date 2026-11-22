@@ -25,11 +25,20 @@ export async function GET(request: Request) {
     if (epicId) where.epicId = epicId;
     if (status) where.status = status;
 
+    const safeUserSelect = {
+      id: true,
+      name: true,
+      email: true,
+      avatar: true,
+      role: true,
+      status: true,
+    };
+
     const issues = await prisma.issue.findMany({
       where,
       include: {
-        assignee: true,
-        reporter: true,
+        assignee: { select: safeUserSelect },
+        reporter: { select: safeUserSelect },
         epic: true,
         subtasks: true,
         attachments: {
@@ -43,7 +52,7 @@ export async function GET(request: Request) {
         },
         comments: {
           include: {
-            author: true,
+            author: { select: safeUserSelect },
           },
           orderBy: {
             createdAt: "asc",

@@ -210,12 +210,12 @@ test.describe("TamTask Agile Hub - UAT Automation Test Suite (Plan.md)", () => {
     const backlogNav = page.locator("[data-testid='nav-backlog']").first();
     await backlogNav.click();
     await page.waitForTimeout(500);
-    if (!(await page.locator("span:has-text('Backlog')").isVisible())) {
+    if (!(await page.locator("span:has-text('Backlog')").first().isVisible())) {
       await backlogNav.click({ force: true });
     }
 
     // Đợi bảng Backlog hiển thị
-    await page.waitForSelector("span:has-text('Backlog')", { timeout: 15000 });
+    await page.locator("span:has-text('Backlog')").first().waitFor({ state: "visible", timeout: 15000 });
     await page.waitForTimeout(2000);
 
     await page.screenshot({

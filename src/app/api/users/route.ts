@@ -4,11 +4,38 @@ import bcrypt from "bcryptjs";
 
 export const dynamic = "force-dynamic";
 
+// In-memory cache for high-throughput zero-latency reads
+let cachedUsers: any[] | null = null;
+let lastCacheTime = 0;
+const CACHE_TTL_MS = 60 * 1000; // 60 seconds TTL
+
+function invalidateUsersCache() {
+  cachedUsers = null;
+  lastCacheTime = 0;
+}
+
 export async function GET() {
   try {
+    const now = Date.now();
+    if (cachedUsers && now - lastCacheTime < CACHE_TTL_MS) {
+      return NextResponse.json(cachedUsers, {
+        headers: {
+          "X-Cache": "HIT",
+          "Cache-Control": "public, s-maxage=60, stale-while-revalidate=120",
+        },
+      });
+    }
+
     const users = await prisma.user.findMany({
       orderBy: { createdAt: "asc" },
-      include: {
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        avatar: true,
+        role: true,
+        status: true,
+        createdAt: true,
         _count: {
           select: { assignedIssues: true },
         },
@@ -16,11 +43,25 @@ export async function GET() {
     });
 
     const mapped = users.map((u) => ({
-      ...u,
+      id: u.id,
+      name: u.name,
+      email: u.email,
+      avatar: u.avatar,
+      role: u.role,
+      status: u.status,
+      createdAt: u.createdAt,
       activeTasksCount: u._count.assignedIssues,
     }));
 
-    return NextResponse.json(mapped);
+    cachedUsers = mapped;
+    lastCacheTime = now;
+
+    return NextResponse.json(mapped, {
+      headers: {
+        "X-Cache": "MISS",
+        "Cache-Control": "public, s-maxage=60, stale-while-revalidate=120",
+      },
+    });
   } catch (error) {
     console.error("GET /api/users error:", error);
     return NextResponse.json({ error: "Failed to fetch users" }, { status: 500 });
@@ -78,6 +119,7 @@ export async function POST(request: Request) {
           `https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=120&auto=format&fit=crop&q=80`,
       },
     });
+    invalidateUsersCache();
     return NextResponse.json(user, { status: 201 });
   } catch (error: any) {
     console.error("POST /api/users error:", error);
