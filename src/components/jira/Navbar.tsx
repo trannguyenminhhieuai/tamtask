@@ -283,48 +283,36 @@ export const Navbar: React.FC<NavbarProps> = ({
   };
 
   return (
-    <header className="h-14 bg-white/75 dark:bg-zinc-950/75 backdrop-blur-xl border-b border-[#D7D7D7]/80 dark:border-zinc-800/80 px-3 sm:px-4 flex items-center justify-between sticky top-0 z-30 select-none shadow-[0_1px_3px_rgba(0,0,0,0.03)] transition-colors duration-200">
+    <header className="h-13 sm:h-14 bg-white/85 dark:bg-zinc-950/85 backdrop-blur-xl border-b border-slate-200/80 dark:border-zinc-800/80 px-3 sm:px-4 flex items-center justify-between sticky top-0 z-30 select-none shadow-2xs transition-colors duration-200">
       {/* Left: TamTask Brand & Project Selector */}
-      <div className="flex items-center space-x-2 sm:space-x-3 shrink-0">
-        {/* Mobile Hamburger Menu Toggle */}
-        {onToggleSidebar && (
-          <button
-            type="button"
-            onClick={onToggleSidebar}
-            className="p-1.5 -ml-1 text-slate-600 dark:text-zinc-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-zinc-800 rounded-lg md:hidden transition"
-            title="Mở menu điều hướng"
-          >
-            <Menu className="w-5 h-5" />
-          </button>
-        )}
-
-        {/* TamTask Brand Identity (Aligned vertically with collapsed sidebar icon) */}
+      <div className="flex items-center space-x-2 sm:space-x-3 shrink-0 min-w-0">
+        {/* TamTask Brand Identity */}
         <div className="flex items-center space-x-2 shrink-0">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#EE0033] to-[#C7002B] flex items-center justify-center text-white shadow-xs font-black text-xs tracking-tight shrink-0">
+          <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-gradient-to-br from-[#EE0033] to-[#C7002B] flex items-center justify-center text-white shadow-xs font-black text-xs tracking-tight shrink-0">
             TT
           </div>
-          <span className="font-extrabold text-base tracking-tight text-[#111827] dark:text-zinc-100 font-sans">
+          <span className="font-extrabold text-base tracking-tight text-[#111827] dark:text-zinc-100 font-sans hidden sm:inline">
             TamTask
           </span>
         </div>
 
-        <div className="h-4 w-px bg-[#D7D7D7] dark:bg-zinc-800 hidden sm:block" />
+        <div className="h-4 w-px bg-slate-200 dark:bg-zinc-800 hidden sm:block" />
 
         {/* Project Selector Dropdown */}
-        <div className="relative z-40" ref={projectMenuRef}>
+        <div className="relative z-40 min-w-0" ref={projectMenuRef}>
           <button
             data-testid="project-switcher"
             title="Chọn dự án"
             onClick={() => setShowProjectDropdown(!showProjectDropdown)}
-            className="flex items-center space-x-2 p-1 sm:p-1.5 rounded-full hover:bg-white/80 dark:hover:bg-zinc-800/80 border border-[#D7D7D7] dark:border-zinc-700/80 transition text-left group px-2 sm:px-2.5 shadow-2xs"
+            className="flex items-center space-x-1.5 sm:space-x-2 p-1 sm:p-1.5 rounded-full hover:bg-white/80 dark:hover:bg-zinc-800/80 border border-slate-200 dark:border-zinc-700/80 transition text-left group px-2 sm:px-2.5 shadow-2xs max-w-[200px] xs:max-w-[240px] sm:max-w-none"
           >
             <div className={`w-5 h-5 rounded-full bg-[#EE0033] flex items-center justify-center text-white shadow-xs font-black ${
               (currentProject?.key?.slice(0, 3) || "TT").length >= 3 ? "text-[6.5px] tracking-tighter" : "text-[8px] tracking-tight"
             } shrink-0`}>
               {currentProject ? currentProject.key.slice(0, 3) : "TT"}
             </div>
-            <div className="font-semibold text-[#111827] dark:text-zinc-200 text-xs leading-none flex items-center gap-1">
-              <span className="truncate max-w-[80px] xs:max-w-[110px] sm:max-w-[140px]">
+            <div className="font-semibold text-[#111827] dark:text-zinc-200 text-xs leading-none flex items-center gap-1 min-w-0">
+              <span className="truncate max-w-[130px] xs:max-w-[160px] sm:max-w-[180px]">
                 {currentProject?.name || "TamTask"}
               </span>
               <ChevronDown className="w-3 h-3 text-[#9B9B9B] group-hover:text-[#111827] dark:group-hover:text-zinc-100 transition shrink-0" />
@@ -460,11 +448,11 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
         )}
 
-        {/* Light / Dark Mode Toggle Button on Header */}
+        {/* Light / Dark Mode Toggle Button on Header (Hidden on mobile, accessible via MobileMoreSheet) */}
         <button
           type="button"
           onClick={toggleDarkMode}
-          className="p-1.5 text-slate-400 hover:text-slate-700 dark:hover:text-zinc-200 hover:bg-slate-100 dark:hover:bg-zinc-800 rounded-lg transition"
+          className="hidden sm:flex p-1.5 text-slate-400 hover:text-slate-700 dark:hover:text-zinc-200 hover:bg-slate-100 dark:hover:bg-zinc-800 rounded-lg transition"
           title={isDarkMode ? "Chuyển sang giao diện Sáng (Light Mode)" : "Chuyển sang giao diện Tối (Dark Mode)"}
         >
           {isDarkMode ? (
