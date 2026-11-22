@@ -283,7 +283,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   };
 
   return (
-    <header className="h-13 sm:h-14 bg-white/85 dark:bg-zinc-950/85 backdrop-blur-xl border-b border-slate-200/80 dark:border-zinc-800/80 px-3 sm:px-4 flex items-center justify-between sticky top-0 z-30 select-none shadow-2xs transition-colors duration-200">
+    <header className="h-[calc(3rem+env(safe-area-inset-top,0px))] sm:h-14 pt-[env(safe-area-inset-top,0px)] sm:pt-0 bg-white/90 dark:bg-zinc-950/90 backdrop-blur-xl border-b border-slate-200/80 dark:border-zinc-800/80 px-3 sm:px-4 flex items-center justify-between sticky top-0 z-30 select-none shadow-2xs transition-colors duration-200">
       {/* Left: TamTask Brand & Project Selector */}
       <div className="flex items-center space-x-2 sm:space-x-3 shrink-0 min-w-0">
         {/* TamTask Brand Identity */}
@@ -412,7 +412,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         <button
           type="button"
           onClick={() => onOpenCommandPalette?.()}
-          className="md:hidden p-1.5 text-slate-500 hover:text-slate-800 dark:text-zinc-400 dark:hover:text-zinc-100 hover:bg-slate-100 dark:hover:bg-zinc-800 rounded-full transition"
+          className="md:hidden w-10 h-10 flex items-center justify-center text-slate-500 hover:text-slate-800 dark:text-zinc-400 dark:hover:text-zinc-100 hover:bg-slate-100 dark:hover:bg-zinc-800 rounded-full transition active:scale-95"
           title="Tìm kiếm nhanh (Ctrl + K)"
         >
           <Search className="w-4 h-4 text-slate-600 dark:text-zinc-300" />
@@ -552,12 +552,12 @@ export const Navbar: React.FC<NavbarProps> = ({
         <div className="relative" ref={notifMenuRef}>
           <button
             onClick={() => setShowNotifMenu(!showNotifMenu)}
-            className="p-1.5 text-slate-500 dark:text-zinc-400 hover:text-slate-800 dark:hover:text-zinc-100 hover:bg-slate-100 dark:hover:bg-zinc-800 rounded-lg transition relative"
+            className="w-10 h-10 sm:w-auto sm:h-auto sm:p-1.5 flex items-center justify-center text-slate-500 dark:text-zinc-400 hover:text-slate-800 dark:hover:text-zinc-100 hover:bg-slate-100 dark:hover:bg-zinc-800 rounded-full sm:rounded-lg transition relative active:scale-95"
             title="Thông báo"
           >
             <Bell className="w-4 h-4" />
             {unreadCount > 0 && (
-              <span className="w-4 h-4 bg-[#EE0033] text-white rounded-full text-[9px] font-bold flex items-center justify-center absolute -top-1 -right-1 ring-2 ring-white dark:ring-zinc-900">
+              <span className="w-4 h-4 bg-[#EE0033] text-white rounded-full text-[9px] font-bold flex items-center justify-center absolute top-1 right-1 sm:-top-1 sm:-right-1 ring-2 ring-white dark:ring-zinc-900">
                 {unreadCount}
               </span>
             )}

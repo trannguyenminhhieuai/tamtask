@@ -4,7 +4,10 @@ import { SessionWrapper } from "@/components/jira/SessionWrapper";
 import { PwaRegistrar } from "@/components/jira/PwaRegistrar";
 
 export const viewport: Viewport = {
-  themeColor: "#EE0033",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#FFFFFF" },
+    { media: "(prefers-color-scheme: dark)", color: "#09090B" },
+  ],
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,

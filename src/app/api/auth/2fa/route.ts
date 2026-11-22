@@ -5,6 +5,9 @@ import { sendOtpEmail } from "@/lib/mail";
 
 export const dynamic = "force-dynamic";
 
+// ATTT SEC-4: Bộ đếm chống Brute-Force mã OTP (Tối đa 5 lần thử sai)
+const otpAttemptsMap = new Map<string, number>();
+
 export async function POST(request: Request) {
   try {
     const body = await request.json();
@@ -56,6 +59,9 @@ export async function POST(request: Request) {
         });
       }
 
+      // Reset attempt counter for new OTP request
+      otpAttemptsMap.delete(normalizedEmail);
+
       // Generate random 6-digit OTP
       const generatedOtp = Math.floor(100000 + Math.random() * 900000).toString();
       const expiry = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
@@ -105,14 +111,32 @@ export async function POST(request: Request) {
         );
       }
 
-      if (user.twoFactorOtp.trim() !== otp.trim()) {
+      const attempts = otpAttemptsMap.get(normalizedEmail) || 0;
+      if (attempts >= 5) {
+        // Tự động hủy mã OTP khi thử sai quá 5 lần để vô hiệu hóa tấn công vét cạn
+        await prisma.user.update({
+          where: { id: user.id },
+          data: { twoFactorOtp: null, twoFactorExpiry: null },
+        });
+        otpAttemptsMap.delete(normalizedEmail);
         return NextResponse.json(
-          { error: "Mã OTP không chính xác. Vui lòng kiểm tra kỹ 6 chữ số!" },
+          { error: "Bạn đã nhập sai mã OTP quá 5 lần. Vì lý do bảo mật, mã đã bị hủy. Vui lòng bấm 'Gửi lại mã' để lấy mã mới." },
+          { status: 429 }
+        );
+      }
+
+      if (user.twoFactorOtp.trim() !== otp.trim()) {
+        const nextAttempts = attempts + 1;
+        otpAttemptsMap.set(normalizedEmail, nextAttempts);
+        const remaining = 5 - nextAttempts;
+        return NextResponse.json(
+          { error: `Mã OTP không chính xác. Bạn còn ${remaining} lần thử trước khi mã bị hủy!` },
           { status: 400 }
         );
       }
 
       // OTP is valid! Clear it to prevent replay attacks
+      otpAttemptsMap.delete(normalizedEmail);
       await prisma.user.update({
         where: { id: user.id },
         data: {

@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -8,6 +10,14 @@ export async function PATCH(
   { params }: { params: { id: string } }
 ) {
   try {
+    const session = await getServerSession(authOptions);
+    if (session?.user && ((session.user as any).role === "VIEWER" || (session.user as any).role === "PENDING")) {
+      return NextResponse.json(
+        { error: "Tài khoản của bạn không có quyền cập nhật Sprint." },
+        { status: 403 }
+      );
+    }
+
     const body = await request.json();
 
     const updated = await prisma.sprint.update({
@@ -35,6 +45,14 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
+    const session = await getServerSession(authOptions);
+    if (session?.user && ((session.user as any).role === "VIEWER" || (session.user as any).role === "PENDING")) {
+      return NextResponse.json(
+        { error: "Tài khoản của bạn không có quyền xóa Sprint." },
+        { status: 403 }
+      );
+    }
+
     const sprintId = params.id;
 
     // 1. Move all issues belonging to this sprint back to Backlog (sprintId = null)

@@ -1,7 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
+
+const safeUserSelect = {
+  id: true,
+  name: true,
+  email: true,
+  avatar: true,
+  role: true,
+  status: true,
+  activeTasksCount: true,
+};
 
 // GET /api/projects/[id]/members - List project members
 export async function GET(
@@ -14,15 +26,7 @@ export async function GET(
       where: { projectId },
       include: {
         user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            avatar: true,
-            role: true,
-            status: true,
-            activeTasksCount: true,
-          },
+          select: safeUserSelect,
         },
       },
       orderBy: { joinedAt: "asc" },
@@ -41,7 +45,29 @@ export async function POST(
   { params }: { params: { id: string } }
 ) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user) {
+      return NextResponse.json({ error: "Yêu cầu đăng nhập." }, { status: 401 });
+    }
+
+    const callerRole = (session.user as any).role;
+    const callerId = (session.user as any).id;
     const projectId = params.id;
+
+    // Check project lead or admin
+    if (callerRole !== "ADMIN") {
+      const project = await prisma.project.findUnique({
+        where: { id: projectId },
+        select: { leadId: true },
+      });
+      if (!project || (project.leadId !== callerId && callerRole !== "PROJECT_LEAD")) {
+        return NextResponse.json(
+          { error: "Chỉ Quản trị viên hoặc Trưởng dự án mới có quyền thêm thành viên." },
+          { status: 403 }
+        );
+      }
+    }
+
     const body = await request.json();
     const { userId, role = "DEVELOPER" } = body;
 
@@ -66,7 +92,9 @@ export async function POST(
         role,
       },
       include: {
-        user: true,
+        user: {
+          select: safeUserSelect,
+        },
       },
     });
 
@@ -83,7 +111,28 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user) {
+      return NextResponse.json({ error: "Yêu cầu đăng nhập." }, { status: 401 });
+    }
+
+    const callerRole = (session.user as any).role;
+    const callerId = (session.user as any).id;
     const projectId = params.id;
+
+    if (callerRole !== "ADMIN") {
+      const project = await prisma.project.findUnique({
+        where: { id: projectId },
+        select: { leadId: true },
+      });
+      if (!project || (project.leadId !== callerId && callerRole !== "PROJECT_LEAD")) {
+        return NextResponse.json(
+          { error: "Chỉ Quản trị viên hoặc Trưởng dự án mới có quyền xóa thành viên." },
+          { status: 403 }
+        );
+      }
+    }
+
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get("userId");
 
@@ -106,40 +155,3 @@ export async function DELETE(
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
-
-// PATCH /api/projects/[id]/members - Update member role in project
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  try {
-    const projectId = params.id;
-    const body = await request.json();
-    const { userId, role } = body;
-
-    if (!userId || !role) {
-      return NextResponse.json({ error: "userId and role are required" }, { status: 400 });
-    }
-
-    const updated = await prisma.projectMember.update({
-      where: {
-        projectId_userId: {
-          projectId,
-          userId,
-        },
-      },
-      data: {
-        role,
-      },
-      include: {
-        user: true,
-      },
-    });
-
-    return NextResponse.json(updated);
-  } catch (error: any) {
-    console.error("PATCH /api/projects/[id]/members error:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  }
-}
-
