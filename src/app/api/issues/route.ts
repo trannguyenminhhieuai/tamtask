@@ -32,40 +32,21 @@ export async function GET(request: Request) {
         reporter: true,
         epic: true,
         subtasks: true,
+        attachments: {
+          select: {
+            id: true,
+            name: true,
+            size: true,
+            type: true,
+            createdAt: true,
+          },
+        },
         comments: {
           include: {
             author: true,
           },
-        },
-        activities: {
-          include: {
-            actor: true,
-          },
           orderBy: {
-            createdAt: "desc",
-          },
-        },
-        attachments: true,
-        sourceLinks: {
-          include: {
-            targetIssue: {
-              select: { id: true, key: true, title: true, status: true, priority: true, type: true },
-            },
-          },
-        },
-        targetLinks: {
-          include: {
-            sourceIssue: {
-              select: { id: true, key: true, title: true, status: true, priority: true, type: true },
-            },
-          },
-        },
-        worklogs: {
-          include: {
-            author: true,
-          },
-          orderBy: {
-            loggedAt: "desc",
+            createdAt: "asc",
           },
         },
       },

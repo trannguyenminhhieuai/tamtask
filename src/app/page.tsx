@@ -82,6 +82,7 @@ export default function JiraApp() {
   // Prevents loadData() re-runs (triggered by issue/project updates) from resetting currentProject
   const hasAutoSwitchedOnLoginRef = useRef(false);
   const isLoadingDataRef = useRef(false);
+  const lastUpdatedIssueTimestamps = useRef<Map<string, { status: IssueStatus; timestamp: number }>>(new Map());
 
   // Modals & Drawers State
   const [selectedIssue, setSelectedIssue] = useState<Issue | null>(null);
@@ -187,6 +188,26 @@ export default function JiraApp() {
     }
   }, [currentProject?.id]);
 
+  // Switch project handler: Synchronously sets project, persists to user localStorage, and aligns active sprint
+  const handleSelectProject = useCallback(
+    (p: Project) => {
+      setCurrentProject(p);
+      if (typeof window !== "undefined") {
+        try {
+          localStorage.setItem("tamtask_last_project_id", p.id);
+          const uId = (session?.user as any)?.id || currentUser.id;
+          const uEmail = session?.user?.email || currentUser.email;
+          if (uId) localStorage.setItem(`tamtask_last_project_id_${uId}`, p.id);
+          if (uEmail) localStorage.setItem(`tamtask_last_project_id_${uEmail}`, p.id);
+        } catch {}
+      }
+      const pSprints = sprints.filter((s) => s.projectId === p.id);
+      const active = pSprints.find((s) => s.status === "ACTIVE") || pSprints[0];
+      setFilterState((f) => ({ ...f, sprintId: active ? active.id : "" }));
+    },
+    [session, currentUser, sprints]
+  );
+
   // Fetch live persistent data from backend API
   const loadData = useCallback(async () => {
     if (isLoadingDataRef.current) return;
@@ -216,66 +237,52 @@ export default function JiraApp() {
             const uId = (session?.user as any)?.id || currentUser.id;
             const uEmail = session?.user?.email || currentUser.email;
 
-            // Prioritize projects actively assigned to this logged-in user
-            const assigned = projectsData.filter((p) => isUserAssignedToProject(p, uId, uEmail));
-
-            // === CRITICAL FIX: If user already has a valid project selected, just refresh its reference ===
-            // This prevents every loadData() call from switching projects back to the default.
+            // 1. If user already has a valid project selected, refresh its reference and preserve it!
             if (prev) {
               const refreshedPrev = projectsData.find((p) => p.id === prev.id);
               if (refreshedPrev) {
-                // Only keep this project if user is still assigned (or is ADMIN)
-                const stillAssigned =
-                  currentUser.role === "ADMIN" || isUserAssignedToProject(refreshedPrev, uId, uEmail);
-                if (stillAssigned) return refreshedPrev;
+                return refreshedPrev;
               }
             }
 
-            // Load user-specific last accessed project from localStorage
+            // 2. Load user-specific last accessed project from localStorage
             let userLastId: string | null = null;
             if (typeof window !== "undefined") {
               try {
                 userLastId =
                   localStorage.getItem(`tamtask_last_project_id_${uId}`) ||
-                  localStorage.getItem(`tamtask_last_project_id_${uEmail}`);
+                  localStorage.getItem(`tamtask_last_project_id_${uEmail}`) ||
+                  localStorage.getItem("tamtask_last_project_id");
               } catch {}
             }
 
-            if (assigned.length > 0) {
-              if (userLastId) {
-                const matchedLast = assigned.find((p) => p.id === userLastId || p.key === userLastId);
-                if (matchedLast) return matchedLast;
-              }
-              return assigned[0];
+            if (userLastId) {
+              const matchedLast = projectsData.find((p) => p.id === userLastId || p.key === userLastId);
+              if (matchedLast) return matchedLast;
             }
 
-            // Fallback for users with no assigned project yet (e.g. brand-new user or global Admin)
-            const accessible =
-              currentUser.role === "ADMIN"
-                ? projectsData
-                : projectsData.filter((p) => isUserAssignedToProject(p, uId, uEmail));
+            // 3. Fallback to assigned projects or first available
+            const assigned = projectsData.filter((p) => isUserAssignedToProject(p, uId, uEmail));
+            if (assigned.length > 0) return assigned[0];
 
-            const candidateList = accessible.length > 0 ? accessible : projectsData;
-
-            if (typeof window !== "undefined") {
-              try {
-                const lastId = localStorage.getItem("tamtask_last_project_id");
-                if (lastId) {
-                  const matchedLast = candidateList.find((p) => p.id === lastId || p.key === lastId);
-                  if (matchedLast) return matchedLast;
-                }
-              } catch {}
-            }
-            return candidateList[0];
+            return projectsData[0] || null;
           });
         }
       }
 
       if (issuesRes.ok) {
         const issuesData = await issuesRes.json();
-        if (Array.isArray(issuesData) && issuesData.length > 0) {
-          freshIssues = issuesData;
-          setIssues(issuesData);
+        if (Array.isArray(issuesData)) {
+          const now = Date.now();
+          const mergedIssues = issuesData.map((fresh: Issue) => {
+            const recent = lastUpdatedIssueTimestamps.current.get(fresh.id);
+            if (recent && now - recent.timestamp < 15000) {
+              return { ...fresh, status: recent.status };
+            }
+            return fresh;
+          });
+          freshIssues = mergedIssues;
+          setIssues(mergedIssues);
         }
       }
 
@@ -427,18 +434,25 @@ export default function JiraApp() {
     }
   }, [authStatus, session, projects]);
 
+  // Accessible projects scoped by membership (Admins see all, other roles see assigned projects)
+  const accessibleProjects = useMemo(() => {
+    if (currentUser.role === "ADMIN") return projects;
+    const uId = (session?.user as any)?.id || currentUser.id;
+    const uEmail = session?.user?.email || currentUser.email;
+    const filtered = projects.filter((p) => isUserAssignedToProject(p, uId, uEmail));
+    return filtered.length > 0 ? filtered : projects;
+  }, [currentUser, session, projects]);
+
   // Guard project access: Ensure non-admin users cannot stay on an inaccessible project
-  // === CRITICAL FIX: Check by ID in the REFRESHED projects list, not stale currentProject reference ===
   useEffect(() => {
     if (currentUser.role !== "ADMIN" && currentProject && projects.length > 0) {
       // Find the refreshed version of the current project by ID in the new projects list
       const refreshedCurrentProject = projects.find((p) => p.id === currentProject.id);
 
       if (refreshedCurrentProject) {
-        // Project still exists — check if user is still assigned to it
+        // Project still exists — check if user is assigned to it
         const isAssigned = isUserAssignedToProject(refreshedCurrentProject, currentUser.id, currentUser.email);
         if (isAssigned) {
-          // User is still assigned — update reference to fresh data WITHOUT switching project
           if (refreshedCurrentProject !== currentProject) {
             setCurrentProject(refreshedCurrentProject);
           }
@@ -446,15 +460,18 @@ export default function JiraApp() {
         }
       }
 
-      // User is truly no longer assigned to current project (or project was deleted) — switch to fallback
+      // If user is truly not assigned (or project was deleted), switch safely to first accessible project
       const accessible = projects.filter((p) =>
         isUserAssignedToProject(p, currentUser.id, currentUser.email)
       );
       if (accessible.length > 0) {
-        setCurrentProject(accessible[0]);
+        const stillInAccessible = accessible.some((p) => p.id === currentProject.id);
+        if (!stillInAccessible) {
+          handleSelectProject(accessible[0]);
+        }
       }
     }
-  }, [currentUser, currentProject, projects]);
+  }, [currentUser, currentProject, projects, handleSelectProject]);
 
   // Global Jira Keyboard Shortcuts Listener
   useEffect(() => {
@@ -494,27 +511,36 @@ export default function JiraApp() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  // Filter scoped data by current selected project
+  const defaultProjectId = useMemo(() => {
+    const defaultProj = projects.find((p) => p.key === "TT");
+    return defaultProj ? defaultProj.id : null;
+  }, [projects]);
+
+  // Filter scoped data strictly by current selected project
+  // Mock items without projectId are strictly isolated to the default TT project
   const projectIssues = useMemo(() => {
-    if (!currentProject) return issues;
-    return issues.filter(
-      (i) => !i.projectId || i.projectId === currentProject.id
-    );
-  }, [issues, currentProject]);
+    if (!currentProject) return [];
+    return issues.filter((i) => {
+      if (i.projectId) return i.projectId === currentProject.id;
+      return currentProject.key === "TT" || (defaultProjectId && currentProject.id === defaultProjectId);
+    });
+  }, [issues, currentProject, defaultProjectId]);
 
   const projectSprints = useMemo(() => {
-    if (!currentProject) return sprints;
-    return sprints.filter(
-      (s) => !s.projectId || s.projectId === currentProject.id
-    );
-  }, [sprints, currentProject]);
+    if (!currentProject) return [];
+    return sprints.filter((s) => {
+      if (s.projectId) return s.projectId === currentProject.id;
+      return currentProject.key === "TT" || (defaultProjectId && currentProject.id === defaultProjectId);
+    });
+  }, [sprints, currentProject, defaultProjectId]);
 
   const projectEpics = useMemo(() => {
-    if (!currentProject) return epics;
-    return epics.filter(
-      (e) => !e.projectId || e.projectId === currentProject.id
-    );
-  }, [epics, currentProject]);
+    if (!currentProject) return [];
+    return epics.filter((e) => {
+      if (e.projectId) return e.projectId === currentProject.id;
+      return currentProject.key === "TT" || (defaultProjectId && currentProject.id === defaultProjectId);
+    });
+  }, [epics, currentProject, defaultProjectId]);
 
   // Scoped project users (strictly members and lead of the current project)
   const projectUsers = useMemo(() => {
@@ -624,22 +650,26 @@ export default function JiraApp() {
     issueId: string,
     newStatus: IssueStatus
   ) => {
+    // Record recent local modification timestamp to prevent stale loadData overwriting
+    lastUpdatedIssueTimestamps.current.set(issueId, { status: newStatus, timestamp: Date.now() });
+
     const existing = issues.find((i) => i.id === issueId);
     const oldStatus = existing?.status;
 
-    // Optimistic update — apply immediately to UI
-    const updatedIssues = issues.map((i) =>
-      i.id === issueId
-        ? {
-            ...i,
-            status: newStatus,
-            updatedAt: new Date().toISOString().split("T")[0],
-          }
-        : i
-    );
-    setIssues(updatedIssues);
-    // ✅ FIX Bug 2: Sync cache immediately so F5 shows new status, not old one
-    updateIssuesCache(updatedIssues);
+    // Optimistic update — apply immediately to UI using functional state updater
+    setIssues((prev) => {
+      const updated = prev.map((i) =>
+        i.id === issueId
+          ? {
+              ...i,
+              status: newStatus,
+              updatedAt: new Date().toISOString().split("T")[0],
+            }
+          : i
+      );
+      updateIssuesCache(updated);
+      return updated;
+    });
 
     if (selectedIssue && selectedIssue.id === issueId) {
       setSelectedIssue((prev) => (prev ? { ...prev, status: newStatus } : null));
@@ -662,13 +692,13 @@ export default function JiraApp() {
       });
       if (res.ok) {
         const data = await res.json();
-        if (data.activities) {
-          setIssues((prev) =>
-            prev.map((i) => (i.id === issueId ? { ...i, activities: data.activities } : i))
-          );
-          if (selectedIssue && selectedIssue.id === issueId) {
-            setSelectedIssue((prev) => (prev ? { ...prev, activities: data.activities } : null));
-          }
+        setIssues((prev) =>
+          prev.map((i) =>
+            i.id === issueId ? { ...i, ...data, status: newStatus } : i
+          )
+        );
+        if (selectedIssue && selectedIssue.id === issueId) {
+          setSelectedIssue((prev) => (prev ? { ...prev, ...data, status: newStatus } : null));
         }
       }
     } catch (err) {
@@ -684,7 +714,7 @@ export default function JiraApp() {
       updateIssuesCache(next);
       return next;
     });
-    setSelectedIssue(updated);
+    setSelectedIssue((prev) => (prev && prev.id === updated.id ? { ...prev, ...updated } : prev));
   };
 
   // Update Issue Details
@@ -694,7 +724,7 @@ export default function JiraApp() {
       updateIssuesCache(next);
       return next;
     });
-    setSelectedIssue(updated);
+    setSelectedIssue((prev) => (prev && prev.id === updated.id ? { ...prev, ...updated } : prev));
 
     try {
       const res = await fetch(`/api/issues/${updated.id}`, {
@@ -972,7 +1002,7 @@ export default function JiraApp() {
 
     // 3. Set newly created project and reload data
     setProjects((prev) => [...prev, createdProject]);
-    setCurrentProject(createdProject);
+    handleSelectProject(createdProject);
     notify.success("Đã tạo dự án mới", `Dự án [${createdProject.name}] (${createdProject.key}) đã được khởi tạo.`);
     await loadData();
   };
@@ -1320,15 +1350,9 @@ export default function JiraApp() {
         {/* Top Navbar */}
         <Navbar
           currentUser={currentUser}
-          projects={projects}
+          projects={accessibleProjects}
           currentProject={currentProject}
-          onSelectProject={(p) => {
-            setCurrentProject(p);
-            // Default filter sprint to the active sprint of the selected project
-            const projectSprints = sprints.filter((s) => s.projectId === p.id);
-            const active = projectSprints.find((s) => s.status === "ACTIVE") || projectSprints[0];
-            setFilterState((f) => ({ ...f, sprintId: active ? active.id : "" }));
-          }}
+          onSelectProject={handleSelectProject}
           onOpenCreateProject={() => setIsCreateProjectModalOpen(true)}
           onOpenProjectMembers={() => setIsProjectMembersModalOpen(true)}
           onCreateIssueClick={() => {
@@ -1544,14 +1568,9 @@ export default function JiraApp() {
         isOpen={isCommandPaletteOpen}
         onClose={() => setIsCommandPaletteOpen(false)}
         issues={issues}
-        projects={projects}
+        projects={accessibleProjects}
         currentProject={currentProject}
-        onSelectProject={(p) => {
-          setCurrentProject(p);
-          const projectSprints = sprints.filter((s) => s.projectId === p.id);
-          const active = projectSprints.find((s) => s.status === "ACTIVE") || projectSprints[0];
-          setFilterState((f) => ({ ...f, sprintId: active ? active.id : "" }));
-        }}
+        onSelectProject={handleSelectProject}
         onSelectIssue={(iss) => handleSelectIssue(iss)}
         onSelectView={(v) => setCurrentView(v)}
         onOpenCreateIssue={() => setIsCreateModalOpen(true)}
@@ -1570,10 +1589,10 @@ export default function JiraApp() {
         onClose={() => setIsMobileMoreOpen(false)}
         currentUser={currentUser}
         currentProject={currentProject}
-        projects={projects}
+        projects={accessibleProjects}
         onSelectProject={(projId) => {
-          const match = projects.find((p) => p.id === projId);
-          if (match) setCurrentProject(match);
+          const match = accessibleProjects.find((p) => p.id === projId);
+          if (match) handleSelectProject(match);
         }}
         currentView={currentView}
         onViewChange={setCurrentView}

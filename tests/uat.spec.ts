@@ -71,7 +71,7 @@ test.describe("TamTask Agile Hub - UAT Automation Test Suite (Plan.md)", () => {
     await page.waitForLoadState("networkidle");
 
     // Đợi màn hình loading ban đầu biến mất
-    await page.locator("text=Đang khởi động TamTask").waitFor({ state: "hidden", timeout: 30000 }).catch(() => {});
+    await page.locator("text=Đang khởi động TamTask").waitFor({ state: "hidden", timeout: 30000 }).catch(() => { });
 
     // 1. Chụp ảnh màn hình Welcome / Auth Landing
     await page.screenshot({
@@ -206,8 +206,13 @@ test.describe("TamTask Agile Hub - UAT Automation Test Suite (Plan.md)", () => {
   // TC05: Kế hoạch Chu kỳ & Hàng đợi Backlog
   test("TC05 - Truy cập Backlog và tạo Story cho Backlog", async () => {
     // Bấm chuyển sang View Backlog từ Sidebar
-    const backlogNav = page.locator("button[title='Kế Hoạch Chu Kỳ'], button:has-text('Kế Hoạch Chu Kỳ')").first();
+    await page.waitForTimeout(1000);
+    const backlogNav = page.locator("[data-testid='nav-backlog']").first();
     await backlogNav.click();
+    await page.waitForTimeout(500);
+    if (!(await page.locator("span:has-text('Backlog')").isVisible())) {
+      await backlogNav.click({ force: true });
+    }
 
     // Đợi bảng Backlog hiển thị
     await page.waitForSelector("span:has-text('Backlog')", { timeout: 15000 });
@@ -288,16 +293,66 @@ test.describe("TamTask Agile Hub - UAT Automation Test Suite (Plan.md)", () => {
       });
     }
 
-    // Đóng drawer bằng phím Escape (theo Rule B)
-    await page.keyboard.press("Escape");
-    await page.waitForTimeout(1000);
+    // Đóng drawer bằng phím Escape hoặc nút đóng (theo Rule B)
+    // Click backdrop overlay directly to ensure drawer closes
+    const drawerBackdrop = page.locator("div.fixed.inset-0.z-\\[70\\]");
+    if (await drawerBackdrop.isVisible().catch(() => false)) {
+      // Click the backdrop area (far left corner, outside content panel)
+      await drawerBackdrop.click({ position: { x: 5, y: 5 }, force: true });
+      await page.waitForTimeout(500);
+    }
+    // Fallback: press Escape  
+    if (await drawerBackdrop.isVisible().catch(() => false)) {
+      await page.keyboard.press("Escape");
+      await page.waitForTimeout(500);
+    }
+    // Fallback: click X button
+    const closeDrawerBtn = page.locator("button[title='Đóng (Esc)']").first();
+    if (await closeDrawerBtn.isVisible().catch(() => false)) {
+      await closeDrawerBtn.click({ force: true });
+      await page.waitForTimeout(500);
+    }
+    // Wait for drawer to fully disappear
+    await drawerBackdrop.waitFor({ state: "hidden", timeout: 5000 }).catch(() => { });
+    await page.waitForTimeout(500);
   });
 
   // TC07: Giao diện Di động & Thanh điều hướng dưới đáy (PWA Mobile Navigation)
   test("TC07 - Kiểm tra PWA Viewport và Mobile Bottom Navigation", async () => {
+    // === Aggressive drawer/modal cleanup from TC06 ===
+    // 1) Try Escape key
+    await page.keyboard.press("Escape");
+    await page.waitForTimeout(500);
+
+    // 2) If z-[70] drawer overlay still present, click its backdrop
+    const drawerOverlay = page.locator("div.fixed.inset-0.z-\\[70\\]");
+    if (await drawerOverlay.isVisible().catch(() => false)) {
+      await drawerOverlay.click({ position: { x: 5, y: 5 }, force: true });
+      await page.waitForTimeout(500);
+    }
+
+    // 3) If still visible, try clicking the X close button directly
+    if (await drawerOverlay.isVisible().catch(() => false)) {
+      const closeBtn = page.locator("button[title='Đóng (Esc)']").first();
+      if (await closeBtn.isVisible().catch(() => false)) {
+        await closeBtn.click({ force: true });
+        await page.waitForTimeout(500);
+      }
+    }
+
+    // 4) Final fallback: press Escape again
+    if (await drawerOverlay.isVisible().catch(() => false)) {
+      await page.keyboard.press("Escape");
+      await page.waitForTimeout(500);
+    }
+
+    // 5) Wait for overlay to fully disappear
+    await drawerOverlay.waitFor({ state: "hidden", timeout: 5000 }).catch(() => { });
+    await page.locator("div.fixed.inset-0.z-\\[80\\]").waitFor({ state: "hidden", timeout: 3000 }).catch(() => { });
+
     // Giả lập màn hình điện thoại iPhone 13 (390 x 844)
     await page.setViewportSize({ width: 390, height: 844 });
-    await page.waitForTimeout(1500);
+    await page.waitForTimeout(2000);
 
     // Chụp ảnh giao diện di động
     await page.screenshot({

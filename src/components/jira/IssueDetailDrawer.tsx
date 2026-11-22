@@ -79,6 +79,7 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
 
   // Sync state on issue prop change
   React.useEffect(() => {
+    let isMounted = true;
     setTitle(issue.title);
     setDescription(issue.description);
     setSubtasks(issue.subtasks || []);
@@ -87,6 +88,22 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
     setMobileDrawerTab("DETAILS");
     setIsLinkingOpen(false);
     setIsLoggingWork(false);
+
+    // Lazily fetch full issue relations (activities, worklogs, issue links) in background
+    if (issue?.id && !issue.id.startsWith("temp-") && !issue.id.startsWith("iss-")) {
+      fetch(`/api/issues/${issue.id}`)
+        .then((res) => (res.ok ? res.json() : null))
+        .then((fullData) => {
+          if (isMounted && fullData && onUpdateIssueLocal) {
+            onUpdateIssueLocal(fullData);
+          }
+        })
+        .catch((err) => console.warn("Failed to load issue deep details:", err));
+    }
+
+    return () => {
+      isMounted = false;
+    };
   }, [issue.id]);
 
   // Close on Escape key press

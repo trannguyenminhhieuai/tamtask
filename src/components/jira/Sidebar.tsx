@@ -151,6 +151,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 return (
                   <button
                     key={item.id}
+                    data-testid={`nav-${item.id.toLowerCase()}`}
                     onClick={() => {
                       onViewChange(item.id);
                       if (typeof window !== "undefined" && window.innerWidth < 768) {
@@ -164,7 +165,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                         ? "text-[#EE0033] dark:text-rose-400 font-bold bg-white/90 dark:bg-zinc-800/90 shadow-[0_2px_8px_rgba(0,0,0,0.06),inset_0_1px_1px_rgba(255,255,255,0.8)] dark:shadow-[0_2px_8px_rgba(0,0,0,0.4),inset_0_1px_1px_rgba(255,255,255,0.08)] border-l-3 border-[#EE0033]"
                         : "text-[#4B5563] dark:text-zinc-400 hover:text-[#111827] dark:hover:text-zinc-100 hover:bg-white/60 dark:hover:bg-zinc-800/50 hover:shadow-2xs font-medium border-l-3 border-transparent backdrop-blur-xs"
                     }`}
-                    title={!isExpanded ? item.label : undefined}
+                    title={item.label}
                   >
                     <Icon
                       className={`w-4 h-4 shrink-0 transition-all ${

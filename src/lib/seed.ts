@@ -2,6 +2,7 @@ import { prisma } from "./prisma";
 import bcrypt from "bcryptjs";
 
 let isSeededChecked = false;
+let seedPromise: Promise<void> | null = null;
 
 export async function ensureDefaultPasswords() {
   // Chỉ kiểm tra và hash nếu thực sự có tài khoản chưa có password
@@ -25,27 +26,28 @@ export async function ensureDefaultPasswords() {
 
 export async function seedDatabaseIfEmpty() {
   if (isSeededChecked) return;
+  if (!seedPromise) {
+    seedPromise = (async () => {
+      try {
+        const userCount = await prisma.user.count();
+        if (userCount > 0) {
+          isSeededChecked = true;
+          return; // Already seeded
+        }
 
-  const userCount = await prisma.user.count();
-  if (userCount > 0) {
-    await ensureDefaultPasswords();
-    isSeededChecked = true;
-    return; // Already seeded
-  }
+        isSeededChecked = true;
+        console.log("Seeding initial Jira database...");
 
-  isSeededChecked = true;
-  console.log("Seeding initial Jira database...");
+        const defaultPasswordHash = await bcrypt.hash("TamTask@2026!", 10);
 
-  const defaultPasswordHash = await bcrypt.hash("TamTask@2026!", 10);
-
-  // 1. Create Project
-  const project = await prisma.project.create({
-    data: {
-      key: "TT",
-      name: "TamTask Space",
-      description: "Không gian quản lý công việc và dự án thông minh TamTask",
-    },
-  });
+        // 1. Create Project
+        const project = await prisma.project.create({
+          data: {
+            key: "TT",
+            name: "TamTask Space",
+            description: "Không gian quản lý công việc và dự án thông minh TamTask",
+          },
+        });
 
   // 2. Create Users
   const userHieu = await prisma.user.create({
@@ -348,5 +350,13 @@ export async function seedDatabaseIfEmpty() {
   });
 
   console.log("Database seeded successfully!");
+      } catch (err) {
+        console.error("Error seeding database:", err);
+      } finally {
+        isSeededChecked = true;
+      }
+    })();
+  }
+  return seedPromise;
 }
 
