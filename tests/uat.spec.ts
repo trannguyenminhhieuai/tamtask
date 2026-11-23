@@ -68,7 +68,7 @@ test.describe("TamTask Agile Hub - UAT Automation Test Suite (Plan.md)", () => {
   // TC01: Auth Gate & Form Validation
   test("TC01 - Cổng kiểm soát đăng nhập & Validation biểu mẫu (Auth Gate)", async () => {
     await page.goto("http://localhost:3000", { timeout: 45000 });
-    await page.waitForLoadState("networkidle");
+    await page.waitForLoadState("domcontentloaded");
 
     // Đợi màn hình loading ban đầu biến mất
     await page.locator("text=Đang khởi động TamTask").waitFor({ state: "hidden", timeout: 30000 }).catch(() => { });

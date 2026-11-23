@@ -338,13 +338,13 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
 
   const handleTitleBlur = () => {
     if (title.trim() && title !== issue.title) {
-      onUpdateIssue({ ...issue, title });
+      onUpdateIssue({ ...issue, subtasks, title });
     }
   };
 
   const handleDescriptionBlur = () => {
     if (description !== issue.description) {
-      onUpdateIssue({ ...issue, description });
+      onUpdateIssue({ ...issue, subtasks, description });
     }
   };
 
@@ -366,7 +366,7 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
     }
 
     setMouseFeedback(null);
-    onUpdateIssue({ ...issue, status: newStatus });
+    onUpdateIssue({ ...issue, subtasks, status: newStatus });
   };
 
   // Subtask expanded detail state
@@ -496,33 +496,27 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
       if (res.ok) {
         const savedSub: Subtask = await res.json();
         // Replace temp subtask with the real DB subtask (persisting UUID)
-        setSubtasks((prev) => {
-          const replaced = prev.map((s) => (s.id === tempSubId ? savedSub : s));
-          if (onUpdateIssueLocal) {
-            onUpdateIssueLocal({ ...issue, subtasks: replaced });
-          }
-          return replaced;
-        });
+        setSubtasks((prev) => prev.map((s) => (s.id === tempSubId ? savedSub : s)));
+        if (onUpdateIssueLocal) {
+          onUpdateIssueLocal({
+            ...issue,
+            subtasks: nextList.map((s) => (s.id === tempSubId ? savedSub : s)),
+          });
+        }
       } else {
         // Rollback on server failure
-        setSubtasks((prev) => {
-          const filtered = prev.filter((s) => s.id !== tempSubId);
-          if (onUpdateIssueLocal) {
-            onUpdateIssueLocal({ ...issue, subtasks: filtered });
-          }
-          return filtered;
-        });
+        setSubtasks((prev) => prev.filter((s) => s.id !== tempSubId));
+        if (onUpdateIssueLocal) {
+          onUpdateIssueLocal({ ...issue, subtasks });
+        }
         notify.error("Không thể tạo công việc phụ", "Vui lòng thử lại!");
       }
     } catch (err) {
       console.error("Failed to create subtask in DB:", err);
-      setSubtasks((prev) => {
-        const filtered = prev.filter((s) => s.id !== tempSubId);
-        if (onUpdateIssueLocal) {
-          onUpdateIssueLocal({ ...issue, subtasks: filtered });
-        }
-        return filtered;
-      });
+      setSubtasks((prev) => prev.filter((s) => s.id !== tempSubId));
+      if (onUpdateIssueLocal) {
+        onUpdateIssueLocal({ ...issue, subtasks });
+      }
       notify.error("Không thể tạo công việc phụ", "Vui lòng thử lại!");
     }
   };
@@ -1678,7 +1672,7 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
                 disabled={isViewer}
                 onChange={(e) => {
                   const epic = epics.find((ep) => ep.id === e.target.value);
-                  onUpdateIssue({ ...issue, epic });
+                  onUpdateIssue({ ...issue, subtasks, epic });
                 }}
                 className={`w-full text-xs font-medium border rounded-xl px-3.5 py-2 transition focus:outline-none focus:ring-2 focus:ring-[#EE0033]/20 focus:border-[#EE0033] ${isViewer
                   ? "bg-gray-100 dark:bg-zinc-800 text-gray-500 dark:text-zinc-500 cursor-not-allowed border-slate-200 dark:border-zinc-700"
@@ -1731,7 +1725,7 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
                 value={issue.priority}
                 disabled={isViewer}
                 onChange={(e) =>
-                  onUpdateIssue({ ...issue, priority: e.target.value as IssuePriority })
+                  onUpdateIssue({ ...issue, subtasks, priority: e.target.value as IssuePriority })
                 }
                 className={`w-full text-xs font-medium border rounded-xl px-3.5 py-2 transition focus:outline-none focus:ring-2 focus:ring-[#EE0033]/20 focus:border-[#EE0033] ${isViewer
                   ? "bg-gray-100 dark:bg-zinc-800 text-gray-500 dark:text-zinc-500 cursor-not-allowed border-slate-200 dark:border-zinc-700"
@@ -1758,6 +1752,7 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
                 onChange={(e) =>
                   onUpdateIssue({
                     ...issue,
+                    subtasks,
                     storyPoints: e.target.value ? parseInt(e.target.value) : undefined,
                   })
                 }
@@ -1782,6 +1777,7 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
                 onChange={(e) =>
                   onUpdateIssue({
                     ...issue,
+                    subtasks,
                     sprintId: e.target.value || undefined,
                   })
                 }
@@ -1825,7 +1821,7 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
                               .map((s) => s.trim())
                               .filter((s) => s && s !== lbl)
                               .join(", ");
-                            onUpdateIssue({ ...issue, labels: newLabels });
+                            onUpdateIssue({ ...issue, subtasks, labels: newLabels });
                           }}
                           className="hover:text-rose-600 ml-0.5"
                         >
@@ -1851,7 +1847,7 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
                           .filter(Boolean);
                         if (!existing.includes(val)) {
                           const updated = [...existing, val].join(", ");
-                          onUpdateIssue({ ...issue, labels: updated });
+                          onUpdateIssue({ ...issue, subtasks, labels: updated });
                         }
                         target.value = "";
                       }

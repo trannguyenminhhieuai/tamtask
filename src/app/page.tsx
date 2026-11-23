@@ -39,6 +39,7 @@ import {
   User,
   Epic,
   Sprint,
+  Subtask,
   WorkflowStatus,
   Project,
 } from "@/types/jira";
@@ -881,12 +882,28 @@ export default function JiraApp() {
       if (res.ok) {
         const data = await res.json();
         setIssues((prev) =>
-          prev.map((i) =>
-            i.id === issueId ? { ...i, ...data, status: newStatus } : i
-          )
+          prev.map((i) => {
+            if (i.id === issueId) {
+              const serverSubs: Subtask[] = data.subtasks || [];
+              const localSubs: Subtask[] = i.subtasks || [];
+              const serverIds = new Set(serverSubs.map((s) => s.id));
+              const preserved = localSubs.filter((s) => s.id.startsWith("sub-") || s.id.startsWith("temp-") || !serverIds.has(s.id));
+              const safeSubtasks = [...serverSubs, ...preserved];
+              return { ...i, ...data, status: newStatus, subtasks: safeSubtasks };
+            }
+            return i;
+          })
         );
         if (selectedIssue && selectedIssue.id === issueId) {
-          setSelectedIssue((prev) => (prev ? { ...prev, ...data, status: newStatus } : null));
+          setSelectedIssue((prev) => {
+            if (!prev) return null;
+            const serverSubs: Subtask[] = data.subtasks || [];
+            const localSubs: Subtask[] = prev.subtasks || [];
+            const serverIds = new Set(serverSubs.map((s) => s.id));
+            const preserved = localSubs.filter((s) => s.id.startsWith("sub-") || s.id.startsWith("temp-") || !serverIds.has(s.id));
+            const safeSubtasks = [...serverSubs, ...preserved];
+            return { ...prev, ...data, status: newStatus, subtasks: safeSubtasks };
+          });
         }
       }
     } catch (err) {
@@ -939,12 +956,30 @@ export default function JiraApp() {
       if (res.ok) {
         const data = await res.json();
         setIssues((prev) => {
-          const next = prev.map((i) => (i.id === updated.id ? { ...i, ...data } : i));
+          const next = prev.map((i) => {
+            if (i.id === updated.id) {
+              const serverSubs: Subtask[] = data.subtasks || [];
+              const localSubs: Subtask[] = i.subtasks || [];
+              const serverIds = new Set(serverSubs.map((s) => s.id));
+              const preserved = localSubs.filter((s) => s.id.startsWith("sub-") || s.id.startsWith("temp-") || !serverIds.has(s.id));
+              const safeSubtasks = [...serverSubs, ...preserved];
+              return { ...i, ...data, subtasks: safeSubtasks };
+            }
+            return i;
+          });
           updateIssuesCache(next);
           return next;
         });
         if (selectedIssue && selectedIssue.id === updated.id) {
-          setSelectedIssue((prev) => (prev ? { ...prev, ...data } : null));
+          setSelectedIssue((prev) => {
+            if (!prev) return null;
+            const serverSubs: Subtask[] = data.subtasks || [];
+            const localSubs: Subtask[] = prev.subtasks || [];
+            const serverIds = new Set(serverSubs.map((s) => s.id));
+            const preserved = localSubs.filter((s) => s.id.startsWith("sub-") || s.id.startsWith("temp-") || !serverIds.has(s.id));
+            const safeSubtasks = [...serverSubs, ...preserved];
+            return { ...prev, ...data, subtasks: safeSubtasks };
+          });
         }
         notify.success("Đã cập nhật công việc", `${updated.key} đã được lưu thành công.`);
       }

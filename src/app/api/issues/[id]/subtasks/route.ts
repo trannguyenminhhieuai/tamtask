@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { dispatchAutomationEvent } from "@/lib/automation-dispatcher";
+import { invalidateBootstrapCache } from "@/lib/cache";
 
 export const dynamic = "force-dynamic";
 
@@ -53,6 +54,8 @@ export async function POST(
       actorId: (session?.user as any)?.id || issue.reporterId || "u1",
     }).catch(() => {});
 
+    invalidateBootstrapCache();
+
     return NextResponse.json(newSubtask, { status: 201 });
   } catch (error: any) {
     console.error("POST /api/issues/[id]/subtasks error:", error);
@@ -101,6 +104,8 @@ export async function PATCH(
       }).catch(() => {});
     }
 
+    invalidateBootstrapCache();
+
     return NextResponse.json(updated);
   } catch (error: any) {
     console.error("PATCH /api/issues/[id]/subtasks error:", error);
@@ -135,6 +140,8 @@ export async function DELETE(
     await prisma.subtask.delete({
       where: { id: subtaskId },
     });
+
+    invalidateBootstrapCache();
 
     return NextResponse.json({ success: true, subtaskId });
   } catch (error: any) {
