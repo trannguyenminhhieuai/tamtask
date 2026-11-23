@@ -5,9 +5,8 @@ export const dynamic = "force-dynamic";
 
 const DEFAULT_PROJECT_STATUSES = [
   { key: "TODO", name: "Cần làm (To Do)", category: "TODO", color: "#6B778C", order: 0, maxWip: null },
-  { key: "IN_PROGRESS", name: "Đang thực hiện (In Progress)", category: "IN_PROGRESS", color: "#EE0033", order: 1, maxWip: 4 },
-  { key: "IN_REVIEW", name: "Kiểm thử QA / Review", category: "IN_PROGRESS", color: "#FFAB00", order: 2, maxWip: 3 },
-  { key: "DONE", name: "Hoàn thành (Done)", category: "DONE", color: "#36B37E", order: 3, maxWip: null },
+  { key: "IN_PROGRESS", name: "Đang thực hiện (In Progress)", category: "IN_PROGRESS", color: "#EE0033", order: 1, maxWip: 5 },
+  { key: "DONE", name: "Hoàn thành (Done)", category: "DONE", color: "#36B37E", order: 2, maxWip: null },
 ];
 
 // GET /api/projects/[id]/statuses - Fetch project workflow statuses

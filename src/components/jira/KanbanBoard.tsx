@@ -441,8 +441,8 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                     Toàn cảnh ({filteredIssues.length})
                   </button>
                   {statuses.map((col) => {
-                    const count = filteredIssues.filter((i) => i.status === col.id).length;
-                    const isActive = mobileActiveColumn === col.id;
+                    const count = filteredIssues.filter((i) => i.status === col.id || i.status === col.key).length;
+                    const isActive = mobileActiveColumn === col.id || mobileActiveColumn === col.key;
                     return (
                       <button
                         key={col.id}
@@ -529,8 +529,8 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                   mobileActiveColumn === "ALL" ? "min-w-max" : "flex-col w-full"
                 }`}
               >
-                {(mobileActiveColumn === "ALL" ? statuses : statuses.filter((c) => c.id === mobileActiveColumn)).map((col) => {
-                  const colIssues = filteredIssues.filter((i) => i.status === col.id);
+                {(mobileActiveColumn === "ALL" ? statuses : statuses.filter((c) => c.id === mobileActiveColumn || c.key === mobileActiveColumn)).map((col) => {
+                  const colIssues = filteredIssues.filter((i) => i.status === col.id || i.status === col.key);
                   return (
                     <div
                       key={col.id}
@@ -1170,8 +1170,8 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                     Toàn cảnh ({lane.issues.length})
                   </button>
                   {statuses.map((col) => {
-                    const count = lane.issues.filter((i) => i.status === col.id).length;
-                    const isActive = mobileActiveColumn === col.id;
+                    const count = lane.issues.filter((i) => i.status === col.id || i.status === col.key).length;
+                    const isActive = mobileActiveColumn === col.id || mobileActiveColumn === col.key;
                     return (
                       <button
                         key={col.id}
@@ -1262,8 +1262,8 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                     : "flex-col md:flex-row w-full md:min-w-max"
                 }`}
               >
-                {(mobileActiveColumn === "ALL" ? statuses : statuses.filter((c) => c.id === mobileActiveColumn)).map((col) => {
-                  const colIssues = lane.issues.filter((i) => i.status === col.id);
+                {(mobileActiveColumn === "ALL" ? statuses : statuses.filter((c) => c.id === mobileActiveColumn || c.key === mobileActiveColumn)).map((col) => {
+                  const colIssues = lane.issues.filter((i) => i.status === col.id || i.status === col.key);
                   const totalPoints = colIssues.reduce((acc, curr) => acc + (curr.storyPoints || 0), 0);
                   const isOver = dragOverCol === col.id;
                   const hasWip = typeof col.maxWip === "number" && col.maxWip > 0;
@@ -1449,10 +1449,11 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                                   if (e.key === "Enter" && !e.shiftKey) {
                                     e.preventDefault();
                                     if (quickAddTitle.trim()) {
+                                      const statusTarget = (col.key || col.id) as IssueStatus;
                                       if (onQuickCreateIssue) {
-                                        onQuickCreateIssue(quickAddTitle.trim(), col.id);
+                                        onQuickCreateIssue(quickAddTitle.trim(), statusTarget);
                                       } else {
-                                        onCreateInStatus(col.id);
+                                        onCreateInStatus(statusTarget);
                                       }
                                       setQuickAddTitle("");
                                       setQuickAddStatus(null);

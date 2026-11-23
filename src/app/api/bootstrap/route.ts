@@ -157,12 +157,25 @@ export async function GET(request: Request) {
         },
       }),
 
-      // 6. Workflow statuses (if projectId provided)
+      // 6. Workflow statuses (if projectId provided, map id to status key so issues correctly align)
       projectId
-        ? prisma.projectWorkflowStatus.findMany({
-            where: { projectId },
-            orderBy: { order: "asc" },
-          })
+        ? prisma.projectWorkflowStatus
+            .findMany({
+              where: { projectId },
+              orderBy: { order: "asc" },
+            })
+            .then((stList) =>
+              stList.map((s) => ({
+                id: s.key,
+                key: s.key,
+                name: s.name,
+                category: s.category as any,
+                color: s.color,
+                order: s.order,
+                maxWip: s.maxWip || undefined,
+                projectId: s.projectId,
+              }))
+            )
         : Promise.resolve([]),
     ]);
 

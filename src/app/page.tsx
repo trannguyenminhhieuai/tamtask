@@ -175,7 +175,21 @@ export default function JiraApp() {
           const matched = userLastId
             ? parsed.projects.find((p: Project) => p.id === userLastId || p.key === userLastId)
             : null;
-          setCurrentProject(matched || parsed.projects[0]);
+          const activeProj = matched || parsed.projects[0];
+          setCurrentProject(activeProj);
+
+          // Restore project-specific statuses immediately for 0ms render
+          if (activeProj?.id) {
+            const cachedStatuses = localStorage.getItem(`tamtask_project_statuses_${activeProj.id}`);
+            if (cachedStatuses) {
+              try {
+                const parsedStatuses = JSON.parse(cachedStatuses);
+                if (Array.isArray(parsedStatuses) && parsedStatuses.length > 0) {
+                  setStatuses(parsedStatuses);
+                }
+              } catch {}
+            }
+          }
         }
         if (Array.isArray(parsed.issues) && parsed.issues.length > 0) setIssues(parsed.issues);
         if (Array.isArray(parsed.users) && parsed.users.length > 0) setUsers(parsed.users);
@@ -189,11 +203,28 @@ export default function JiraApp() {
   // Load project workflow statuses from DB whenever currentProject changes
   useEffect(() => {
     if (currentProject?.id) {
+      if (typeof window !== "undefined") {
+        try {
+          const cachedStatuses = localStorage.getItem(`tamtask_project_statuses_${currentProject.id}`);
+          if (cachedStatuses) {
+            const parsedStatuses = JSON.parse(cachedStatuses);
+            if (Array.isArray(parsedStatuses) && parsedStatuses.length > 0) {
+              setStatuses(parsedStatuses);
+            }
+          }
+        } catch {}
+      }
+
       fetch(`/api/projects/${currentProject.id}/statuses`)
         .then((res) => res.json())
         .then((data) => {
           if (Array.isArray(data) && data.length > 0) {
             setStatuses(data);
+            if (typeof window !== "undefined") {
+              try {
+                localStorage.setItem(`tamtask_project_statuses_${currentProject.id}`, JSON.stringify(data));
+              } catch {}
+            }
           }
         })
         .catch((err) => console.warn("Failed to load project statuses from DB:", err));
@@ -211,8 +242,33 @@ export default function JiraApp() {
           const uEmail = session?.user?.email || currentUser.email;
           if (uId) localStorage.setItem(`tamtask_last_project_id_${uId}`, p.id);
           if (uEmail) localStorage.setItem(`tamtask_last_project_id_${uEmail}`, p.id);
+
+          // Restore cached statuses for this project immediately for 0ms transition
+          const cachedStatuses = localStorage.getItem(`tamtask_project_statuses_${p.id}`);
+          if (cachedStatuses) {
+            const parsedStatuses = JSON.parse(cachedStatuses);
+            if (Array.isArray(parsedStatuses) && parsedStatuses.length > 0) {
+              setStatuses(parsedStatuses);
+            }
+          }
         } catch {}
       }
+
+      // Also trigger fresh fetch for project statuses
+      fetch(`/api/projects/${p.id}/statuses`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (Array.isArray(data) && data.length > 0) {
+            setStatuses(data);
+            if (typeof window !== "undefined") {
+              try {
+                localStorage.setItem(`tamtask_project_statuses_${p.id}`, JSON.stringify(data));
+              } catch {}
+            }
+          }
+        })
+        .catch(() => {});
+
       const pSprints = sprints.filter((s) => s.projectId === p.id);
       const active = pSprints.find((s) => s.status === "ACTIVE") || pSprints[0];
       setFilterState((f) => ({ ...f, sprintId: active ? active.id : "" }));
@@ -234,8 +290,20 @@ export default function JiraApp() {
       // 1. High-Performance Unified Bootstrap API (Single Roundtrip)
       let bootstrapLoaded = false;
       try {
-        const bootstrapUrl = currentProject?.id
-          ? `/api/bootstrap?projectId=${currentProject.id}`
+        let targetProjId = currentProject?.id;
+        if (!targetProjId && typeof window !== "undefined") {
+          try {
+            const uId = (session?.user as any)?.id || currentUser.id;
+            const uEmail = session?.user?.email || currentUser.email;
+            targetProjId =
+              localStorage.getItem(`tamtask_last_project_id_${uId}`) ||
+              localStorage.getItem(`tamtask_last_project_id_${uEmail}`) ||
+              localStorage.getItem("tamtask_last_project_id") ||
+              undefined;
+          } catch {}
+        }
+        const bootstrapUrl = targetProjId
+          ? `/api/bootstrap?projectId=${targetProjId}`
           : "/api/bootstrap";
         const bootstrapRes = await fetch(bootstrapUrl);
         if (bootstrapRes.ok) {
@@ -326,6 +394,11 @@ export default function JiraApp() {
 
           if (Array.isArray(bData.statuses) && bData.statuses.length > 0) {
             setStatuses(bData.statuses);
+            if (targetProjId && typeof window !== "undefined") {
+              try {
+                localStorage.setItem(`tamtask_project_statuses_${targetProjId}`, JSON.stringify(bData.statuses));
+              } catch {}
+            }
           }
 
           bootstrapLoaded = true;
@@ -1666,7 +1739,14 @@ export default function JiraApp() {
         statuses={statuses}
         currentProject={currentProject}
         onClose={() => setIsWorkflowModalOpen(false)}
-        onSaveStatuses={(newStatuses) => setStatuses(newStatuses)}
+        onSaveStatuses={(newStatuses) => {
+          setStatuses(newStatuses);
+          if (currentProject?.id && typeof window !== "undefined") {
+            try {
+              localStorage.setItem(`tamtask_project_statuses_${currentProject.id}`, JSON.stringify(newStatuses));
+            } catch {}
+          }
+        }}
       />
 
       {/* Epic Settings Modal */}

@@ -3,10 +3,7 @@ import { Epic, Issue, Sprint, User, WorkflowStatus } from "@/types/jira";
 export const DEFAULT_STATUSES: WorkflowStatus[] = [
   { id: "TODO", name: "To do", category: "TODO", color: "#6B778C", order: 0 },
   { id: "IN_PROGRESS", name: "In progress", category: "IN_PROGRESS", color: "#0052CC", order: 1, maxWip: 5 },
-  { id: "IN_REVIEW", name: "In review", category: "IN_PROGRESS", color: "#8777D9", order: 2, maxWip: 4 },
-  { id: "IN_QA", name: "In QA/QC", category: "IN_PROGRESS", color: "#FFAB00", order: 3, maxWip: 3 },
-  { id: "DONE", name: "Done", category: "DONE", color: "#36B37E", order: 4 },
-  { id: "RELEASED", name: "Released", category: "DONE", color: "#00875A", order: 5 },
+  { id: "DONE", name: "Done", category: "DONE", color: "#36B37E", order: 2 },
 ];
 
 export const MOCK_USERS: User[] = [
