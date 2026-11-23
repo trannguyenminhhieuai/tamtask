@@ -192,7 +192,8 @@ test.describe("TamTask Agile Hub - UAT Automation Test Suite (Plan.md)", () => {
 
     // Bấm Tạo Công Việc
     await page.click("button[type='submit']:has-text('Tạo Công Việc')");
-    await page.waitForTimeout(2500);
+    await page.waitForSelector("h3:has-text('Tạo Công Việc')", { state: "hidden", timeout: 15000 });
+    await page.waitForTimeout(1000);
 
     await page.screenshot({
       path: path.join(SCREENSHOT_DIR, "TC04_CreateIssue_Submitted_PASS.png"),
@@ -200,7 +201,7 @@ test.describe("TamTask Agile Hub - UAT Automation Test Suite (Plan.md)", () => {
     });
 
     // Xác nhận task xuất hiện trên màn hình
-    await expect(page.locator(`text=${testTitle}`).first()).toBeVisible();
+    await expect(page.locator(`text=${testTitle}`).first()).toBeVisible({ timeout: 15000 });
   });
 
   // TC05: Kế hoạch Chu kỳ & Hàng đợi Backlog

@@ -98,15 +98,22 @@ export async function POST(request: Request) {
       }
     }
 
-    // 2. Generate unique key safely (guaranteeing no unique key collision)
-    let count = await prisma.issue.count({
-      where: projectId ? { projectId } : undefined,
+    // 2. Generate unique key safely (one-query max calculation)
+    const existingIssues = await prisma.issue.findMany({
+      where: { key: { startsWith: `${projectKey}-` } },
+      select: { key: true },
     });
-    let key = `${projectKey}-${101 + count}`;
-    while (await prisma.issue.findUnique({ where: { key } })) {
-      count++;
-      key = `${projectKey}-${101 + count}`;
+    let maxNum = 100;
+    for (const item of existingIssues) {
+      const match = item.key.match(/-(\d+)$/);
+      if (match) {
+        const num = parseInt(match[1], 10);
+        if (!isNaN(num) && num > maxNum) {
+          maxNum = num;
+        }
+      }
     }
+    const key = `${projectKey}-${maxNum + 1}`;
 
     // 3. Resolve valid Reporter (prioritize logged-in session user to prevent foreign-key failure)
     let reporterId: string | null = null;

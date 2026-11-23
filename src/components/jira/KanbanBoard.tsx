@@ -76,6 +76,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   const [isScrolledHeader, setIsScrolledHeader] = useState(false);
   const [mobileActiveColumn, setMobileActiveColumn] = useState<string>("ALL");
   const moreFiltersRef = React.useRef<HTMLDivElement>(null);
+  const assigneeOverflowRef = React.useRef<HTMLDivElement>(null);
 
   // Mobile horizontal touch swipe gestures to navigate columns smoothly
   const touchStartX = React.useRef<number | null>(null);
@@ -176,11 +177,14 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
     }
   };
 
-  // Close more filters on click outside
+  // Close more filters & assignee overflow on click outside
   React.useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (moreFiltersRef.current && !moreFiltersRef.current.contains(e.target as Node)) {
         setShowMoreFilters(false);
+      }
+      if (assigneeOverflowRef.current && !assigneeOverflowRef.current.contains(e.target as Node)) {
+        setShowAssigneeOverflow(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
@@ -748,11 +752,11 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
       <div
         className={`hidden md:block relative z-20 transition-all duration-300 ease-in-out shrink-0 overflow-visible ${
           isScrolledHeader
-            ? "max-h-0 opacity-0 -translate-y-4 mb-0 pointer-events-none"
-            : "max-h-60 opacity-100 translate-y-0 m-4 mb-0"
+            ? "max-h-0 opacity-0 -translate-y-4 mb-0 pointer-events-none overflow-hidden"
+            : "opacity-100 translate-y-0 m-4 mb-0"
         }`}
       >
-        <div className="p-4 rounded-2xl bg-white/75 dark:bg-zinc-900/75 backdrop-blur-xl border border-white/80 dark:border-white/10 shadow-xs flex items-center justify-between gap-4">
+        <div className="p-4 rounded-2xl bg-white/75 dark:bg-zinc-900/75 backdrop-blur-xl border border-white/80 dark:border-white/10 shadow-xs flex items-center justify-between gap-3 overflow-visible">
           {/* Left on desktop: Title */}
           <div className="flex items-center space-x-3 shrink-0">
             <h1 className="text-lg font-extrabold text-[#111827] dark:text-zinc-100 tracking-tight">
@@ -760,8 +764,8 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
             </h1>
           </div>
 
-          {/* Center / Right: Streamlined Filters & Actions */}
-          <div className="flex items-center gap-2 max-w-full overflow-x-auto no-scrollbar py-0.5">
+          {/* Center: Streamlined Filter Pills (Scrollable, NO popovers inside) */}
+          <div className="flex-1 min-w-0 flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5">
             {/* Desktop Sprint Selector */}
             <div className="hidden md:flex items-center gap-1.5 bg-white/80 dark:bg-zinc-800/80 backdrop-blur-md border border-white/80 dark:border-zinc-700/80 rounded-full px-3 py-1.5 text-xs shadow-2xs shrink-0">
               <Layers className="w-3.5 h-3.5 text-[#EE0033] shrink-0" />
@@ -858,7 +862,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                 })}
 
                 {overflowUsers.length > 0 && (
-                  <div className="relative shrink-0">
+                  <div className="relative shrink-0" ref={assigneeOverflowRef}>
                     <button
                       type="button"
                       onClick={() => setShowAssigneeOverflow(!showAssigneeOverflow)}
@@ -903,7 +907,10 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
             {assignedUsers.length > 0 && (
               <div className="h-4 w-px bg-slate-200 dark:bg-zinc-800 mx-1 shrink-0" />
             )}
+          </div>
 
+          {/* Right: Fixed Action Controls & Popover (NEVER inside overflow-x-auto!) */}
+          <div className="flex items-center gap-2 shrink-0 relative">
             {/* Display Density Switcher */}
             <button
               type="button"
@@ -945,7 +952,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
             </button>
 
             {showMoreFilters && (
-              <div className="absolute right-0 mt-2 w-72 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-xl border border-white/80 dark:border-zinc-800 rounded-2xl shadow-2xl p-4 z-50 animate-in fade-in zoom-in-95 space-y-4">
+              <div className="absolute right-0 top-full mt-2 w-72 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-xl border border-slate-200 dark:border-zinc-800 rounded-2xl shadow-2xl p-4 z-50 animate-in fade-in zoom-in-95 space-y-4">
                 {/* Swimlane Options */}
                 <div>
                   <div className="text-[11px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-wider mb-2">
