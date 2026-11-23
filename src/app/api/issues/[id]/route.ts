@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { dispatchAutomationEvent } from "@/lib/automation-dispatcher";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { invalidateBootstrapCache } from "@/lib/cache";
 
 export const dynamic = "force-dynamic";
 
@@ -370,6 +371,7 @@ export async function PATCH(
       },
     });
 
+    invalidateBootstrapCache();
     return NextResponse.json(finalIssue || updated);
   } catch (error) {
     console.error("PATCH /api/issues/[id] error:", error);
@@ -404,6 +406,7 @@ export async function DELETE(
     await prisma.issue.delete({
       where: { id: params.id },
     });
+    invalidateBootstrapCache();
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("DELETE /api/issues/[id] error:", error);

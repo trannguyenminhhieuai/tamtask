@@ -160,11 +160,23 @@ export default function JiraApp() {
     if (typeof window === "undefined") return;
     try {
       const uId = (session?.user as any)?.id || currentUser.id;
+      const uEmail = session?.user?.email || currentUser.email;
       const userCacheKey = `tamtask_swr_cache_${uId}`;
       const cached = localStorage.getItem(userCacheKey) || localStorage.getItem("tamtask_swr_cache");
       if (cached) {
         const parsed = JSON.parse(cached);
-        if (Array.isArray(parsed.projects) && parsed.projects.length > 0) setProjects(parsed.projects);
+        if (Array.isArray(parsed.projects) && parsed.projects.length > 0) {
+          setProjects(parsed.projects);
+          // ✅ FIX: Synchronously restore currentProject so projectIssues is NEVER empty on initial mount
+          let userLastId =
+            localStorage.getItem(`tamtask_last_project_id_${uId}`) ||
+            localStorage.getItem(`tamtask_last_project_id_${uEmail}`) ||
+            localStorage.getItem("tamtask_last_project_id");
+          const matched = userLastId
+            ? parsed.projects.find((p: Project) => p.id === userLastId || p.key === userLastId)
+            : null;
+          setCurrentProject(matched || parsed.projects[0]);
+        }
         if (Array.isArray(parsed.issues) && parsed.issues.length > 0) setIssues(parsed.issues);
         if (Array.isArray(parsed.users) && parsed.users.length > 0) setUsers(parsed.users);
         if (Array.isArray(parsed.epics) && parsed.epics.length > 0) setEpics(parsed.epics);
@@ -172,7 +184,7 @@ export default function JiraApp() {
         setIsLoadingData(false);
       }
     } catch {}
-  }, [session, currentUser.id]);
+  }, [session, currentUser.id, currentUser.email]);
 
   // Load project workflow statuses from DB whenever currentProject changes
   useEffect(() => {
@@ -617,11 +629,14 @@ export default function JiraApp() {
   }, [projects]);
 
   // Filter scoped data strictly by current selected project
-  // Mock items without projectId are strictly isolated to the default TT project
+  // Fallback by project key matching (e.g. "TT-1" belongs to TT, "BP-1" belongs to BP)
   const projectIssues = useMemo(() => {
     if (!currentProject) return [];
     return issues.filter((i) => {
       if (i.projectId) return i.projectId === currentProject.id;
+      if (i.key && currentProject.key && i.key.startsWith(`${currentProject.key}-`)) {
+        return true;
+      }
       return currentProject.key === "TT" || (defaultProjectId && currentProject.id === defaultProjectId);
     });
   }, [issues, currentProject, defaultProjectId]);

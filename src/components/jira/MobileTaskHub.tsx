@@ -90,7 +90,7 @@ export const MobileTaskHub: React.FC<MobileTaskHubProps> = ({
   // Filter issues based on sprint filter & current user (for FOCUS)
   const sprintFilteredIssues = useMemo(() => {
     return issues.filter((i) => {
-      if (effectiveSprintId === "ALL") return true;
+      if (!effectiveSprintId || effectiveSprintId === "ALL") return true;
       if (effectiveSprintId === "BACKLOG") return !i.sprintId;
       return i.sprintId === effectiveSprintId;
     });

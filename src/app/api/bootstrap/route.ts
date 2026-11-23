@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { seedDatabaseIfEmpty } from "@/lib/seed";
+import { getFromCache, setInCache, CacheKeys } from "@/lib/cache";
 
 export const dynamic = "force-dynamic";
 
-// In-memory cache for static users and statuses to achieve sub-10ms response
+// In-memory cache for static users and statuses
 let cachedUsers: any[] | null = null;
 let lastUsersCacheTime = 0;
 const USERS_CACHE_TTL_MS = 60 * 1000; // 60s
@@ -51,12 +52,38 @@ async function getBootstrapUsers() {
 export async function GET(request: Request) {
   const startTime = Date.now();
   try {
-    await seedDatabaseIfEmpty();
-
     const { searchParams } = new URL(request.url);
     const projectId = searchParams.get("projectId");
+    const cacheKey = projectId
+      ? CacheKeys.bootstrapProject(projectId)
+      : CacheKeys.BOOTSTRAP_GLOBAL;
 
-    // Execute all queries concurrently on server
+    // 1. Check in-memory server cache for sub-5ms instant response
+    const cachedResult = getFromCache<any>(cacheKey, 20000); // 20s TTL
+    if (cachedResult) {
+      const duration = Date.now() - startTime;
+      return NextResponse.json(
+        {
+          ...cachedResult,
+          meta: {
+            serverDurationMs: duration,
+            cached: true,
+            timestamp: Date.now(),
+          },
+        },
+        {
+          headers: {
+            "X-Cache": "HIT",
+            "Server-Timing": `total;dur=${duration}`,
+            "Cache-Control": "public, s-maxage=10, stale-while-revalidate=30",
+          },
+        }
+      );
+    }
+
+    await seedDatabaseIfEmpty();
+
+    // 2. Execute queries concurrently with optimized lean projections
     const [projects, issues, users, epics, sprints, statuses] = await Promise.all([
       // 1. Projects
       prisma.project.findMany({
@@ -78,29 +105,30 @@ export async function GET(request: Request) {
         },
       }),
 
-      // 2. Issues (with lean relations and safe user select)
+      // 2. Issues (Optimized: include subtasks for counters, assignee, reporter, epic. Exclude heavy comments & attachments which are lazy-loaded in drawer)
       prisma.issue.findMany({
         orderBy: { createdAt: "desc" },
-        include: {
+        select: {
+          id: true,
+          key: true,
+          title: true,
+          description: true,
+          status: true,
+          priority: true,
+          type: true,
+          storyPoints: true,
+          projectId: true,
+          sprintId: true,
+          createdAt: true,
+          updatedAt: true,
           assignee: { select: safeUserSelect },
           reporter: { select: safeUserSelect },
-          epic: true,
-          subtasks: true,
-          attachments: {
+          epic: { select: { id: true, name: true, color: true } },
+          subtasks: {
             select: {
               id: true,
-              name: true,
-              size: true,
-              type: true,
-              createdAt: true,
-            },
-          },
-          comments: {
-            include: {
-              author: { select: safeUserSelect },
-            },
-            orderBy: {
-              createdAt: "asc",
+              title: true,
+              isCompleted: true,
             },
           },
         },
@@ -138,25 +166,34 @@ export async function GET(request: Request) {
         : Promise.resolve([]),
     ]);
 
+    const result = {
+      projects,
+      issues,
+      users,
+      epics,
+      sprints,
+      statuses,
+    };
+
+    // Cache the assembled payload
+    setInCache(cacheKey, result);
+
     const executionDuration = Date.now() - startTime;
 
     return NextResponse.json(
       {
-        projects,
-        issues,
-        users,
-        epics,
-        sprints,
-        statuses,
+        ...result,
         meta: {
           serverDurationMs: executionDuration,
+          cached: false,
           timestamp: Date.now(),
         },
       },
       {
         headers: {
+          "X-Cache": "MISS",
           "Server-Timing": `total;dur=${executionDuration}`,
-          "Cache-Control": "public, s-maxage=5, stale-while-revalidate=30",
+          "Cache-Control": "public, s-maxage=10, stale-while-revalidate=30",
         },
       }
     );

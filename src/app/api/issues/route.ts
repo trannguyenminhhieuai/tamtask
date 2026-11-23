@@ -4,6 +4,7 @@ import { seedDatabaseIfEmpty } from "@/lib/seed";
 import { dispatchAutomationEvent } from "@/lib/automation-dispatcher";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { invalidateBootstrapCache } from "@/lib/cache";
 
 export const dynamic = "force-dynamic";
 
@@ -259,6 +260,7 @@ export async function POST(request: Request) {
       },
     });
 
+    invalidateBootstrapCache();
     return NextResponse.json(finalCreated || newIssue, { status: 201 });
   } catch (error: any) {
     console.error("POST /api/issues error:", error);

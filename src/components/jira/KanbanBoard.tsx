@@ -192,13 +192,17 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
     return sprints.find((s) => s.status === "ACTIVE");
   }, [sprints]);
 
-  // Selected Sprint ID: Default to activeSprint?.id, fallback to first sprint or "ALL"
+  // Selected Sprint ID: Default to activeSprint?.id if it has issues, otherwise fallback to "ALL"
   const effectiveSprintId = useMemo(() => {
     if (filterState.sprintId !== undefined && filterState.sprintId !== "") {
       return filterState.sprintId;
     }
-    return activeSprint?.id || (sprints.length > 0 ? sprints[0].id : "ALL");
-  }, [filterState.sprintId, activeSprint, sprints]);
+    if (activeSprint) {
+      const hasIssues = issues.some((i) => i.sprintId === activeSprint.id);
+      if (hasIssues) return activeSprint.id;
+    }
+    return "ALL";
+  }, [filterState.sprintId, activeSprint, issues]);
 
   // Apply filters (including Quick Filter Pills & Sprint Selector)
   const filteredIssues = useMemo(() => {
