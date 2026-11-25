@@ -58,7 +58,11 @@ export async function GET(
       projectId: s.projectId,
     }));
 
-    return NextResponse.json(formatted);
+    return NextResponse.json(formatted, {
+      headers: {
+        "Cache-Control": "private, no-cache, no-store, max-age=0, must-revalidate",
+      },
+    });
   } catch (error: any) {
     console.error("GET /api/projects/[id]/statuses error:", error);
     return NextResponse.json({ error: error.message }, { status: 500 });
@@ -120,7 +124,11 @@ export async function PUT(
       projectId: s.projectId,
     }));
 
-    return NextResponse.json(formatted);
+    return NextResponse.json(formatted, {
+      headers: {
+        "Cache-Control": "private, no-cache, no-store, max-age=0, must-revalidate",
+      },
+    });
   } catch (error: any) {
     console.error("PUT /api/projects/[id]/statuses error:", error);
     return NextResponse.json({ error: error.message }, { status: 500 });

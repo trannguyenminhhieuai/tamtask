@@ -1629,7 +1629,6 @@ export const IssueDetailDrawer: React.FC<IssueDetailDrawerProps> = ({
                     <option value="BACKLOG" className="dark:bg-zinc-800">BACKLOG</option>
                     <option value="TODO" className="dark:bg-zinc-800">TO DO</option>
                     <option value="IN_PROGRESS" className="dark:bg-zinc-800">IN PROGRESS</option>
-                    <option value="IN_REVIEW" className="dark:bg-zinc-800">IN REVIEW</option>
                     <option value="DONE" className="dark:bg-zinc-800">DONE</option>
                   </>
                 )}

@@ -59,7 +59,7 @@ export async function GET(request: Request) {
       : CacheKeys.BOOTSTRAP_GLOBAL;
 
     // 1. Check in-memory server cache for sub-5ms instant response
-    const cachedResult = getFromCache<any>(cacheKey, 20000); // 20s TTL
+    const cachedResult = getFromCache<any>(cacheKey, 15000); // 15s TTL
     if (cachedResult) {
       const duration = Date.now() - startTime;
       return NextResponse.json(
@@ -75,7 +75,7 @@ export async function GET(request: Request) {
           headers: {
             "X-Cache": "HIT",
             "Server-Timing": `total;dur=${duration}`,
-            "Cache-Control": "public, s-maxage=10, stale-while-revalidate=30",
+            "Cache-Control": "private, no-cache, no-store, max-age=0, must-revalidate",
           },
         }
       );
@@ -157,26 +157,23 @@ export async function GET(request: Request) {
         },
       }),
 
-      // 6. Workflow statuses (if projectId provided, map id to status key so issues correctly align)
-      projectId
-        ? prisma.projectWorkflowStatus
-            .findMany({
-              where: { projectId },
-              orderBy: { order: "asc" },
-            })
-            .then((stList) =>
-              stList.map((s) => ({
-                id: s.key,
-                key: s.key,
-                name: s.name,
-                category: s.category as any,
-                color: s.color,
-                order: s.order,
-                maxWip: s.maxWip || undefined,
-                projectId: s.projectId,
-              }))
-            )
-        : Promise.resolve([]),
+      // 6. Workflow statuses (return all project workflow statuses mapped with projectId)
+      prisma.projectWorkflowStatus
+        .findMany({
+          orderBy: { order: "asc" },
+        })
+        .then((stList) =>
+          stList.map((s) => ({
+            id: s.key,
+            key: s.key,
+            name: s.name,
+            category: s.category as any,
+            color: s.color,
+            order: s.order,
+            maxWip: s.maxWip || undefined,
+            projectId: s.projectId,
+          }))
+        ),
     ]);
 
     const result = {
@@ -206,7 +203,7 @@ export async function GET(request: Request) {
         headers: {
           "X-Cache": "MISS",
           "Server-Timing": `total;dur=${executionDuration}`,
-          "Cache-Control": "public, s-maxage=10, stale-while-revalidate=30",
+          "Cache-Control": "private, no-cache, no-store, max-age=0, must-revalidate",
         },
       }
     );

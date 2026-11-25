@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Issue, Sprint, User, IssuePriority } from "@/types/jira";
+import { Issue, Sprint, User, IssuePriority, WorkflowStatus } from "@/types/jira";
 import {
   Play,
   CheckCircle2,
@@ -110,6 +110,7 @@ interface BacklogViewProps {
     position: "before" | "after"
   ) => void;
   onRefresh?: () => void;
+  statuses?: WorkflowStatus[];
 }
 
 export const BacklogView: React.FC<BacklogViewProps> = ({
@@ -118,6 +119,7 @@ export const BacklogView: React.FC<BacklogViewProps> = ({
   users,
   currentUser,
   isLoading = false,
+  statuses = [],
   onIssueClick,
   onCreateIssueClick,
   onCreateSprint,
@@ -898,10 +900,19 @@ export const BacklogView: React.FC<BacklogViewProps> = ({
               <option value="" disabled>
                 Đổi trạng thái...
               </option>
-              <option value="TODO">TO DO</option>
-              <option value="IN_PROGRESS">IN PROGRESS</option>
-              <option value="IN_REVIEW">IN REVIEW</option>
-              <option value="DONE">DONE</option>
+              {statuses && statuses.length > 0 ? (
+                statuses.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.name.toUpperCase()}
+                  </option>
+                ))
+              ) : (
+                <>
+                  <option value="TODO">TO DO</option>
+                  <option value="IN_PROGRESS">IN PROGRESS</option>
+                  <option value="DONE">DONE</option>
+                </>
+              )}
             </select>
           </div>
 

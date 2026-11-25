@@ -76,8 +76,30 @@ export default function JiraApp() {
   const [issues, setIssues] = useState<Issue[]>(MOCK_ISSUES);
   const [epics, setEpics] = useState<Epic[]>(MOCK_EPICS);
   const [sprints, setSprints] = useState<Sprint[]>(MOCK_SPRINTS);
-  const [statuses, setStatuses] = useState<WorkflowStatus[]>(DEFAULT_STATUSES);
+  const [allStatuses, setAllStatuses] = useState<WorkflowStatus[]>([]);
   const [isLoadingData, setIsLoadingData] = useState(true);
+
+  // Scoped project workflow statuses: Strictly filtered by currentProject.id
+  const projectStatuses = useMemo<WorkflowStatus[]>(() => {
+    if (!currentProject?.id) return DEFAULT_STATUSES;
+    const scoped = allStatuses.filter((s) => s.projectId === currentProject.id);
+    if (scoped.length > 0) return scoped;
+    return DEFAULT_STATUSES;
+  }, [allStatuses, currentProject?.id]);
+
+  const updateProjectStatuses = useCallback((newProjectStatuses: WorkflowStatus[], projId: string) => {
+    setAllStatuses((prev) => {
+      const others = prev.filter((s) => s.projectId && s.projectId !== projId);
+      const tagged = newProjectStatuses.map((s) => ({ ...s, projectId: projId }));
+      const merged = [...others, ...tagged];
+      if (typeof window !== "undefined") {
+        try {
+          localStorage.setItem(`tamtask_project_statuses_${projId}`, JSON.stringify(tagged));
+        } catch {}
+      }
+      return merged;
+    });
+  }, []);
 
   // Ref to prevent auto-switching to default project after user has logged in once
   // Prevents loadData() re-runs (triggered by issue/project updates) from resetting currentProject
@@ -186,7 +208,7 @@ export default function JiraApp() {
               try {
                 const parsedStatuses = JSON.parse(cachedStatuses);
                 if (Array.isArray(parsedStatuses) && parsedStatuses.length > 0) {
-                  setStatuses(parsedStatuses);
+                  updateProjectStatuses(parsedStatuses, activeProj.id);
                 }
               } catch {}
             }
@@ -196,10 +218,11 @@ export default function JiraApp() {
         if (Array.isArray(parsed.users) && parsed.users.length > 0) setUsers(parsed.users);
         if (Array.isArray(parsed.epics) && parsed.epics.length > 0) setEpics(parsed.epics);
         if (Array.isArray(parsed.sprints) && parsed.sprints.length > 0) setSprints(parsed.sprints);
+        if (Array.isArray(parsed.statuses) && parsed.statuses.length > 0) setAllStatuses(parsed.statuses);
         setIsLoadingData(false);
       }
     } catch {}
-  }, [session, currentUser.id, currentUser.email]);
+  }, [session, currentUser.id, currentUser.email, updateProjectStatuses]);
 
   // Load project workflow statuses from DB whenever currentProject changes
   useEffect(() => {
@@ -210,7 +233,7 @@ export default function JiraApp() {
           if (cachedStatuses) {
             const parsedStatuses = JSON.parse(cachedStatuses);
             if (Array.isArray(parsedStatuses) && parsedStatuses.length > 0) {
-              setStatuses(parsedStatuses);
+              updateProjectStatuses(parsedStatuses, currentProject.id);
             }
           }
         } catch {}
@@ -220,17 +243,12 @@ export default function JiraApp() {
         .then((res) => res.json())
         .then((data) => {
           if (Array.isArray(data) && data.length > 0) {
-            setStatuses(data);
-            if (typeof window !== "undefined") {
-              try {
-                localStorage.setItem(`tamtask_project_statuses_${currentProject.id}`, JSON.stringify(data));
-              } catch {}
-            }
+            updateProjectStatuses(data, currentProject.id);
           }
         })
         .catch((err) => console.warn("Failed to load project statuses from DB:", err));
     }
-  }, [currentProject?.id]);
+  }, [currentProject?.id, updateProjectStatuses]);
 
   // Switch project handler: Synchronously sets project, persists to user localStorage, and aligns active sprint
   const handleSelectProject = useCallback(
@@ -249,7 +267,7 @@ export default function JiraApp() {
           if (cachedStatuses) {
             const parsedStatuses = JSON.parse(cachedStatuses);
             if (Array.isArray(parsedStatuses) && parsedStatuses.length > 0) {
-              setStatuses(parsedStatuses);
+              updateProjectStatuses(parsedStatuses, p.id);
             }
           }
         } catch {}
@@ -260,12 +278,7 @@ export default function JiraApp() {
         .then((res) => res.json())
         .then((data) => {
           if (Array.isArray(data) && data.length > 0) {
-            setStatuses(data);
-            if (typeof window !== "undefined") {
-              try {
-                localStorage.setItem(`tamtask_project_statuses_${p.id}`, JSON.stringify(data));
-              } catch {}
-            }
+            updateProjectStatuses(data, p.id);
           }
         })
         .catch(() => {});
@@ -394,12 +407,7 @@ export default function JiraApp() {
           }
 
           if (Array.isArray(bData.statuses) && bData.statuses.length > 0) {
-            setStatuses(bData.statuses);
-            if (targetProjId && typeof window !== "undefined") {
-              try {
-                localStorage.setItem(`tamtask_project_statuses_${targetProjId}`, JSON.stringify(bData.statuses));
-              } catch {}
-            }
+            setAllStatuses(bData.statuses);
           }
 
           bootstrapLoaded = true;
@@ -526,6 +534,7 @@ export default function JiraApp() {
             users: freshUsers ?? users,
             epics: freshEpics ?? epics,
             sprints: freshSprints ?? sprints,
+            statuses: allStatuses,
           });
           localStorage.setItem(userCacheKey, cacheData);
           localStorage.setItem("tamtask_swr_cache", cacheData);
@@ -1634,7 +1643,7 @@ export default function JiraApp() {
               users={projectUsers}
               epics={projectEpics}
               sprints={projectSprints}
-              statuses={statuses}
+              statuses={projectStatuses}
               currentUser={currentUser}
               isLoading={isLoadingData}
               onIssueClick={handleSelectIssue}
@@ -1653,6 +1662,7 @@ export default function JiraApp() {
               issues={projectIssues}
               sprints={projectSprints}
               users={projectUsers}
+              statuses={projectStatuses}
               currentUser={currentUser}
               isLoading={isLoadingData}
               onIssueClick={handleSelectIssue}
@@ -1726,7 +1736,7 @@ export default function JiraApp() {
         users={projectUsers}
         epics={projectEpics}
         sprints={projectSprints}
-        statuses={statuses}
+        statuses={projectStatuses}
         currentUser={currentUser}
         onClose={() => setSelectedIssue(null)}
         onUpdateIssue={handleUpdateIssue}
@@ -1771,15 +1781,12 @@ export default function JiraApp() {
       {/* Workflow Settings Modal */}
       <WorkflowSettingsModal
         isOpen={isWorkflowModalOpen}
-        statuses={statuses}
+        statuses={projectStatuses}
         currentProject={currentProject}
         onClose={() => setIsWorkflowModalOpen(false)}
         onSaveStatuses={(newStatuses) => {
-          setStatuses(newStatuses);
-          if (currentProject?.id && typeof window !== "undefined") {
-            try {
-              localStorage.setItem(`tamtask_project_statuses_${currentProject.id}`, JSON.stringify(newStatuses));
-            } catch {}
+          if (currentProject?.id) {
+            updateProjectStatuses(newStatuses, currentProject.id);
           }
         }}
       />
